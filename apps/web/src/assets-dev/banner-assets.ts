@@ -245,7 +245,7 @@ export function getCardConfiguration({
 > {
   const card = cardMap[_provider]
 
-  if (card === 'Default' && accepts.includes(Currency.LBTC))
+  if (card === 'Default' && (accepts.includes(Currency.LBTC) || accepts.includes(Currency.NIM)))
     return { ...cardConfig['Nimiq-Pay'], splitBanner: false }
 
   if (accepts.includes(Currency.LBTC)) {
