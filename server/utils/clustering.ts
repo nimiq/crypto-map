@@ -17,26 +17,26 @@ const MAX_ZOOM = 14
 const radii: Radii = Array.from({ length: MAX_ZOOM - MIN_ZOOM + 1 }, (_, i) => 120 + i * 30 / (MAX_ZOOM - MIN_ZOOM))
   .reduce((acc, radius, i) => ({ ...acc, [MIN_ZOOM + i]: radius }), {})
 
-export async function clustering(client: SupabaseClient<Database>) {
-  if (!import.meta.dev)
+export async function clustering(client: SupabaseClient<Database>, datasetId: string = 'prod', forceRun: boolean = false) {
+  if (!import.meta.dev && !forceRun)
     return
   const consola = createConsola({ level: 3 })
-  consola.info('Computing clusters')
+  consola.info(`Computing clusters for dataset: ${datasetId}`)
 
   const { supabaseAdminEmail: email, supabaseAdminPassword: password } = useRuntimeConfig()
   client.auth.signInWithPassword({ email, password })
   consola.debug('Signed in as admin')
 
-  consola.log('Flushing clusters')
-  await client.rpc('flush_markers_table')
+  consola.log(`Flushing clusters for dataset: ${datasetId}`)
+  await client.rpc('flush_markers_table', { p_dataset_id: datasetId })
 
   const boundingBox: BoundingBox = { nelat: 90, nelng: 180, swlat: -90, swlng: -180 }
 
-  const { data: locations, error: errorLocations } = await client.rpc('get_locations', { ...boundingBox, page_size: 30000 })
+  const { data: locations, error: errorLocations } = await client.rpc('get_locations', { ...boundingBox, page_size: 30000, p_dataset_id: datasetId, include_disabled: true })
   if (errorLocations)
     return new Error(`Error getting locations: ${errorLocations.message}`)
 
-  const { data: cryptocities, error: cryptocitiesError } = await client.rpc('get_cryptocities', { ...boundingBox, excluded_cities: [] })
+  const { data: cryptocities, error: cryptocitiesError } = await client.rpc('get_cryptocities', { ...boundingBox, excluded_cities: [], p_dataset_id: datasetId })
   if (cryptocitiesError)
     return new Error(`Error getting cryptocities: ${cryptocitiesError.message}`)
   consola.info(`Found ${cryptocities.length} cryptocities`)
@@ -69,7 +69,7 @@ export async function clustering(client: SupabaseClient<Database>) {
     }
 
     const markers = singlesToAdd.concat(locationClusters).concat(singlesCryptocities)
-    const { error } = await client.rpc('insert_markers', { zoom_level: zoom, items: markers as unknown as Json[] })
+    const { error } = await client.rpc('insert_markers', { zoom_level: zoom, items: markers as unknown as Json[], p_dataset_id: datasetId })
     if (error)
       console.error(`Error inserting markers: ${error.message}`)
   }
