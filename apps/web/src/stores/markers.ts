@@ -147,9 +147,9 @@ export const useMarkers = defineStore('markers', () => {
   // Cache clearing function for dataset switching
   function clearDatasetCache() {
     // Clear memoized markers cache
-    if (memoized.value) {
+    if (memoized.value)
       memoized.value.length = 0
-    }
+
     // Clear current markers
     setMarkers([], [])
   }

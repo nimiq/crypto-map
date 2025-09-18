@@ -100,11 +100,11 @@ export const useLocations = defineStore('locations', () => {
   // Cache clearing function for dataset switching
   function clearDatasetCache() {
     // Clear locations map
-    if (locationsMap.value) {
+    if (locationsMap.value)
       Object.keys(locationsMap.value).forEach(key => delete locationsMap.value[key])
-    }
+
     // Clear visited areas
-    visitedAreas.value = undefined
+    visitedAreas.value = undefined as any
   }
 
   // Watch for dataset changes and clear cache automatically

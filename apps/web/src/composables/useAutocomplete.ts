@@ -124,7 +124,7 @@ export function useAutocomplete({ autocomplete, persistState = true }: UseAutoco
   }
 
   async function autocompleteLocations() {
-    locationSuggestions.value = await searchLocations(await getAnonDatabaseArgs(), query.value)
+    locationSuggestions.value = await searchLocations(await getAnonDatabaseArgs(), { query: query.value })
   }
 
   async function autocompleteCryptocities() {

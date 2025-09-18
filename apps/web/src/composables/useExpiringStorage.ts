@@ -145,7 +145,7 @@ export function useExpiringStorage<T>(_key: string, options: UseExpiringStorageS
   refreshData(remainingTime)
 
   return {
-    payload: computed(() => stored.value),
+    payload: stored,
     init,
     // clean: () => storage.removeItem(key),
     clean: () => deleteCookie(key),

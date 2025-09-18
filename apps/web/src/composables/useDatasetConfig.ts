@@ -24,7 +24,8 @@ export function useDatasetConfig() {
 
   // Initialize dataset configuration on first use
   const initializeDataset = () => {
-    if (isInitialized.value) return
+    if (isInitialized.value)
+      return
 
     // 1. Start with environment variable (with fallback to 'prod')
     const envDatasetId = (import.meta.env.VITE_DATASET_ID || DEFAULT_DATASET_ID) as DatasetId
@@ -42,7 +43,8 @@ export function useDatasetConfig() {
       activeDataset = urlDatasetParam as DatasetId
       // Persist URL parameter to session storage
       sessionStorage.setItem('cryptomap__dataset_override', activeDataset)
-    } else if (sessionDataset && (sessionDataset === 'prod' || sessionDataset === 'next')) {
+    }
+    else if (sessionDataset && (sessionDataset === 'prod' || sessionDataset === 'next')) {
       activeDataset = sessionDataset
     }
 
@@ -51,9 +53,8 @@ export function useDatasetConfig() {
   }
 
   // Initialize on first call
-  if (!isInitialized.value) {
+  if (!isInitialized.value)
     initializeDataset()
-  }
 
   // Watch for URL changes and update dataset accordingly
   watch(
@@ -68,7 +69,7 @@ export function useDatasetConfig() {
         }
       }
     },
-    { immediate: false }
+    { immediate: false },
   )
 
   // Computed properties for convenience
@@ -85,16 +86,15 @@ export function useDatasetConfig() {
       router.push({
         query: {
           ...route.query,
-          dataset: dataset === DEFAULT_DATASET_ID ? undefined : dataset
-        }
+          dataset: dataset === DEFAULT_DATASET_ID ? undefined : dataset,
+        },
       })
 
       // Update session storage
-      if (dataset === DEFAULT_DATASET_ID) {
+      if (dataset === DEFAULT_DATASET_ID)
         sessionStorage.removeItem('cryptomap__dataset_override')
-      } else {
+      else
         sessionStorage.setItem('cryptomap__dataset_override', dataset)
-      }
     }
   }
 
@@ -104,7 +104,7 @@ export function useDatasetConfig() {
     sessionStorage.removeItem('cryptomap__dataset_override')
 
     // Remove dataset param from URL
-    const { dataset, ...queryWithoutDataset } = route.query
+    const { dataset: _dataset, ...queryWithoutDataset } = route.query
     router.push({ query: queryWithoutDataset })
 
     currentDataset.value = envDefault
