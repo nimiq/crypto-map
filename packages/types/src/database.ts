@@ -158,15 +158,43 @@ export const anyUserDbFunctions: AnyUserDbFunction = Object.assign(
   AnyUserReadDbFunction,
 )
 
+// Default dataset ID constant for backward compatibility
+export const DEFAULT_DATASET_ID = 'prod' as const
+
+export type DatasetId = 'prod' | 'next'
+
 export interface Args {
-  [AnonReadDbFunction.GetMarkers]: { zoom: number, boundingBox: BoundingBox }
+  [AnonReadDbFunction.GetLocations]: {
+    boundingBox: BoundingBox
+    datasetId?: DatasetId
+    includeDisabled?: boolean
+  }
+  [AnonReadDbFunction.GetLocation]: {
+    uuid: string
+    datasetId?: DatasetId
+  }
+  [AnonReadDbFunction.SearchLocations]: {
+    query: string
+    datasetId?: DatasetId
+  }
+  [AnonReadDbFunction.GetMarkers]: {
+    zoom: number
+    boundingBox: BoundingBox
+    datasetId?: DatasetId
+  }
   [AnonReadDbFunction.GetCryptocities]: {
     boundingBox: BoundingBox
     excludedCities: Cryptocity[]
+    datasetId?: DatasetId
+  }
+  [AuthWriteDbFunction.UpsertRawLocation]: {
+    location: Omit<RawLocation, 'uuid'>
+    datasetId?: DatasetId
   }
   [AuthWriteDbFunction.UpsertLocationsWithGMaps]: (Partial<RawLocation> & {
     accepts: RawLocation['accepts']
     place_id?: string
+    datasetId?: DatasetId
   })[]
   [AuthWriteDbFunction.InsertMarkers]: {
     zoom_level: number
@@ -175,6 +203,10 @@ export interface Args {
       | InsertMarkersSingleCryptocity
       | InsertMarkersCluster
     )[]
+    datasetId?: DatasetId
+  }
+  [AuthWriteDbFunction.FlushMarkersTable]: {
+    datasetId?: DatasetId
   }
 }
 

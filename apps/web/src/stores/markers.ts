@@ -2,6 +2,7 @@ import { getClusterMaxZoom } from 'database'
 import { CLUSTERS_MAX_ZOOM, addBBoxToArea, algorithm, bBoxIsWithinArea, computeMarkers, getItemsWithinBBox, toMultiPolygon } from 'geo'
 import type { Cluster, LocationClusterParams, MapLocation, Markers, MemoizedMarkers } from 'types'
 import { getAnonDatabaseArgs, parseLocation } from '@/shared'
+import { useDatasetConfig } from '@/composables/useDatasetConfig'
 
 export const useMarkers = defineStore('markers', () => {
   const { setLocations, getLocations } = useLocations()
@@ -10,13 +11,16 @@ export const useMarkers = defineStore('markers', () => {
   const { setCryptocities, getCryptocities } = useCryptocities()
   const { attachedCryptocities } = storeToRefs(useCryptocities())
 
+  // Dataset configuration for cache scoping
+  const { datasetId } = useDatasetConfig()
+
   /*
    * With memoization, we reduce redundant calculations/requests and optimizes user map interactions to optimize map performance:
   -* `memoizedCluster` stores clusters, bounding boxes, and filters by zoom level.
   -* Before re-clustering, we check for existing data matching the current zoom, bounding box, and filters.
   -* If a match is found, we reuse stored clusters; otherwise, new clusters are computed and stored.
    */
-  const { payload: memoized } = useExpiringStorage('memoized_markers', {
+  const { payload: memoized } = useExpiringStorage(`memoized_markers::${datasetId.value}`, {
     defaultValue: [] as { key: LocationClusterParams, value: MemoizedMarkers }[],
     expiresIn: 7 * 24 * 60 * 60 * 1000,
     timestamp: useApp().timestamps?.markers,
@@ -51,10 +55,10 @@ export const useMarkers = defineStore('markers', () => {
     return { key, item, needsToUpdate }
   }
 
-  const { init: initMaxZoom, payload: maxZoomFromServer } = useExpiringStorage('max_zoom_from_server', {
+  const { init: initMaxZoom, payload: maxZoomFromServer } = useExpiringStorage(`max_zoom_from_server::${datasetId.value}`, {
     expiresIn: 7 * 24 * 60 * 60 * 1000,
     getAsyncValue: async () => {
-      return await getClusterMaxZoom(await getAnonDatabaseArgs())
+      return await getClusterMaxZoom(await getAnonDatabaseArgs(), datasetId.value)
     },
     timestamp: useApp().timestamps?.markers,
   })
@@ -85,6 +89,7 @@ export const useMarkers = defineStore('markers', () => {
     url.searchParams.append('swlat', boundingBox.value!.swLat.toString())
     url.searchParams.append('swlng', boundingBox.value!.swLng.toString())
     url.searchParams.append('zoom_level', zoom.value.toString())
+    url.searchParams.append('dataset', datasetId.value)
     const res = await fetch(url)
     const json = await res.json() as Markers
     const { singles, clusters } = json
@@ -139,6 +144,21 @@ export const useMarkers = defineStore('markers', () => {
     setMarkers(newSingles, newClusters)
   }
 
+  // Cache clearing function for dataset switching
+  function clearDatasetCache() {
+    // Clear memoized markers cache
+    if (memoized.value) {
+      memoized.value.length = 0
+    }
+    // Clear current markers
+    setMarkers([], [])
+  }
+
+  // Watch for dataset changes and clear cache automatically
+  watch(datasetId, () => {
+    clearDatasetCache()
+  })
+
   return {
     memoized,
     cluster,
@@ -149,5 +169,6 @@ export const useMarkers = defineStore('markers', () => {
     loaded,
     maxZoomFromServer,
     clearMarkers: () => setMarkers([], []),
+    clearDatasetCache,
   }
 })

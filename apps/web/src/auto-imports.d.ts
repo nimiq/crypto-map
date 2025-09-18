@@ -11,6 +11,7 @@ declare global {
   const Currency: typeof import('types')['Currency']
   const CustomMarker: typeof import('vue3-google-maps')['CustomMarker']
   const DATABASE_ARGS: typeof import('./shared')['DATABASE_ARGS']
+  const DEFAULT_DATASET_ID: typeof import('./composables/useDatasetConfig')['DEFAULT_DATASET_ID']
   const DatabaseArgs: typeof import('types')['DatabaseArgs']
   const EffectScope: typeof import('vue')['EffectScope']
   const FormState: typeof import('./composables/useForm')['FormState']
@@ -207,6 +208,7 @@ declare global {
   const useCurrentElement: typeof import('@vueuse/core')['useCurrentElement']
   const useCycleList: typeof import('@vueuse/core')['useCycleList']
   const useDark: typeof import('@vueuse/core')['useDark']
+  const useDatasetConfig: typeof import('./composables/useDatasetConfig')['useDatasetConfig']
   const useDateFormat: typeof import('@vueuse/core')['useDateFormat']
   const useDebounce: typeof import('@vueuse/core')['useDebounce']
   const useDebounceFn: typeof import('@vueuse/core')['useDebounceFn']
@@ -377,6 +379,7 @@ declare module 'vue' {
   interface ComponentCustomProperties {
     readonly Autocomplete: UnwrapRef<typeof import('./composables/useAutocomplete')['Autocomplete']>
     readonly AutocompleteStatus: UnwrapRef<typeof import('./composables/useAutocomplete')['AutocompleteStatus']>
+    readonly DEFAULT_DATASET_ID: UnwrapRef<typeof import('./composables/useDatasetConfig')['DEFAULT_DATASET_ID']>
     readonly EffectScope: UnwrapRef<typeof import('vue')['EffectScope']>
     readonly FormState: UnwrapRef<typeof import('./composables/useForm')['FormState']>
     readonly Layout: UnwrapRef<typeof import('./composables/useUI')['Layout']>
@@ -547,6 +550,7 @@ declare module 'vue' {
     readonly useCurrentElement: UnwrapRef<typeof import('@vueuse/core')['useCurrentElement']>
     readonly useCycleList: UnwrapRef<typeof import('@vueuse/core')['useCycleList']>
     readonly useDark: UnwrapRef<typeof import('@vueuse/core')['useDark']>
+    readonly useDatasetConfig: UnwrapRef<typeof import('./composables/useDatasetConfig')['useDatasetConfig']>
     readonly useDateFormat: UnwrapRef<typeof import('@vueuse/core')['useDateFormat']>
     readonly useDebounce: UnwrapRef<typeof import('@vueuse/core')['useDebounce']>
     readonly useDebounceFn: UnwrapRef<typeof import('@vueuse/core')['useDebounceFn']>
@@ -704,6 +708,7 @@ declare module '@vue/runtime-core' {
   interface ComponentCustomProperties {
     readonly Autocomplete: UnwrapRef<typeof import('./composables/useAutocomplete')['Autocomplete']>
     readonly AutocompleteStatus: UnwrapRef<typeof import('./composables/useAutocomplete')['AutocompleteStatus']>
+    readonly DEFAULT_DATASET_ID: UnwrapRef<typeof import('./composables/useDatasetConfig')['DEFAULT_DATASET_ID']>
     readonly EffectScope: UnwrapRef<typeof import('vue')['EffectScope']>
     readonly FormState: UnwrapRef<typeof import('./composables/useForm')['FormState']>
     readonly Layout: UnwrapRef<typeof import('./composables/useUI')['Layout']>
@@ -874,6 +879,7 @@ declare module '@vue/runtime-core' {
     readonly useCurrentElement: UnwrapRef<typeof import('@vueuse/core')['useCurrentElement']>
     readonly useCycleList: UnwrapRef<typeof import('@vueuse/core')['useCycleList']>
     readonly useDark: UnwrapRef<typeof import('@vueuse/core')['useDark']>
+    readonly useDatasetConfig: UnwrapRef<typeof import('./composables/useDatasetConfig')['useDatasetConfig']>
     readonly useDateFormat: UnwrapRef<typeof import('@vueuse/core')['useDateFormat']>
     readonly useDebounce: UnwrapRef<typeof import('@vueuse/core')['useDebounce']>
     readonly useDebounceFn: UnwrapRef<typeof import('@vueuse/core')['useDebounceFn']>

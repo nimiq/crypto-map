@@ -10,3 +10,38 @@ deployment-map
 .env
 .env.nuxt
 .env.vite
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dev-debug.log
+# Dependency directories
+# Environment variables
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+# OS specific
+.DS_Store
+
+# Task files
+# tasks.json
+# tasks/ 
+
+CLAUDE.md
+AGENTS.md
+.claude
+.mcp.json
+.data
+.taskmaster/
+functions/
+functions-updated
+docs
+next_locations

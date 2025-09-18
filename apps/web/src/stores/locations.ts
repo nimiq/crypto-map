@@ -3,17 +3,27 @@ import { addBBoxToArea, bBoxIsWithinArea, getItemsWithinBBox } from 'geo'
 import type { BoundingBox, MapLocation } from 'types'
 import { useRouteQuery } from '@vueuse/router'
 import { parseLocation } from '@/shared'
+import { useDatasetConfig } from '@/composables/useDatasetConfig'
 
 export const useLocations = defineStore('locations', () => {
-  // Reduce redundant database fetches by reusing fetched locations by tracking the areas explored by the user
-  const visitedAreas = ref<Feature<MultiPolygon>>()
+  // Dataset configuration for cache scoping
+  const { datasetId } = useDatasetConfig()
 
-  // const { payload: locationsMap } = useExpiringStorage('locations', {
-  //   defaultValue: {} as Record<string, MapLocation>,
-  //   expiresIn: 7 * 24 * 60 * 60 * 1000,
-  //   timestamp: useApp().timestamps?.locations,
-  // })
-  const locationsMap = ref<Record<string, MapLocation>>({})
+  // Reduce redundant database fetches by reusing fetched locations by tracking the areas explored by the user
+  // Use dataset-scoped visited areas to ensure proper isolation
+  const { payload: visitedAreas } = useExpiringStorage(`visited_areas::${datasetId.value}`, {
+    defaultValue: undefined as Feature<MultiPolygon> | undefined,
+    expiresIn: 7 * 24 * 60 * 60 * 1000,
+    timestamp: useApp().timestamps?.locations,
+  })
+
+  // Enable dataset-scoped caching for locations
+  const { payload: locationsMap } = useExpiringStorage(`locations::${datasetId.value}`, {
+    defaultValue: {} as Record<string, MapLocation>,
+    expiresIn: 7 * 24 * 60 * 60 * 1000,
+    timestamp: useApp().timestamps?.locations,
+  })
+
   const locations = computed(() => Object.values(locationsMap.value))
 
   function setLocations(locations: MapLocation[]) {
@@ -32,6 +42,7 @@ export const useLocations = defineStore('locations', () => {
     url.searchParams.append('nelng', boundingBox.neLng.toString())
     url.searchParams.append('swlat', boundingBox.swLat.toString())
     url.searchParams.append('swlng', boundingBox.swLng.toString())
+    url.searchParams.append('dataset', datasetId.value)
     const res = await fetch(url)
     const rawLocations = await res.json()
     if (!rawLocations)
@@ -46,7 +57,9 @@ export const useLocations = defineStore('locations', () => {
     if (uuid in locationsMap.value)
       return locationsMap.value[uuid]
 
-    const res = await fetch(`https://crypto-map.nuxt.dev/api/locations/${uuid}`)
+    const url = new URL(`https://crypto-map.nuxt.dev/api/locations/${uuid}`)
+    url.searchParams.append('dataset', datasetId.value)
+    const res = await fetch(url)
     const location = parseLocation(await res.json())
     if (!location)
       return
@@ -84,12 +97,28 @@ export const useLocations = defineStore('locations', () => {
     return true
   }
 
+  // Cache clearing function for dataset switching
+  function clearDatasetCache() {
+    // Clear locations map
+    if (locationsMap.value) {
+      Object.keys(locationsMap.value).forEach(key => delete locationsMap.value[key])
+    }
+    // Clear visited areas
+    visitedAreas.value = undefined
+  }
+
+  // Watch for dataset changes and clear cache automatically
+  watch(datasetId, () => {
+    clearDatasetCache()
+  })
+
   return {
     getLocations,
     getLocationByUuid,
     locations,
     setLocations,
     visitedAreas,
+    clearDatasetCache,
 
     selectedUuid,
     goToLocation,
