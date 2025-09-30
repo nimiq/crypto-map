@@ -2,6 +2,7 @@
   "name": "pay-app",
   "type": "module",
   "private": true,
+  "packageManager": "pnpm@10.15.1",
   "scripts": {
     "dev": "nuxt dev",
     "build": "nuxt build",
