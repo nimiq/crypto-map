@@ -1,0 +1,39 @@
+{
+  "name": "pay-app",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "db:generate": "drizzle-kit generate",
+    "lint": "eslint . --cache",
+    "lint:fix": "eslint . --fix --cache",
+    "typecheck": "nuxt typecheck"
+  },
+  "dependencies": {
+    "@nuxt/fonts": "catalog:",
+    "@nuxthub/core": "catalog:",
+    "@vueuse/nuxt": "catalog:",
+    "drizzle-orm": "catalog:",
+    "nuxt": "catalog:",
+    "nuxt-safe-runtime-config": "catalog:",
+    "reka-ui": "catalog:",
+    "valibot": "catalog:"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "catalog:",
+    "@nuxt/eslint": "catalog:",
+    "@unocss/eslint-plugin": "catalog:",
+    "@unocss/nuxt": "catalog:",
+    "@unocss/preset-attributify": "catalog:",
+    "drizzle-kit": "catalog:",
+    "eslint": "catalog:",
+    "eslint-plugin-format": "catalog:",
+    "nimiq-css": "catalog:",
+    "unocss-preset-onmax": "catalog:",
+    "wrangler": "catalog:"
+  }
+}
