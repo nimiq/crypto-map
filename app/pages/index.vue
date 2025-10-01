@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const searchQuery = ref('')
-const selectedCategories = ref<Category[]>([])
+const selectedCategories = ref<CategoryResponse[]>([])
 const filters = ref<string[]>([])
 
 const { data: categories, refresh: refreshCategories } = useFetch('/api/categories', {

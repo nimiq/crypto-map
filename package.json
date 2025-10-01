@@ -8,6 +8,7 @@
     "build": "nuxt build",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
+    "prepare": "nuxt prepare",
     "postinstall": "nuxt prepare",
     "db:generate": "drizzle-kit generate",
     "lint": "eslint . --cache",

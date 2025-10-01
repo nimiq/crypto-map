@@ -1,5 +1,6 @@
 import process from 'node:process'
 import { icons as nimiqIcons } from 'nimiq-icons'
+import { defineNuxtConfig } from 'nuxt/config'
 import * as v from 'valibot'
 
 export default defineNuxtConfig({
@@ -49,5 +50,5 @@ export default defineNuxtConfig({
     collections: ['tabler'],
     customCollections: [nimiqIcons],
   },
-  compatibilityDate: '2024-09-30',
+  compatibilityDate: '2025-10-01',
 })
