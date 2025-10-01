@@ -1,4 +1,4 @@
-import type * as schema from '../../supabase/schema'
+import type * as schema from '../../database/schema'
 
 export type Location = typeof schema.locations.$inferSelect
 export type Category = typeof schema.categories.$inferSelect

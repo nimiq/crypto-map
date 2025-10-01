@@ -34,8 +34,8 @@ pnpm install
 cp .env.example .env
 # Edit .env with your PostgreSQL credentials
 
-# Start Supabase (PostgreSQL + PostGIS) with Docker
-cd supabase && docker compose --env-file ../.env up -d && cd ..
+# Start PostgreSQL + PostGIS with Docker
+pnpm run db:start
 # Database is automatically seeded on first start
 ```
 
@@ -62,12 +62,11 @@ pay-app/
 │   ├── api/
 │   │   ├── categories.get.ts # Get all categories
 │   │   └── search.get.ts    # Search locations by name
-│   ├── database/
-│   │   └── schema.ts        # Drizzle schema (3 tables, PostGIS)
 │   └── utils/
 │       ├── drizzle.ts       # Database utilities and types
 │       └── geoip.ts         # GeoIP location service
-├── supabase/
+├── database/
+│   ├── schema.ts            # Drizzle schema (3 tables, PostGIS)
 │   ├── docker-compose.yml   # Docker setup for PostgreSQL + PostGIS
 │   ├── init.sh              # Database initialization (PostGIS, roles)
 │   ├── run-migrations.sh    # Migration runner script
@@ -180,7 +179,10 @@ pnpm run build            # Build for production
 pnpm run preview          # Preview production build
 
 # Database
-pnpm run db:generate      # Generate migrations (stored in supabase/migrations/)
+pnpm run db:start         # Start PostgreSQL + PostGIS with Docker
+pnpm run db:stop          # Stop database
+pnpm run db:restart       # Restart database (useful for reseeding)
+pnpm run db:generate      # Generate migrations (stored in database/migrations/)
 
 # Code Quality
 pnpm run lint             # Run ESLint
@@ -190,17 +192,17 @@ pnpm run typecheck        # Run TypeScript checks
 
 ## Environment Variables
 
-Create a `.env` file (see `.env.example`):
+Create a `.env` file in the project root (see `.env.example`):
 
 ```env
 # PostgreSQL Configuration
 POSTGRES_HOST=localhost
-POSTGRES_PORT=54322
+POSTGRES_PORT=5432
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=your_password
 POSTGRES_DB=postgres
 
-# JWT Configuration (if using Supabase)
+# JWT Configuration (if using Supabase Studio)
 JWT_SECRET=your_jwt_secret
 
 # API Keys
@@ -208,30 +210,29 @@ ANON_KEY=your_anon_key
 SERVICE_ROLE_KEY=your_service_role_key
 NUXT_GOOGLE_API_KEY=your_google_api_key
 
-# Kong & Studio (optional, for Supabase)
+# Kong & Studio (optional)
 KONG_HTTP_PORT=8100
 STUDIO_PORT=4000
 SUPABASE_PUBLIC_URL=http://localhost:8100
 ```
 
-## Supabase Studio (Minimal)
+## Database Development
 
-This repository includes a minimal Supabase setup with PostGIS in the `supabase/` directory.
+This repository includes a PostgreSQL + PostGIS setup in the `database/` directory.
 
 **Quick Start:**
 
 ```bash
-cd supabase
-docker compose --env-file ../.env up -d      # Start services
+pnpm run db:start      # Start services
 ```
 
 **Access:**
 
 - **Supabase Studio**: http://localhost:4000
-- **PostgreSQL**: `localhost:54322`
+- **PostgreSQL**: `localhost:5432`
 - **REST API**: http://localhost:8100
 
-See [`supabase/README.md`](supabase/README.md) for PostGIS examples and REST API usage.
+See [`database/README.md`](database/README.md) for PostGIS examples and REST API usage.
 
 ## Learn More
 

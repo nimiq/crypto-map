@@ -1,11 +1,11 @@
-# Supabase Development Environment
+# Database Development Environment
 
 Local PostgreSQL with PostGIS for development. The Nuxt app connects directly to PostgreSQL via Drizzle ORM. The additional services (Kong, PostgREST, meta) are only needed for Supabase Studio UI.
 
 ## Folder Structure
 
 ```
-supabase/
+database/
 ├── docker-compose.yml      # Docker services: PostgreSQL + Supabase Studio UI
 ├── init.sh                 # Database initialization (PostGIS extension, roles)
 ├── kong.yml                # API gateway for Studio UI only
@@ -64,13 +64,17 @@ SQL files in `seeds/` populate the database with initial data:
 
 ## Quick Start
 
+Run from the project root:
+
 ```bash
-# Copy environment variables
-cp ../.env.example ../.env
+# Copy environment variables (if not already done)
+cp .env.example .env
+
+# Edit .env with your credentials
+# The .env file is in the project root
 
 # Start services
-cd supabase
-docker compose up -d
+pnpm run db:start
 
 # Access Supabase Studio UI
 open http://localhost:4000
@@ -94,7 +98,7 @@ open http://localhost:4000
 
 ## Environment Variables
 
-Required in `../.env`:
+Required in `.env` (project root):
 
 ```env
 # Database connection (used by Nuxt app)

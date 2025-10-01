@@ -6,8 +6,8 @@ const url = `postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}
 
 export default defineConfig({
   dialect: 'postgresql',
-  schema: './supabase/schema.ts',
-  out: './supabase/migrations',
+  schema: './database/schema.ts',
+  out: './database/migrations',
   dbCredentials: {
     url,
   },
