@@ -1,5 +1,6 @@
+import { consola } from 'consola'
+import { eq, sql } from 'drizzle-orm'
 import * as v from 'valibot'
-import { eq } from 'drizzle-orm'
 
 const querySchema = v.object({
   lat: v.optional(v.pipe(
@@ -19,7 +20,7 @@ const querySchema = v.object({
   q: v.optional(v.string()),
 })
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event): Promise<LocationResponse[]> => {
   const query = getQuery(event)
 
   const result = v.safeParse(querySchema, query)
@@ -52,8 +53,9 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  // TODO: Use lat/lng for distance-based sorting
   if (lat !== undefined && lng !== undefined) {
-    console.log(`User location: ${lat}, ${lng} (not used for sorting yet)`)
+    consola.info(`User location: ${lat}, ${lng} (not used for sorting yet)`, { tag: 'geolocation' })
   }
 
   const db = useDrizzle()
@@ -65,8 +67,8 @@ export default defineEventHandler(async (event) => {
         uuid: tables.locations.uuid,
         name: tables.locations.name,
         address: tables.locations.address,
-        latitude: tables.locations.latitude,
-        longitude: tables.locations.longitude,
+        latitude: sql<number>`ST_Y(${tables.locations.location})`.as('latitude'),
+        longitude: sql<number>`ST_X(${tables.locations.location})`.as('longitude'),
         rating: tables.locations.rating,
         photo: tables.locations.photo,
         gmapsPlaceId: tables.locations.gmapsPlaceId,
@@ -75,18 +77,23 @@ export default defineEventHandler(async (event) => {
         source: tables.locations.source,
         createdAt: tables.locations.createdAt,
         updatedAt: tables.locations.updatedAt,
-        categories: sql<string>`GROUP_CONCAT(${tables.locationCategories.categoryId})`.as('categories'),
+        categoryIds: sql<string>`STRING_AGG(${tables.locationCategories.categoryId}, ',')`.as('categoryIds'),
       })
       .from(tables.locations)
       .leftJoin(tables.locationCategories, eq(tables.locations.uuid, tables.locationCategories.locationUuid))
       .groupBy(tables.locations.uuid)
       .orderBy(sql`RANDOM()`)
       .limit(10)
-      .all()
+
+    // Get all categories once
+    const allCategories = await db.select().from(tables.categories)
+    const categoryMap = new Map(allCategories.map(cat => [cat.id, { id: cat.id, name: cat.name, icon: cat.icon }]))
 
     return randomLocations.map(loc => ({
       ...loc,
-      categories: loc.categories ? loc.categories.split(',') : [],
+      categories: loc.categoryIds
+        ? loc.categoryIds.split(',').map(id => categoryMap.get(id)!).filter(Boolean)
+        : [],
     }))
   }
 
@@ -96,8 +103,8 @@ export default defineEventHandler(async (event) => {
       uuid: tables.locations.uuid,
       name: tables.locations.name,
       address: tables.locations.address,
-      latitude: tables.locations.latitude,
-      longitude: tables.locations.longitude,
+      latitude: sql<number>`ST_Y(${tables.locations.location})`.as('latitude'),
+      longitude: sql<number>`ST_X(${tables.locations.location})`.as('longitude'),
       rating: tables.locations.rating,
       photo: tables.locations.photo,
       gmapsPlaceId: tables.locations.gmapsPlaceId,
@@ -106,17 +113,22 @@ export default defineEventHandler(async (event) => {
       source: tables.locations.source,
       createdAt: tables.locations.createdAt,
       updatedAt: tables.locations.updatedAt,
-      categories: sql<string>`GROUP_CONCAT(${tables.locationCategories.categoryId})`.as('categories'),
+      categoryIds: sql<string>`STRING_AGG(${tables.locationCategories.categoryId}, ',')`.as('categoryIds'),
     })
     .from(tables.locations)
     .leftJoin(tables.locationCategories, eq(tables.locations.uuid, tables.locationCategories.locationUuid))
     .where(sql`${tables.locations.name} LIKE ${`%${searchQuery}%`}`)
     .groupBy(tables.locations.uuid)
     .limit(10)
-    .all()
+
+  // Get all categories once
+  const allCategories = await db.select().from(tables.categories)
+  const categoryMap = new Map(allCategories.map(cat => [cat.id, { id: cat.id, name: cat.name, icon: cat.icon, createdAt: cat.createdAt }]))
 
   return searchResults.map(loc => ({
     ...loc,
-    categories: loc.categories ? loc.categories.split(',') : [],
+    categories: loc.categoryIds
+      ? loc.categoryIds.split(',').map(id => categoryMap.get(id)!).filter(Boolean)
+      : [],
   }))
 })

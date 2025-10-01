@@ -5,21 +5,22 @@ A Nuxt 4 application for discovering locations that accept cryptocurrency paymen
 ## Features
 
 - 🗺️ Browse crypto-friendly locations with images and details
-- 🔍 Filter by Google Maps categories (restaurant, cafe, lodging, etc.)
+- 🔍 Search locations by name
 - 📍 Optional location-based search with Cloudflare IP geolocation
-- 💾 SQLite database with Drizzle ORM and normalized schema
+- 💾 PostgreSQL database with PostGIS for geospatial queries
 - 🎨 UnoCSS with Nimiq design system (attributify mode)
 - 🧩 Accessible UI with Reka UI components
-- 🚀 Deployed on NuxtHub (Cloudflare Pages + D1)
+- 🚀 Deployed on NuxtHub/Cloudflare
 
 ## Tech Stack
 
 - **Framework**: Nuxt 4
-- **Database**: SQLite (via NuxtHub) with Drizzle ORM
+- **Database**: PostgreSQL with PostGIS extension
+- **ORM**: Drizzle ORM
 - **Styling**: UnoCSS with `nimiq-css` and `unocss-preset-onmax`
 - **UI Components**: Reka UI
 - **Validation**: Valibot
-- **Deployment**: NuxtHub (Cloudflare Pages + D1)
+- **Deployment**: NuxtHub/Cloudflare
 
 ## Installation
 
@@ -29,8 +30,13 @@ First, [install pnpm](https://pnpm.io/installation) if you haven't already.
 # Install dependencies
 pnpm install
 
-# Generate database migrations
-pnpm run db:generate
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your PostgreSQL credentials
+
+# Start Supabase (PostgreSQL + PostGIS) with Docker
+cd supabase && docker compose --env-file ../.env up -d && cd ..
+# Database is automatically seeded on first start
 ```
 
 ## Development
@@ -42,6 +48,8 @@ pnpm run dev
 
 The app will be available at `http://localhost:3000`
 
+**Note:** Make sure PostgreSQL with PostGIS is running and accessible with the credentials in your `.env` file.
+
 ## Project Structure
 
 ```
@@ -49,20 +57,27 @@ pay-app/
 ├── app/
 │   ├── app.vue              # Root component
 │   └── pages/
-│       └── index.vue        # Main locations page with filters
+│       └── index.vue        # Main locations page with search
 ├── server/
 │   ├── api/
 │   │   ├── categories.get.ts # Get all categories
-│   │   └── search.get.ts    # Search locations with filters
+│   │   └── search.get.ts    # Search locations by name
 │   ├── database/
-│   │   ├── schema.ts        # Drizzle schema (3 tables)
-│   │   └── migrations/      # Database migrations
-│   ├── plugins/
-│   │   └── seed.ts          # Auto-seed database on startup
+│   │   └── schema.ts        # Drizzle schema (3 tables, PostGIS)
 │   └── utils/
-│       ├── dummyData.ts     # Sample location data for seeding
 │       ├── drizzle.ts       # Database utilities and types
 │       └── geoip.ts         # GeoIP location service
+├── supabase/
+│   ├── docker-compose.yml   # Docker setup for PostgreSQL + PostGIS
+│   ├── init.sh              # Database initialization (PostGIS, roles)
+│   ├── run-migrations.sh    # Migration runner script
+│   ├── rls-policies.sql     # Row Level Security policies
+│   ├── seed.sql             # Main seed orchestration
+│   ├── migrations/          # Drizzle migrations (auto-generated)
+│   └── seeds/
+│       ├── categories.sql   # All Google Maps categories
+│       └── sources/
+│           └── dummy.sql    # Dummy location data
 ├── nuxt.config.ts           # Nuxt configuration
 ├── uno.config.ts            # UnoCSS configuration
 ├── drizzle.config.ts        # Drizzle ORM configuration
@@ -87,18 +102,19 @@ Returns all available categories from the database.
 
 ### `GET /api/search`
 
-Search for locations by category. All parameters are optional.
+Search for locations by name. All parameters are optional.
 
 **Query Parameters:**
 
-- `categories` (optional): Array of Google Maps category IDs (e.g., `restaurant`, `cafe`, `bank`)
+- `q` (optional): Search query to filter locations by name
 - `lat` (optional): Latitude for future distance-based sorting
 - `lng` (optional): Longitude for future distance-based sorting
 
 **Behavior:**
-- Without categories: Returns 10 random locations
-- With categories: Returns all locations matching any of the specified categories
+- Without search query: Returns 10 random locations
+- With search query: Returns up to 10 locations matching the search term (case-insensitive)
 - Location data is logged but not yet used for sorting
+- Uses PostGIS to extract latitude/longitude from geometry points
 
 **Examples:**
 
@@ -106,16 +122,16 @@ Search for locations by category. All parameters are optional.
 # Get random locations
 curl "http://localhost:3000/api/search"
 
-# Filter by categories
-curl "http://localhost:3000/api/search?categories=restaurant&categories=cafe"
+# Search by name
+curl "http://localhost:3000/api/search?q=cafe"
 
 # With location (for future distance sorting)
-curl "http://localhost:3000/api/search?categories=restaurant&lat=46.0037&lng=8.9511"
+curl "http://localhost:3000/api/search?q=restaurant&lat=46.0037&lng=8.9511"
 ```
 
 ## Database Schema
 
-The database uses a normalized relational schema with three tables:
+The database uses PostgreSQL with PostGIS and a normalized relational schema with three tables:
 
 ### `categories`
 - `id`: Category ID (primary key, e.g., "restaurant", "cafe")
@@ -126,23 +142,28 @@ The database uses a normalized relational schema with three tables:
 - `uuid`: Auto-generated unique identifier (primary key)
 - `name`: Location name
 - `address`: Full address
-- `latitude`/`longitude`: Geographic coordinates
+- `location`: **PostGIS geometry(point, 4326)** - Stores lat/lng as a single geographic point with GIST spatial index
 - `rating`: User rating (0-5)
 - `photo`: Image URL (optional)
 - `gmapsPlaceId`: Google Maps Place ID
 - `gmapsUrl`: Google Maps URL
 - `website`: Location website (optional)
-- `categories`: JSON array of category IDs (denormalized for performance)
 - `source`: Data source (`naka` or `bluecode`)
 - `createdAt`/`updatedAt`: Timestamps
+
+**PostGIS Functions:**
+- Extract longitude: `ST_X(location)`
+- Extract latitude: `ST_Y(location)`
+- Calculate distance: `ST_Distance(location1, location2)`
+- Find within area: `ST_Within(location, boundary)`
 
 ### `location_categories`
 Junction table for many-to-many relationship between locations and categories:
 - `locationUuid`: Foreign key to locations
 - `categoryId`: Foreign key to categories
+- `createdAt`: Creation timestamp
 - Composite primary key on (locationUuid, categoryId)
-
-**Note:** Categories are stored both in the `locations.categories` JSON field (for quick filtering) and in the `location_categories` junction table (for relational queries).
+- Indexed on both foreign keys
 
 ## Scripts
 
@@ -153,7 +174,7 @@ pnpm run build            # Build for production
 pnpm run preview          # Preview production build
 
 # Database
-pnpm run db:generate      # Generate migrations
+pnpm run db:generate      # Generate migrations (stored in supabase/migrations/)
 
 # Code Quality
 pnpm run lint             # Run ESLint
@@ -163,11 +184,47 @@ pnpm run typecheck        # Run TypeScript checks
 
 ## Environment Variables
 
-Create a `.env` file with:
+Create a `.env` file (see `.env.example`):
 
 ```env
-NUXT_GOOGLE_API_KEY=your_google_api_key_here
+# PostgreSQL Configuration
+POSTGRES_HOST=localhost
+POSTGRES_PORT=54322
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=your_password
+POSTGRES_DB=postgres
+
+# JWT Configuration (if using Supabase)
+JWT_SECRET=your_jwt_secret
+
+# API Keys
+ANON_KEY=your_anon_key
+SERVICE_ROLE_KEY=your_service_role_key
+NUXT_GOOGLE_API_KEY=your_google_api_key
+
+# Kong & Studio (optional, for Supabase)
+KONG_HTTP_PORT=8100
+STUDIO_PORT=4000
+SUPABASE_PUBLIC_URL=http://localhost:8100
 ```
+
+## Supabase Studio (Minimal)
+
+This repository includes a minimal Supabase setup with PostGIS in the `supabase/` directory.
+
+**Quick Start:**
+
+```bash
+cd supabase
+docker compose --env-file ../.env up -d      # Start services
+```
+
+**Access:**
+- **Supabase Studio**: http://localhost:4000
+- **PostgreSQL**: `localhost:54322`
+- **REST API**: http://localhost:8100
+
+See [`supabase/README.md`](supabase/README.md) for PostGIS examples and REST API usage.
 
 ## Learn More
 
@@ -176,6 +233,7 @@ NUXT_GOOGLE_API_KEY=your_google_api_key_here
 - [Drizzle ORM Documentation](https://orm.drizzle.team/docs/overview)
 - [UnoCSS Documentation](https://unocss.dev/)
 - [Nimiq CSS](https://github.com/onmax/nimiq-ui)
+- [PostGIS Documentation](https://postgis.net/documentation/)
 
 ## License
 

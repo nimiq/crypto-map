@@ -2,6 +2,8 @@
 const searchQuery = ref('')
 const filters = ref<string[]>([])
 
+const { data: categories } = await useFetch('/api/categories')
+
 const { data: locations } = await useFetch('/api/search', {
   query: {
     q: searchQuery,
@@ -23,11 +25,18 @@ const { data: locations } = await useFetch('/api/search', {
         <input v-model="searchQuery" type="text" nq-input-box placeholder="Search locations..." w-full mt-4 />
 
         <ToggleGroupRoot v-model="filters" type="multiple" flex="~ wrap gap-8" mt-4>
-          <ToggleGroupItem value="open" outline="~ neutral-400 1.5 reka-active:reka-blue" bg="neutral-100 hocus:neutral-200" text="14 neutral-800 hocus:neutral" font-medium py-4 rounded-full cursor-pointer transition-colors f-px-2xs>
-            Open now
-          </ToggleGroupItem>
-          <ToggleGroupItem value="walkable" outline="~ neutral-400 1.5 reka-active:reka-blue" bg="neutral-100 hocus:neutral-200" text="14 neutral-800 hocus:neutral" font-medium py-4 rounded-full cursor-pointer transition-colors f-px-2xs>
-            Walkable distance
+          <ToggleGroupItem
+            v-for="category in categories"
+            :key="category.id"
+            :value="category.id"
+            outline="~ neutral-400 1.5 reka-active:reka-blue"
+            bg="neutral-100 hocus:neutral-200"
+            text="14 neutral-800 hocus:neutral"
+            font-medium py-4 rounded-full cursor-pointer transition-colors f-px-2xs
+            flex="~ items-center gap-6"
+          >
+            <Icon v-if="category.icon" :name="category.icon" w-16 h-16 />
+            {{ category.name }}
           </ToggleGroupItem>
         </ToggleGroupRoot>
 
@@ -62,7 +71,13 @@ const { data: locations } = await useFetch('/api/search', {
               </p>
 
               <div flex="~ wrap gap-4" mt-6>
-                <span v-for="cat in location.categories.slice(0, 3)" :key="cat" mt-0 text="f-xs neutral-700" px-8 py-4 rounded-4 bg-neutral-200>
+                <span
+                  v-for="cat in location.categories.slice(0, 3)"
+                  :key="cat"
+                  mt-0 text="f-xs neutral-700" px-8 py-4 rounded-4 bg-neutral-200
+                  flex="~ items-center gap-4"
+                >
+                  <Icon v-if="getCategoryIcon(cat)" :name="getCategoryIcon(cat)" w-12 h-12 />
                   {{ cat }}
                 </span>
               </div>

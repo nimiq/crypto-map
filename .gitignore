@@ -23,3 +23,9 @@ logs
 .env
 .env.*
 !.env.example
+
+# Supabase
+supabase/volumes/db/data/
+supabase/volumes/storage/
+supabase/.env
+!supabase/.env.example
