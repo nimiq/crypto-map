@@ -28,7 +28,7 @@ function removeCategory(categoryId: string) {
 <template>
   <div bg-neutral-100 min-h-screen relative overflow-hidden f-py-xl>
     <!-- Background SVG -->
-    <div opacity-3 pointer-events-none bottom-0 left-0 right-0 fixed>
+    <div opacity-3 pointer-events-none bottom-0 left-0 right-0 fixed flex items-end>
       <NuxtImg
         src="/assets/lugano.svg"
         alt="Lugano"
@@ -47,38 +47,14 @@ function removeCategory(categoryId: string) {
 
         <ComboboxRoot v-model="selectedCategories" multiple>
           <ComboboxAnchor w-full>
-            <ComboboxInput
-              v-model="searchQuery"
-
-              placeholder="Search locations or add category filters..."
-              w-full nq-input-box
-              :display-value="() => searchQuery"
-              @focus="refreshCategories"
-            />
+            <ComboboxInput v-model="searchQuery" placeholder="Search locations or add category filters..." nq-input-box :display-value="() => searchQuery" @focus="refreshCategories" />
           </ComboboxAnchor>
 
-          <ComboboxContent
-            position="popper"
-            bg="white"
-
-            border="1 neutral-200"
-
-            mt-8 rounded-8 max-h-256 shadow-lg z-50 overflow-auto
-          >
+          <ComboboxContent position="popper" bg="white" outline="~ 1.5 neutral-200" w-full rounded-t-8 max-h-256 shadow z-50 of-auto>
             <ComboboxViewport f-p-xs>
-              <ComboboxItem
-                v-for="category in categories"
-                :key="category.id"
-                :value="category"
-                flex="~ items-center gap-8"
-
-                text="f-sm neutral-800 reka-highlighted:neutral-900"
-                bg="reka-highlighted:neutral-50"
-
-                py-10 outline-none rounded-6 cursor-pointer transition-colors f-px-md
-              >
+              <ComboboxItem v-for="category in categories" :key="category.id" :value="category" flex="~ items-center gap-8" text="f-sm neutral-800 data-[highlighted]:neutral-900" bg="data-[highlighted]:neutral-50" py-10 outline-none rounded-6 cursor-pointer transition-colors f-px-md>
                 <Icon v-if="category.icon" :name="category.icon" size-18 />
-                <ComboboxItemText>{{ category.name }}</ComboboxItemText>
+                {{ category.name }}
               </ComboboxItem>
               <ComboboxEmpty v-if="!categories?.length" f-p-md text="f-sm neutral-500 center">
                 No categories found
@@ -88,6 +64,21 @@ function removeCategory(categoryId: string) {
         </ComboboxRoot>
 
         <div flex="~ wrap gap-8" mt-4>
+          <button
+            v-for="category in selectedCategories"
+            :key="category.id"
+            outline="~ neutral-400 1.5"
+            bg="neutral-100 hocus:neutral-200"
+            text="14 neutral-800 hocus:neutral"
+            font-medium py-4 rounded-full cursor-pointer transition-colors f-px-2xs
+            flex="~ items-center gap-6"
+            @click="removeCategory(category.id)"
+          >
+            <Icon :name="category.icon" size-16 />
+            {{ category.name }}
+            <Icon name="i-nimiq:cross" size-16 />
+          </button>
+
           <ToggleGroupRoot v-model="filters" type="multiple" flex="~ wrap gap-8">
             <ToggleGroupItem
               value="open_now"
@@ -108,21 +99,6 @@ function removeCategory(categoryId: string) {
               Walkable distance
             </ToggleGroupItem>
           </ToggleGroupRoot>
-
-          <button
-            v-for="category in selectedCategories"
-            :key="category.id"
-            outline="~ neutral-400 1.5"
-            bg="neutral-100 hocus:neutral-200"
-            text="14 neutral-800 hocus:neutral"
-            font-medium py-4 rounded-full cursor-pointer transition-colors f-px-2xs
-            flex="~ items-center gap-6"
-            @click="removeCategory(category.id)"
-          >
-            <Icon :name="category.icon" size-16 />
-            {{ category.name }}
-            <Icon name="i-carbon:close" size-16 />
-          </button>
         </div>
 
         <!-- Locations Grid -->
@@ -139,7 +115,7 @@ function removeCategory(categoryId: string) {
               <div
                 rounded-8 bg-neutral-200 flex-shrink-0 size-120 overflow-hidden
               >
-                <NuxtImg :src="`/images/location/${location.uuid}.jpg`" :alt="location.name" h-full w-full object-cover />
+                <NuxtImg v-if="location.photo" :src="location.photo" :alt="location.name" h-full w-full object-cover />
               </div>
 
               <!-- Content -->
@@ -196,7 +172,7 @@ function removeCategory(categoryId: string) {
         <div
           v-if="!locations || locations.length === 0"
 
-          shadow-md text-center rounded-12 bg-white f-py-2xl f-mt-xl
+          shadow-md text-center rounded-12 f-py-2xl f-mt-xl
         >
           <p text="neutral-500" font-medium f-text-lg>
             No locations found
