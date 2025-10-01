@@ -40,6 +40,7 @@
     "eslint": "catalog:",
     "eslint-plugin-format": "catalog:",
     "nimiq-css": "catalog:",
+    "typescript": "catalog:",
     "unocss-preset-onmax": "catalog:",
     "wrangler": "catalog:"
   }

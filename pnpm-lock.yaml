@@ -69,6 +69,9 @@ catalogs:
     reka-ui:
       specifier: ^2.5.1
       version: 2.5.1
+    typescript:
+      specifier: ^5.7.3
+      version: 5.9.2
     unocss-preset-onmax:
       specifier: 1.0.0-beta.43
       version: 1.0.0-beta.43
@@ -150,6 +153,9 @@ importers:
       nimiq-css:
         specifier: 'catalog:'
         version: 1.0.0-beta.110(@unocss/webpack@66.5.2(webpack@5.102.0(esbuild@0.25.10)))(postcss@8.5.6)(vite@7.1.7(@types/node@24.6.1)(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1))
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.2
       unocss-preset-onmax:
         specifier: 'catalog:'
         version: 1.0.0-beta.43(@unocss/preset-wind3@66.5.2)(@unocss/webpack@66.5.2(webpack@5.102.0(esbuild@0.25.10)))(postcss@8.5.6)(vite@7.1.7(@types/node@24.6.1)(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1))
