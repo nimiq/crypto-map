@@ -21,7 +21,7 @@ export default defineEventHandler(async (event): Promise<CategoryResponse[]> => 
   const { q: searchQuery } = result.output
 
   let dbQuery = db.select().from(tables.categories)
-  if(searchQuery)
+  if (searchQuery)
     dbQuery = dbQuery.where(sql`${tables.categories.name} ILIKE ${`%${searchQuery}%`}`)
   const categoriesFromDb = await dbQuery
 

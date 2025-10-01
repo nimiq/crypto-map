@@ -28,7 +28,7 @@ function removeCategory(categoryId: string) {
 <template>
   <div bg-neutral-100 min-h-screen relative overflow-hidden f-py-xl>
     <!-- Background SVG -->
-    <div opacity-3 pointer-events-none bottom-0 left-0 right-0 fixed flex items-end>
+    <div opacity-3 flex pointer-events-none items-end bottom-0 left-0 right-0 fixed>
       <NuxtImg
         src="/assets/lugano.svg"
         alt="Lugano"
@@ -50,7 +50,7 @@ function removeCategory(categoryId: string) {
             <ComboboxInput v-model="searchQuery" placeholder="Search locations or add category filters..." nq-input-box :display-value="() => searchQuery" @focus="refreshCategories" />
           </ComboboxAnchor>
 
-          <ComboboxContent position="popper" bg="white" outline="~ 1.5 neutral-200" w-full rounded-t-8 max-h-256 shadow z-50 of-auto>
+          <ComboboxContent position="popper" bg="white" outline="~ 1.5 neutral-200" rounded-t-8 max-h-256 w-full shadow z-50 of-auto>
             <ComboboxViewport f-p-xs>
               <ComboboxItem v-for="category in categories" :key="category.id" :value="category" flex="~ items-center gap-8" text="f-sm neutral-800 data-[highlighted]:neutral-900" bg="data-[highlighted]:neutral-50" py-10 outline-none rounded-6 cursor-pointer transition-colors f-px-md>
                 <Icon v-if="category.icon" :name="category.icon" size-18 />
