@@ -34,3 +34,10 @@ jobs:
 
       - name: Build
         run: pnpm run build
+        env:
+          NUXT_GOOGLE_API_KEY: dummy-key-for-ci
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: "5432"
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: dummy-password
+          POSTGRES_DB: postgres
