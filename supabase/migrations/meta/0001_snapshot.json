@@ -1,6 +1,6 @@
 {
-  "id": "341b8145-cd48-41fd-9394-2f096e8dd270",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "6b68c759-0cf3-434e-b465-3b299ee5c3e2",
+  "prevId": "341b8145-cd48-41fd-9394-2f096e8dd270",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -24,7 +24,7 @@
           "name": "icon",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "created_at": {
           "name": "created_at",

@@ -18,6 +18,7 @@ docker exec -i supabase-db psql -U postgres -d postgres < rls-policies.sql
 ```
 
 **Access:**
+
 - **Supabase Studio**: http://localhost:4000
 - **PostgreSQL**: `localhost:5432` or port from your `.env`
 - **REST API**: http://localhost:8000/rest/v1/ or port from your `.env`
@@ -31,6 +32,7 @@ postgresql://postgres:HJc0JgmWPmf0dLI9Bo4iQ@localhost:5432/postgres
 ## What's Included
 
 **Services:**
+
 - PostgreSQL 16 with PostGIS 3.4
 - Supabase Studio (dashboard)
 - PostgREST (auto REST API)
@@ -38,6 +40,7 @@ postgresql://postgres:HJc0JgmWPmf0dLI9Bo4iQ@localhost:5432/postgres
 - postgres-meta (metadata service)
 
 **Not included:**
+
 - Auth, Storage, Realtime, Functions, Analytics
 
 ## Row Level Security (RLS)
@@ -45,11 +48,13 @@ postgresql://postgres:HJc0JgmWPmf0dLI9Bo4iQ@localhost:5432/postgres
 The database uses RLS to control access:
 
 **Roles:**
+
 - `anon` - Unauthenticated users (public API)
 - `authenticated` - Authenticated users
 - `service_role` - Admin role (for admin panel and seeding)
 
 **Access Control:**
+
 - **categories**: Read-only for all users. Only `service_role` can write (seed process only).
 - **locations**: Read for all users. Only `service_role` can write (admin panel).
 - **location_categories**: Read for all users. Only `service_role` can write (admin panel).
@@ -57,6 +62,7 @@ The database uses RLS to control access:
 **Setup RLS:**
 
 After creating tables, apply RLS policies:
+
 ```bash
 cd supabase
 docker exec -i supabase-db psql -U postgres -d postgres < rls-policies.sql
@@ -124,6 +130,7 @@ curl -X POST http://localhost:8000/rest/v1/locations \
 ```
 
 Get your keys from `.env` file:
+
 - `ANON_KEY` - Public access (read-only due to RLS)
 - `SERVICE_ROLE_KEY` - Admin access (full read/write access)
 
@@ -150,6 +157,7 @@ KONG_HTTP_PORT=8000
 ## Railway Deployment
 
 For Railway, use their managed PostgreSQL + deploy these services:
+
 1. PostgreSQL (Railway managed) - enable PostGIS extension
 2. PostgREST, Kong, Meta, Studio as separate services
 3. Set environment variables from `.env`

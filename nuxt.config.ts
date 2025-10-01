@@ -1,6 +1,6 @@
-import * as v from 'valibot'
 import process from 'node:process'
 import { icons as nimiqIcons } from 'nimiq-icons'
+import * as v from 'valibot'
 
 export default defineNuxtConfig({
   modules: [

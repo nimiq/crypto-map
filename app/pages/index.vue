@@ -1,94 +1,193 @@
 <script setup lang="ts">
 const searchQuery = ref('')
+const selectedCategories = ref<Category[]>([])
 const filters = ref<string[]>([])
 
-const { data: categories } = await useFetch('/api/categories')
+const { data: categories, refresh: refreshCategories } = useFetch('/api/categories', {
+  query: {
+    q: searchQuery,
+  },
+  immediate: false,
+  watch: false,
+})
 
 const { data: locations } = await useFetch('/api/search', {
   query: {
     q: searchQuery,
   },
 })
+
+const debouncedCategorySearch = useDebounceFn(refreshCategories, 300)
+watch(searchQuery, () => debouncedCategorySearch())
+
+function removeCategory(categoryId: string) {
+  selectedCategories.value = selectedCategories.value.filter(c => c.id !== categoryId)
+}
 </script>
 
 <template>
-  <div bg-neutral-100 min-h-screen f-py-xl>
-    <div mx-auto max-w-512 f-px-md>
-      <div f-mb-lg>
-        <h1 text="neutral-900 f-lg" f-mb-xs>
+  <div bg-neutral-100 min-h-screen relative overflow-hidden f-py-xl>
+    <!-- Background SVG -->
+    <div opacity-3 pointer-events-none bottom-0 left-0 right-0 fixed>
+      <NuxtImg
+        src="/assets/lugano.svg"
+        alt="Lugano"
+        h-auto w-full
+      />
+    </div>
+
+    <div mx-auto max-w-640 relative z-1 f-px-md>
+      <div f-mb-2xl>
+        <h1 text="neutral-900 f-2xl" font-bold f-mb-xs>
           Spend your crypto in Lugano
         </h1>
-        <p text="neutral-600 f-sm">
+        <p text="neutral-600 f-md" f-mb-lg>
           Discover places that accept cryptocurrency payments
         </p>
 
-        <input v-model="searchQuery" type="text" nq-input-box placeholder="Search locations..." w-full mt-4 />
+        <ComboboxRoot v-model="selectedCategories" multiple>
+          <ComboboxAnchor w-full>
+            <ComboboxInput
+              v-model="searchQuery"
 
-        <ToggleGroupRoot v-model="filters" type="multiple" flex="~ wrap gap-8" mt-4>
-          <ToggleGroupItem
-            v-for="category in categories"
+              placeholder="Search locations or add category filters..."
+              w-full nq-input-box
+              :display-value="() => searchQuery"
+              @focus="refreshCategories"
+            />
+          </ComboboxAnchor>
+
+          <ComboboxContent
+            position="popper"
+            bg="white"
+
+            border="1 neutral-200"
+
+            mt-8 rounded-8 max-h-256 shadow-lg z-50 overflow-auto
+          >
+            <ComboboxViewport f-p-xs>
+              <ComboboxItem
+                v-for="category in categories"
+                :key="category.id"
+                :value="category"
+                flex="~ items-center gap-8"
+
+                text="f-sm neutral-800 reka-highlighted:neutral-900"
+                bg="reka-highlighted:neutral-50"
+
+                py-10 outline-none rounded-6 cursor-pointer transition-colors f-px-md
+              >
+                <Icon v-if="category.icon" :name="category.icon" size-18 />
+                <ComboboxItemText>{{ category.name }}</ComboboxItemText>
+              </ComboboxItem>
+              <ComboboxEmpty v-if="!categories?.length" f-p-md text="f-sm neutral-500 center">
+                No categories found
+              </ComboboxEmpty>
+            </ComboboxViewport>
+          </ComboboxContent>
+        </ComboboxRoot>
+
+        <div flex="~ wrap gap-8" mt-4>
+          <ToggleGroupRoot v-model="filters" type="multiple" flex="~ wrap gap-8">
+            <ToggleGroupItem
+              value="open_now"
+              outline="~ neutral-400 1.5 reka-active:reka-blue"
+              bg="neutral-100 hocus:neutral-200"
+              text="14 neutral-800 hocus:neutral"
+              font-medium py-4 rounded-full cursor-pointer transition-colors f-px-2xs
+            >
+              Open now
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value="walkable"
+              outline="~ neutral-400 1.5 reka-active:reka-blue"
+              bg="neutral-100 hocus:neutral-200"
+              text="14 neutral-800 hocus:neutral"
+              font-medium py-4 rounded-full cursor-pointer transition-colors f-px-2xs
+            >
+              Walkable distance
+            </ToggleGroupItem>
+          </ToggleGroupRoot>
+
+          <button
+            v-for="category in selectedCategories"
             :key="category.id"
-            :value="category.id"
-            outline="~ neutral-400 1.5 reka-active:reka-blue"
+            outline="~ neutral-400 1.5"
             bg="neutral-100 hocus:neutral-200"
             text="14 neutral-800 hocus:neutral"
             font-medium py-4 rounded-full cursor-pointer transition-colors f-px-2xs
             flex="~ items-center gap-6"
+            @click="removeCategory(category.id)"
           >
-            <Icon v-if="category.icon" :name="category.icon" w-16 h-16 />
+            <Icon :name="category.icon" size-16 />
             {{ category.name }}
-          </ToggleGroupItem>
-        </ToggleGroupRoot>
+            <Icon name="i-carbon:close" size-16 />
+          </button>
+        </div>
 
         <!-- Locations Grid -->
-        <div flex="~ col gap-16">
-          <div v-for="location in locations" :key="location.gmapsPlaceId" flex="~ gap-12" f-p-sm>
-            <!-- Image -->
-            <div
-              w-64 h-64 rounded-8 bg-neutral-200 flex-shrink-0 overflow-hidden
-            >
-              <NuxtImg :src="`/images/location/${location.uuid}.jpg`" :alt="location.name" w-full h-full object-cover />
-            </div>
+        <div flex="~ col gap-16" f-mt-xl>
+          <div
+            v-for="location in locations"
+            :key="location.gmapsPlaceId"
+            shadow="md hover:lg"
 
-            <!-- Content -->
-            <div flex="~ col" flex-1>
-              <div flex="~ items-start justify-between">
-                <h3 text="18 neutral" font-semibold m-0>
-                  {{ location.name }}
-                </h3>
-                <span
-                  v-if="location.rating"
-                  flex="~ items-center gap-4"
-                  text="14 neutral-700"
-                >
-                  <Icon name="i-nimiq:star" />
-                  <span>{{ location.rating }}</span>
-                </span>
-              </div>
-
-              <p text="neutral-800 f-sm" mt-4 mb-0>
-                {{ location.address }}
-              </p>
-
-              <div flex="~ wrap gap-4" mt-6>
-                <span
-                  v-for="cat in location.categories.slice(0, 3)"
-                  :key="cat"
-                  mt-0 text="f-xs neutral-700" px-8 py-4 rounded-4 bg-neutral-200
-                  flex="~ items-center gap-4"
-                >
-                  <Icon v-if="getCategoryIcon(cat)" :name="getCategoryIcon(cat)" w-12 h-12 />
-                  {{ cat }}
-                </span>
-              </div>
-
-              <NuxtLink
-                v-if="location.website"
-                :to="location.website"
-                external target="_blank" nq-arrow nq-pill-blue mt-2
+            rounded-12 cursor-pointer transition-all overflow-hidden
+          >
+            <div flex="~ gap-16" f-p-md>
+              <!-- Image -->
+              <div
+                rounded-8 bg-neutral-200 flex-shrink-0 size-120 overflow-hidden
               >
-                Visit Website
-              </NuxtLink>
+                <NuxtImg :src="`/images/location/${location.uuid}.jpg`" :alt="location.name" h-full w-full object-cover />
+              </div>
+
+              <!-- Content -->
+              <div flex="~ col justify-between" flex-1>
+                <div>
+                  <div flex="~ items-start justify-between" f-mb-xs>
+                    <h3 text="f-lg neutral-900" font-bold m-0>
+                      {{ location.name }}
+                    </h3>
+                    <span
+                      v-if="location.rating"
+                      flex="~ items-center gap-4"
+                      text="f-sm neutral-700"
+                      bg="yellow-50"
+
+                      font-medium px-8 py-4 rounded-full
+                    >
+                      <Icon name="i-nimiq:star" text-yellow-500 />
+                      <span>{{ location.rating }}</span>
+                    </span>
+                  </div>
+
+                  <p text="neutral-600 f-sm" mb-0 mt-4 line-clamp-2>
+                    {{ location.address }}
+                  </p>
+
+                  <div flex="~ wrap gap-6" f-mt-sm>
+                    <span
+                      v-for="cat in location.categories.slice(0, 3)"
+                      :key="cat.id"
+                      text="f-xs neutral-700"
+                      flex="~ items-center gap-4"
+                      font-medium mt-0 px-10 py-6 rounded-full bg-neutral-100
+                    >
+                      <Icon :name="cat.icon" size-14 />
+                      {{ cat.name }}
+                    </span>
+                  </div>
+                </div>
+
+                <NuxtLink
+                  v-if="location.website"
+                  :to="location.website"
+                  target="_blank" external w-fit f-mt-sm nq-arrow nq-pill-blue
+                >
+                  Visit Website
+                </NuxtLink>
+              </div>
             </div>
           </div>
         </div>
@@ -96,11 +195,14 @@ const { data: locations } = await useFetch('/api/search', {
         <!-- Empty State -->
         <div
           v-if="!locations || locations.length === 0"
-          text-center
-          f-py-2xl
+
+          shadow-md text-center rounded-12 bg-white f-py-2xl f-mt-xl
         >
-          <p text="neutral-500" f-text-lg>
-            No locations found for the selected categories
+          <p text="neutral-500" font-medium f-text-lg>
+            No locations found
+          </p>
+          <p text="neutral-400 f-sm" f-mt-xs>
+            Try adjusting your search or filters
           </p>
         </div>
       </div>

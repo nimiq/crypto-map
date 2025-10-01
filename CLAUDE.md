@@ -47,6 +47,7 @@ The app uses **PostgreSQL with PostGIS** and a normalized relational schema with
    - Indexed on both foreign keys
 
 **Important**: When adding locations:
+
 1. Insert into `locations` table with location as `{x: longitude, y: latitude}`
 2. Insert corresponding rows into `location_categories` junction table
 3. PostGIS automatically handles the geometry conversion
@@ -69,11 +70,13 @@ The app uses **PostgreSQL with PostGIS** and a normalized relational schema with
 ### API Endpoints
 
 **`GET /api/categories`**
+
 - Returns all categories from the database
 - Used to populate filter UI
 - Categories are dynamically extracted from location data
 
 **`GET /api/search`**
+
 - Query params: `q` (search query, optional), `lat`/`lng` (optional)
 - If lat/lng not provided, attempts Cloudflare IP geolocation via `locateByHost()`
 - **Location data is available but NOT used for sorting yet** - just logged to console
@@ -85,6 +88,7 @@ The app uses **PostgreSQL with PostGIS** and a normalized relational schema with
 ### Styling System
 
 The app uses **UnoCSS with Nimiq presets**:
+
 - `presetOnmax()` - Base utilities
 - `presetNimiq()` - Nimiq design system utilities and attributify mode
 - Utilities are applied via **attributify syntax** directly on elements (e.g., `flex="~ col gap-16"`)
@@ -118,6 +122,7 @@ The app uses **UnoCSS with Nimiq presets**:
 ## Key Patterns
 
 ### Adding New Locations
+
 1. Add location data to `supabase/seeds/sources/dummy.sql` or create a new source SQL file
 2. Categories must be valid Google Maps types (snake_case strings) from `supabase/seeds/categories.sql`
 3. Use PostGIS `ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)` for location geometry
@@ -125,12 +130,14 @@ The app uses **UnoCSS with Nimiq presets**:
 5. Restart Docker Compose to apply changes: `docker-compose -f supabase/docker-compose.yml down && docker-compose -f supabase/docker-compose.yml up -d`
 
 ### Category Filtering
+
 - Categories use raw Google Maps types (e.g., "restaurant", "cafe", "lodging")
 - The old `CATEGORY_MAPPING` system was removed - now using direct Google types
 - UI displays formatted category names (underscores → spaces, title case)
 - Backend stores raw snake_case IDs
 
 ### Geolocation
+
 - Cloudflare provides `cf-connecting-ip` header in production
 - Dev environment requires manual lat/lng query params
 - Currently location is retrieved but NOT used for distance sorting
@@ -151,6 +158,7 @@ The app uses **UnoCSS with Nimiq presets**:
 ## Environment Variables
 
 Required in `.env`:
+
 ```env
 # PostgreSQL Configuration
 POSTGRES_HOST=localhost

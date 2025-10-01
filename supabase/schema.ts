@@ -3,9 +3,11 @@ import { doublePrecision, geometry, index, pgTable, primaryKey, text, timestamp,
 export const categories = pgTable('categories', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
-  icon: text('icon'),
+  icon: text('icon').notNull(),
   createdAt: timestamp('created_at').$defaultFn(() => new Date()),
 })
+
+export type Category = typeof categories.$inferSelect
 
 export const locations = pgTable('locations', {
   uuid: text('uuid').primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -33,3 +35,5 @@ export const locationCategories = pgTable('location_categories', {
   index('location_idx').on(table.locationUuid),
   index('category_idx').on(table.categoryId),
 ])
+
+export type LocationCategory = typeof locationCategories.$inferSelect

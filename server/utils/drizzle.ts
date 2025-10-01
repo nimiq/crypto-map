@@ -15,7 +15,3 @@ export function useDrizzle() {
   const client = postgres(connectionString)
   return drizzle(client, { schema })
 }
-
-export type Location = typeof schema.locations.$inferSelect
-export type Category = typeof schema.categories.$inferSelect
-export type LocationCategory = typeof schema.locationCategories.$inferSelect

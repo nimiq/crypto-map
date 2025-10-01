@@ -111,6 +111,7 @@ Search for locations by name. All parameters are optional.
 - `lng` (optional): Longitude for future distance-based sorting
 
 **Behavior:**
+
 - Without search query: Returns 10 random locations
 - With search query: Returns up to 10 locations matching the search term (case-insensitive)
 - Location data is logged but not yet used for sorting
@@ -134,11 +135,13 @@ curl "http://localhost:3000/api/search?q=restaurant&lat=46.0037&lng=8.9511"
 The database uses PostgreSQL with PostGIS and a normalized relational schema with three tables:
 
 ### `categories`
+
 - `id`: Category ID (primary key, e.g., "restaurant", "cafe")
 - `name`: Display name (e.g., "Restaurant", "Cafe")
 - `createdAt`: Creation timestamp
 
 ### `locations`
+
 - `uuid`: Auto-generated unique identifier (primary key)
 - `name`: Location name
 - `address`: Full address
@@ -152,13 +155,16 @@ The database uses PostgreSQL with PostGIS and a normalized relational schema wit
 - `createdAt`/`updatedAt`: Timestamps
 
 **PostGIS Functions:**
+
 - Extract longitude: `ST_X(location)`
 - Extract latitude: `ST_Y(location)`
 - Calculate distance: `ST_Distance(location1, location2)`
 - Find within area: `ST_Within(location, boundary)`
 
 ### `location_categories`
+
 Junction table for many-to-many relationship between locations and categories:
+
 - `locationUuid`: Foreign key to locations
 - `categoryId`: Foreign key to categories
 - `createdAt`: Creation timestamp
@@ -220,6 +226,7 @@ docker compose --env-file ../.env up -d      # Start services
 ```
 
 **Access:**
+
 - **Supabase Studio**: http://localhost:4000
 - **PostgreSQL**: `localhost:54322`
 - **REST API**: http://localhost:8100
