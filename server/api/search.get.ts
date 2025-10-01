@@ -1,4 +1,5 @@
 import * as v from 'valibot'
+import { eq } from 'drizzle-orm'
 
 const querySchema = v.object({
   lat: v.optional(v.pipe(
@@ -15,11 +16,7 @@ const querySchema = v.object({
     v.minValue(-180, 'Longitude must be >= -180'),
     v.maxValue(180, 'Longitude must be <= 180'),
   )),
-  categories: v.optional(v.pipe(
-    v.union([v.string(), v.array(v.string())]),
-    v.transform(val => Array.isArray(val) ? val : [val]),
-    v.array(v.string()),
-  )),
+  q: v.optional(v.string()),
 })
 
 export default defineEventHandler(async (event) => {
@@ -37,7 +34,7 @@ export default defineEventHandler(async (event) => {
 
   let lat = result.output.lat
   let lng = result.output.lng
-  const categories = result.output.categories
+  const searchQuery = result.output.q
 
   // Try to get lat/lng from Cloudflare IP if not provided
   if (lat === undefined || lng === undefined) {
@@ -61,29 +58,65 @@ export default defineEventHandler(async (event) => {
 
   const db = useDrizzle()
 
-  // If no categories selected, return 10 random locations
-  if (!categories || categories.length === 0) {
+  // If no search query, return 10 random locations
+  if (!searchQuery || searchQuery.trim().length === 0) {
     const randomLocations = await db
-      .select()
+      .select({
+        uuid: tables.locations.uuid,
+        name: tables.locations.name,
+        address: tables.locations.address,
+        latitude: tables.locations.latitude,
+        longitude: tables.locations.longitude,
+        rating: tables.locations.rating,
+        photo: tables.locations.photo,
+        gmapsPlaceId: tables.locations.gmapsPlaceId,
+        gmapsUrl: tables.locations.gmapsUrl,
+        website: tables.locations.website,
+        source: tables.locations.source,
+        createdAt: tables.locations.createdAt,
+        updatedAt: tables.locations.updatedAt,
+        categories: sql<string>`GROUP_CONCAT(${tables.locationCategories.categoryId})`.as('categories'),
+      })
       .from(tables.locations)
+      .leftJoin(tables.locationCategories, eq(tables.locations.uuid, tables.locationCategories.locationUuid))
+      .groupBy(tables.locations.uuid)
       .orderBy(sql`RANDOM()`)
       .limit(10)
       .all()
 
-    return randomLocations
+    return randomLocations.map(loc => ({
+      ...loc,
+      categories: loc.categories ? loc.categories.split(',') : [],
+    }))
   }
 
-  // Filter locations by categories using JSON search
-  const filteredLocations = await db
-    .select()
+  // Search locations by name
+  const searchResults = await db
+    .select({
+      uuid: tables.locations.uuid,
+      name: tables.locations.name,
+      address: tables.locations.address,
+      latitude: tables.locations.latitude,
+      longitude: tables.locations.longitude,
+      rating: tables.locations.rating,
+      photo: tables.locations.photo,
+      gmapsPlaceId: tables.locations.gmapsPlaceId,
+      gmapsUrl: tables.locations.gmapsUrl,
+      website: tables.locations.website,
+      source: tables.locations.source,
+      createdAt: tables.locations.createdAt,
+      updatedAt: tables.locations.updatedAt,
+      categories: sql<string>`GROUP_CONCAT(${tables.locationCategories.categoryId})`.as('categories'),
+    })
     .from(tables.locations)
-    .where(
-      sql`EXISTS (
-        SELECT 1 FROM json_each(${tables.locations.categories})
-        WHERE value IN (${sql.join(categories.map(c => sql`${c}`), sql`, `)})
-      )`,
-    )
+    .leftJoin(tables.locationCategories, eq(tables.locations.uuid, tables.locationCategories.locationUuid))
+    .where(sql`${tables.locations.name} LIKE ${`%${searchQuery}%`}`)
+    .groupBy(tables.locations.uuid)
+    .limit(10)
     .all()
 
-  return filteredLocations
+  return searchResults.map(loc => ({
+    ...loc,
+    categories: loc.categories ? loc.categories.split(',') : [],
+  }))
 })

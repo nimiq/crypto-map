@@ -17,13 +17,10 @@ export const locations = sqliteTable('locations', {
   gmapsPlaceId: text('gmaps_place_id').notNull(),
   gmapsUrl: text('gmaps_url').notNull(),
   website: text('website'),
-  categories: text('categories', { mode: 'json' }).notNull().$type<string[]>(),
   source: text('source', { enum: ['naka', 'bluecode'] }).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()).$onUpdateFn(() => new Date()),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, table => [
-  index('categories_idx').on(table.categories),
-])
+})
 
 export const locationCategories = sqliteTable('location_categories', {
   locationUuid: text('location_uuid').notNull().references(() => locations.uuid, { onDelete: 'cascade' }),

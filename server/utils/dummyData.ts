@@ -1,6 +1,6 @@
 import type { Location } from './drizzle'
 
-export const DUMMY_LOCATIONS: Omit<Location, 'uuid' | 'createdAt' | 'updatedAt'>[] = [
+export const DUMMY_LOCATIONS: (Omit<Location, 'uuid' | 'createdAt' | 'updatedAt'> & { categories: string[] })[] = [
   {
     name: 'Crypto Cafe Lugano',
     address: 'Via Nassa 5, 6900 Lugano',

@@ -1,13 +1,11 @@
 <script setup lang="ts">
-const selectedCategories = ref<string[]>([])
-
-const { data: categories } = await useFetch('/api/categories')
+const searchQuery = ref('')
+const filters = ref<string[]>([])
 
 const { data: locations } = await useFetch('/api/search', {
   query: {
-    categories: selectedCategories,
+    q: searchQuery,
   },
-  watch: [selectedCategories],
 })
 </script>
 
@@ -22,9 +20,14 @@ const { data: locations } = await useFetch('/api/search', {
           Discover places that accept cryptocurrency payments
         </p>
 
-        <ToggleGroupRoot v-model="selectedCategories" type="multiple" flex="~ wrap gap-8" f-mb-lg>
-          <ToggleGroupItem v-for="category in categories" :key="category.id" :value="category.id" outline="~ neutral-400 1.5 reka-active:reka-blue" bg="neutral-100 hocus:neutral-200" text="14 neutral-800 hocus:neutral" font-medium py-4 rounded-full cursor-pointer transition-colors f-px-2xs>
-            {{ category.name }}
+        <input v-model="searchQuery" type="text" nq-input-box placeholder="Search locations..." w-full mt-4 />
+
+        <ToggleGroupRoot v-model="filters" type="multiple" flex="~ wrap gap-8" mt-4>
+          <ToggleGroupItem value="open" outline="~ neutral-400 1.5 reka-active:reka-blue" bg="neutral-100 hocus:neutral-200" text="14 neutral-800 hocus:neutral" font-medium py-4 rounded-full cursor-pointer transition-colors f-px-2xs>
+            Open now
+          </ToggleGroupItem>
+          <ToggleGroupItem value="walkable" outline="~ neutral-400 1.5 reka-active:reka-blue" bg="neutral-100 hocus:neutral-200" text="14 neutral-800 hocus:neutral" font-medium py-4 rounded-full cursor-pointer transition-colors f-px-2xs>
+            Walkable distance
           </ToggleGroupItem>
         </ToggleGroupRoot>
 
@@ -33,13 +36,9 @@ const { data: locations } = await useFetch('/api/search', {
           <div v-for="location in locations" :key="location.gmapsPlaceId" flex="~ gap-12" f-p-sm>
             <!-- Image -->
             <div
-              v-if="location.photo"
               w-64 h-64 rounded-8 bg-neutral-200 flex-shrink-0 overflow-hidden
             >
-              <img :src="location.photo" :alt="location.name" w-full h-full object-cover>
-            </div>
-            <div v-else w-64 h-64 rounded-8 bg-neutral-200 flex-shrink-0 flex="~ items-center justify-center">
-              <span text="neutral-400 24">📍</span>
+              <NuxtImg :src="`/images/location/${location.uuid}.jpg`" :alt="location.name" w-full h-full object-cover />
             </div>
 
             <!-- Content -->
@@ -53,7 +52,7 @@ const { data: locations } = await useFetch('/api/search', {
                   flex="~ items-center gap-4"
                   text="14 neutral-700"
                 >
-                  <span>⭐</span>
+                  <Icon name="i-nimiq:star" />
                   <span>{{ location.rating }}</span>
                 </span>
               </div>

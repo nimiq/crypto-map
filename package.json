@@ -16,9 +16,12 @@
   },
   "dependencies": {
     "@nuxt/fonts": "catalog:",
+    "@nuxt/icon": "^2.0.0",
+    "@nuxt/image": "1.11.0",
     "@nuxthub/core": "catalog:",
     "@vueuse/nuxt": "catalog:",
     "drizzle-orm": "catalog:",
+    "nimiq-icons": "1.0.0-beta.110",
     "nuxt": "catalog:",
     "nuxt-safe-runtime-config": "catalog:",
     "reka-ui": "catalog:",
