@@ -20,6 +20,8 @@ export const locations = pgTable('locations', {
   gmapsUrl: text('gmaps_url').notNull(),
   website: text('website'),
   source: varchar('source', { length: 20, enum: ['naka', 'bluecode'] }).notNull(),
+  timezone: text('timezone').notNull(),
+  openingHours: text('opening_hours'),
   updatedAt: timestamp('updated_at').$defaultFn(() => new Date()).$onUpdateFn(() => new Date()),
   createdAt: timestamp('created_at').$defaultFn(() => new Date()),
 }, table => [

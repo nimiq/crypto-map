@@ -1,4 +1,30 @@
 <script setup lang="ts">
+import { toZonedTime } from 'date-fns-tz'
+import OpeningHours from 'opening_hours'
+
+function getOpeningHoursStatus(
+  expression: string | null | undefined,
+  timezone: string | null | undefined,
+  reference: Date = new Date(),
+): { isOpen: boolean, message: string, nextChange: Date | null } {
+  if (!expression || !timezone)
+    return { isOpen: false, message: 'Hours unavailable', nextChange: null }
+
+  try {
+    const localDate = toZonedTime(reference, timezone)
+    const schedule = new OpeningHours(expression.trim())
+
+    const isOpen = schedule.getState(localDate)
+    const nextChange = schedule.getNextChange(localDate) || null
+    const message = isOpen ? 'Open now' : 'Closed'
+
+    return { isOpen, message, nextChange }
+  }
+  catch {
+    return { isOpen: false, message: 'Hours unavailable', nextChange: null }
+  }
+}
+
 const searchQuery = ref('')
 const selectedCategories = ref<CategoryResponse[]>([])
 const filters = ref<string[]>([])
@@ -14,6 +40,16 @@ const { data: categories, refresh: refreshCategories } = useFetch('/api/categori
 const { data: locations } = await useFetch('/api/search', {
   query: {
     q: searchQuery,
+    openNow: computed(() => filters.value.includes('open_now') ? 'true' : undefined),
+  },
+  transform: (data) => {
+    return data?.map(location => ({
+      ...location,
+      hoursStatus: getOpeningHoursStatus(
+        location.openingHours,
+        location.timezone,
+      ),
+    })) ?? []
   },
 })
 
@@ -140,6 +176,25 @@ function removeCategory(categoryId: string) {
 
                   <p text="neutral-600 f-sm" mb-0 mt-4 line-clamp-2>
                     {{ location.address }}
+                  </p>
+
+                  <p
+                    v-if="location.openingHours"
+                    text="f-sm"
+                    :class="location.hoursStatus.isOpen ? 'text-green-600' : 'text-neutral-500'"
+                    font-medium mb-0 mt-6
+                  >
+                    <template v-if="location.hoursStatus.nextChange">
+                      {{ location.hoursStatus.message }} · {{ location.hoursStatus.isOpen ? 'Closes' : 'Opens' }} at
+                      <NuxtTime
+                        :datetime="location.hoursStatus.nextChange"
+                        hour="numeric"
+                        minute="2-digit"
+                      />
+                    </template>
+                    <template v-else>
+                      {{ location.hoursStatus.message }}
+                    </template>
                   </p>
 
                   <div flex="~ wrap gap-6" f-mt-sm>

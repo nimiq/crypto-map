@@ -1,8 +1,8 @@
-import type * as schema from '../../database/schema'
+import type { categories, locationCategories, locations } from '../../database/schema'
 
-export type Location = typeof schema.locations.$inferSelect
-export type Category = typeof schema.categories.$inferSelect
-export type LocationCategory = typeof schema.locationCategories.$inferSelect
+export type Location = typeof locations.$inferSelect
+export type Category = typeof categories.$inferSelect
+export type LocationCategory = typeof locationCategories.$inferSelect
 
 export type CategoryResponse = Pick<Category, 'id' | 'name' | 'icon'>
 

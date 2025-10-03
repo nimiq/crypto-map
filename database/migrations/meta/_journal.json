@@ -15,6 +15,13 @@
       "when": 1759310582635,
       "tag": "0001_fine_boomer",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1759482276567,
+      "tag": "0002_opening_hours",
+      "breakpoints": true
     }
   ]
 }

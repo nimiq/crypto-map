@@ -1,5 +1,8 @@
+import type { Location } from '../../shared/types'
 import { consola } from 'consola'
+import { toZonedTime } from 'date-fns-tz'
 import { eq, sql } from 'drizzle-orm'
+import OpeningHours from 'opening_hours'
 import * as v from 'valibot'
 
 const querySchema = v.object({
@@ -18,6 +21,7 @@ const querySchema = v.object({
     v.maxValue(180, 'Longitude must be <= 180'),
   )),
   q: v.optional(v.string()),
+  openNow: v.optional(v.pipe(v.string(), v.transform(val => val === 'true'))),
 })
 
 export default defineEventHandler(async (event): Promise<LocationResponse[]> => {
@@ -36,6 +40,7 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
   let lat = result.output.lat
   let lng = result.output.lng
   const searchQuery = result.output.q
+  const openNow = result.output.openNow ?? false
 
   // Try to get lat/lng from Cloudflare IP if not provided
   if (lat === undefined || lng === undefined) {
@@ -59,6 +64,30 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
   }
 
   const db = useDrizzle()
+  const referenceTime = new Date()
+  const filterOpenNow = <T extends {
+    openingHours: Location['openingHours']
+    timezone: Location['timezone']
+    latitude: unknown
+    longitude: unknown
+  }>(locations: T[]) => {
+    if (!openNow)
+      return locations
+
+    return locations.filter((loc) => {
+      if (!loc.openingHours || !loc.timezone)
+        return false
+
+      try {
+        const localDate = toZonedTime(referenceTime, loc.timezone)
+        const schedule = new OpeningHours(loc.openingHours.trim())
+        return schedule.getState(localDate)
+      }
+      catch {
+        return false
+      }
+    })
+  }
 
   // If no search query, return 10 random locations
   if (!searchQuery || searchQuery.trim().length === 0) {
@@ -75,6 +104,8 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
         gmapsUrl: tables.locations.gmapsUrl,
         website: tables.locations.website,
         source: tables.locations.source,
+        timezone: tables.locations.timezone,
+        openingHours: tables.locations.openingHours,
         createdAt: tables.locations.createdAt,
         updatedAt: tables.locations.updatedAt,
         categoryIds: sql<string>`STRING_AGG(${tables.locationCategories.categoryId}, ',')`.as('categoryIds'),
@@ -89,7 +120,9 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
     const allCategories = await db.select().from(tables.categories)
     const categoryMap = new Map(allCategories.map(cat => [cat.id, { id: cat.id, name: cat.name, icon: cat.icon }]))
 
-    return randomLocations.map(loc => ({
+    const filteredLocations = filterOpenNow(randomLocations)
+
+    return filteredLocations.map(loc => ({
       ...loc,
       categories: loc.categoryIds
         ? loc.categoryIds.split(',').map(id => categoryMap.get(id)!).filter(Boolean)
@@ -111,6 +144,8 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
       gmapsUrl: tables.locations.gmapsUrl,
       website: tables.locations.website,
       source: tables.locations.source,
+      timezone: tables.locations.timezone,
+      openingHours: tables.locations.openingHours,
       createdAt: tables.locations.createdAt,
       updatedAt: tables.locations.updatedAt,
       categoryIds: sql<string>`STRING_AGG(${tables.locationCategories.categoryId}, ',')`.as('categoryIds'),
@@ -125,7 +160,9 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
   const allCategories = await db.select().from(tables.categories)
   const categoryMap = new Map(allCategories.map(cat => [cat.id, { id: cat.id, name: cat.name, icon: cat.icon, createdAt: cat.createdAt }]))
 
-  return searchResults.map(loc => ({
+  const filteredResults = filterOpenNow(searchResults)
+
+  return filteredResults.map(loc => ({
     ...loc,
     categories: loc.categoryIds
       ? loc.categoryIds.split(',').map(id => categoryMap.get(id)!).filter(Boolean)
