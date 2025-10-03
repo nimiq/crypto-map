@@ -4,25 +4,31 @@ catalog:
   '@nuxt/fonts': ^0.11.4
   '@nuxt/icon': ^2.0.0
   '@nuxt/image': 1.11.0
+  '@nuxt/test-utils': ^3.19.2
   '@nuxthub/core': latest
+  '@nuxtjs/i18n': ^10.1.0
   '@unocss/eslint-plugin': ^66.5.2
   '@unocss/nuxt': ^66.5.2
   '@unocss/preset-attributify': ^66.5.2
+  '@vue/test-utils': ^2.4.6
   '@vueuse/nuxt': ^13.9.0
   consola: ^3.4.2
   drizzle-kit: latest
   drizzle-orm: latest
   eslint: ^9.36.0
   eslint-plugin-format: ^1.0.2
+  happy-dom: ^19.0.2
   nimiq-css: 1.0.0-beta.110
   nimiq-icons: 1.0.0-beta.110
   nuxt: latest
   nuxt-safe-runtime-config: ^0.0.3
+  playwright-core: ^1.55.1
   postgres: ^3.4.7
   reka-ui: ^2.5.1
   typescript: ^5.7.3
   unocss-preset-onmax: 1.0.0-beta.43
   valibot: ^1.1.0
+  vitest: ^3.2.4
   wrangler: latest
 onlyBuiltDependencies:
   - '@parcel/watcher'

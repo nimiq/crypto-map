@@ -36,18 +36,50 @@ function removeCategory(categoryId: string) {
       />
     </div>
 
+    <!-- Language Selector -->
+    <DevOnly>
+      <div right-16 top-16 fixed z-50>
+        <SelectRoot v-model="$i18n.locale">
+          <SelectTrigger
+            outline="~ 1.5 neutral-300"
+            flex="~ items-center gap-8" shadow-sm font-medium py-8 rounded-8 bg-white cursor-pointer text-f-sm f-px-md
+          >
+            <SelectValue placeholder="Language" />
+            <Icon name="i-tabler:chevron-down" />
+          </SelectTrigger>
+          <SelectContent
+            position="popper" outline="~ 1.5 neutral-200"
+            rounded-8 bg-white max-h-256 shadow z-50 of-auto
+          >
+            <SelectViewport f-p-xs>
+              <SelectItem
+                v-for="locale in $i18n.locales.value"
+                :key="locale.code"
+                :value="locale.code"
+                flex="~ items-center gap-8" text="f-sm neutral-800 data-[highlighted]:neutral-900"
+                bg="data-[highlighted]:neutral-50" py-10 outline-none rounded-6 cursor-pointer
+                transition-colors f-px-md
+              >
+                {{ locale.name }}
+              </SelectItem>
+            </SelectViewport>
+          </SelectContent>
+        </SelectRoot>
+      </div>
+    </DevOnly>
+
     <div mx-auto max-w-640 relative z-1 f-px-md>
       <div f-mb-2xl>
         <h1 text="neutral-900 f-2xl" font-bold f-mb-xs>
-          Spend your crypto in Lugano
+          {{ $t('hero.title') }}
         </h1>
         <p text="neutral-600 f-md" f-mb-lg>
-          Discover places that accept cryptocurrency payments
+          {{ $t('hero.subtitle') }}
         </p>
 
         <ComboboxRoot v-model="selectedCategories" multiple>
           <ComboboxAnchor w-full>
-            <ComboboxInput v-model="searchQuery" placeholder="Search locations or add category filters..." nq-input-box :display-value="() => searchQuery" @focus="refreshCategories" />
+            <ComboboxInput v-model="searchQuery" :placeholder="$t('search.placeholder')" nq-input-box :display-value="() => searchQuery" @focus="refreshCategories" />
           </ComboboxAnchor>
 
           <ComboboxContent position="popper" bg="white" outline="~ 1.5 neutral-200" rounded-t-8 max-h-256 w-full shadow z-50 of-auto>
@@ -57,7 +89,7 @@ function removeCategory(categoryId: string) {
                 {{ category.name }}
               </ComboboxItem>
               <ComboboxEmpty v-if="!categories?.length" f-p-md text="f-sm neutral-500 center">
-                No categories found
+                {{ $t('search.noCategoriesFound') }}
               </ComboboxEmpty>
             </ComboboxViewport>
           </ComboboxContent>
@@ -87,7 +119,7 @@ function removeCategory(categoryId: string) {
               text="14 neutral-800 hocus:neutral"
               font-medium py-4 rounded-full cursor-pointer transition-colors f-px-2xs
             >
-              Open now
+              {{ $t('filters.openNow') }}
             </ToggleGroupItem>
             <ToggleGroupItem
               value="walkable"
@@ -96,7 +128,7 @@ function removeCategory(categoryId: string) {
               text="14 neutral-800 hocus:neutral"
               font-medium py-4 rounded-full cursor-pointer transition-colors f-px-2xs
             >
-              Walkable distance
+              {{ $t('filters.walkableDistance') }}
             </ToggleGroupItem>
           </ToggleGroupRoot>
         </div>
@@ -161,7 +193,7 @@ function removeCategory(categoryId: string) {
                   :to="location.website"
                   target="_blank" external w-fit f-mt-sm nq-arrow nq-pill-blue
                 >
-                  Visit Website
+                  {{ $t('location.visitWebsite') }}
                 </NuxtLink>
               </div>
             </div>
@@ -175,10 +207,10 @@ function removeCategory(categoryId: string) {
           shadow-md text-center rounded-12 f-py-2xl f-mt-xl
         >
           <p text="neutral-500" font-medium f-text-lg>
-            No locations found
+            {{ $t('empty.title') }}
           </p>
           <p text="neutral-400 f-sm" f-mt-xs>
-            Try adjusting your search or filters
+            {{ $t('empty.subtitle') }}
           </p>
         </div>
       </div>

@@ -1,0 +1,21 @@
+{
+  "hero": {
+    "title": "Spend your crypto in Lugano",
+    "subtitle": "Discover places that accept cryptocurrency payments"
+  },
+  "search": {
+    "placeholder": "Search locations or add category filters...",
+    "noCategoriesFound": "No categories found"
+  },
+  "filters": {
+    "openNow": "Open now",
+    "walkableDistance": "Walkable distance"
+  },
+  "location": {
+    "visitWebsite": "Visit Website"
+  },
+  "empty": {
+    "title": "No locations found",
+    "subtitle": "Try adjusting your search or filters"
+  }
+}

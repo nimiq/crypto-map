@@ -1,0 +1,21 @@
+{
+  "hero": {
+    "title": "Dépensez vos cryptos à Lugano",
+    "subtitle": "Découvrez des endroits qui acceptent les paiements en cryptomonnaies"
+  },
+  "search": {
+    "placeholder": "Rechercher des emplacements ou ajouter des filtres de catégorie...",
+    "noCategoriesFound": "Aucune catégorie trouvée"
+  },
+  "filters": {
+    "openNow": "Ouvert maintenant",
+    "walkableDistance": "Distance à pied"
+  },
+  "location": {
+    "visitWebsite": "Visiter le site web"
+  },
+  "empty": {
+    "title": "Aucun emplacement trouvé",
+    "subtitle": "Essayez d'ajuster votre recherche ou vos filtres"
+  }
+}
