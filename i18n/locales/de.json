@@ -1,0 +1,21 @@
+{
+  "hero": {
+    "title": "Gib deine Krypto in Lugano aus",
+    "subtitle": "Entdecke Orte, die Kryptowährungszahlungen akzeptieren"
+  },
+  "search": {
+    "placeholder": "Suche Standorte oder füge Kategoriefilter hinzu...",
+    "noCategoriesFound": "Keine Kategorien gefunden"
+  },
+  "filters": {
+    "openNow": "Jetzt geöffnet",
+    "walkableDistance": "Fußläufige Entfernung"
+  },
+  "location": {
+    "visitWebsite": "Website besuchen"
+  },
+  "empty": {
+    "title": "Keine Standorte gefunden",
+    "subtitle": "Versuche, deine Suche oder Filter anzupassen"
+  }
+}

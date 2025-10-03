@@ -5,5 +5,9 @@
     { "path": "./.nuxt/tsconfig.shared.json" },
     { "path": "./.nuxt/tsconfig.node.json" }
   ],
-  "files": []
+  "files": [],
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ]
 }

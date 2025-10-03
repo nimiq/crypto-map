@@ -14,6 +14,7 @@ export default defineNuxtConfig({
     '@nuxt/icon',
     'reka-ui/nuxt',
     '@nuxt/image',
+    '@nuxtjs/i18n',
   ],
   hub: {
     database: true,
@@ -49,6 +50,19 @@ export default defineNuxtConfig({
   icon: {
     collections: ['tabler'],
     customCollections: [nimiqIcons],
+    clientBundle: {
+      sizeLimitKb: 512, // 512KB
+    },
+  },
+  i18n: {
+    locales: [
+      { code: 'en', language: 'en-US', name: 'English', file: 'en.json' },
+      { code: 'es', language: 'es-ES', name: 'Español', file: 'es.json' },
+      { code: 'de', language: 'de-DE', name: 'Deutsch', file: 'de.json' },
+      { code: 'fr', language: 'fr-FR', name: 'Français', file: 'fr.json' },
+      { code: 'pt', language: 'pt-PT', name: 'Português', file: 'pt.json' },
+    ],
+    defaultLocale: 'en',
   },
   compatibilityDate: '2025-10-01',
 })
