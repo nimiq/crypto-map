@@ -6,7 +6,7 @@ export type LocationCategory = typeof locationCategories.$inferSelect
 
 export type CategoryResponse = Pick<Category, 'id' | 'name' | 'icon'>
 
-export type LocationResponse = Omit<Location, 'location'> & {
+export type LocationResponse = Omit<Location, 'location' | 'embedding'> & {
   latitude: number
   longitude: number
   categoryIds: string

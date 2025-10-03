@@ -1,4 +1,17 @@
-import { doublePrecision, geometry, index, pgTable, primaryKey, text, timestamp, varchar } from 'drizzle-orm/pg-core'
+import { customType, doublePrecision, geometry, index, pgTable, primaryKey, text, timestamp, varchar } from 'drizzle-orm/pg-core'
+
+// Custom vector type for pgvector extension
+const vector = customType<{ data: number[], driverData: string, config: { dimensions?: number } }>({
+  dataType(config) {
+    return `vector(${config?.dimensions ?? 1536})`
+  },
+  fromDriver(value: string): number[] {
+    return JSON.parse(value)
+  },
+  toDriver(value: number[]): string {
+    return JSON.stringify(value)
+  },
+})
 
 export const categories = pgTable('categories', {
   id: text('id').primaryKey(),
@@ -22,10 +35,12 @@ export const locations = pgTable('locations', {
   source: varchar('source', { length: 20, enum: ['naka', 'bluecode'] }).notNull(),
   timezone: text('timezone').notNull(),
   openingHours: text('opening_hours'),
+  embedding: vector({ dimensions: 1536 }),
   updatedAt: timestamp('updated_at').$defaultFn(() => new Date()).$onUpdateFn(() => new Date()),
   createdAt: timestamp('created_at').$defaultFn(() => new Date()),
 }, table => [
   index('location_spatial_idx').using('gist', table.location),
+  index('locations_embedding_idx').using('hnsw', table.embedding).with({ m: 16, ef_construction: 64 }),
 ])
 
 export const locationCategories = pgTable('location_categories', {
@@ -38,4 +53,5 @@ export const locationCategories = pgTable('location_categories', {
   index('category_idx').on(table.categoryId),
 ])
 
+export type Location = typeof locations.$inferSelect
 export type LocationCategory = typeof locationCategories.$inferSelect
