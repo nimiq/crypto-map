@@ -16,6 +16,7 @@
     "db:generate": "drizzle-kit generate",
     "lint": "eslint . --cache",
     "lint:fix": "eslint . --fix --cache",
+    "test": "vitest run",
     "typecheck": "nuxt typecheck"
   },
   "dependencies": {
@@ -23,6 +24,7 @@
     "@nuxt/icon": "catalog:framework",
     "@nuxt/image": "catalog:framework",
     "@nuxthub/core": "catalog:framework",
+    "@nuxtjs/i18n": "catalog:framework",
     "@vueuse/nuxt": "catalog:framework",
     "consola": "catalog:utils",
     "date-fns-tz": "catalog:utils",
@@ -38,15 +40,20 @@
   "devDependencies": {
     "@antfu/eslint-config": "catalog:dev",
     "@nuxt/eslint": "catalog:dev",
+    "@nuxt/test-utils": "catalog:test",
     "@unocss/eslint-plugin": "catalog:dev",
     "@unocss/nuxt": "catalog:ui",
     "@unocss/preset-attributify": "catalog:ui",
+    "@vue/test-utils": "catalog:test",
     "drizzle-kit": "catalog:database",
     "eslint": "catalog:dev",
     "eslint-plugin-format": "catalog:dev",
+    "happy-dom": "catalog:test",
     "nimiq-css": "catalog:ui",
+    "playwright-core": "catalog:test",
     "typescript": "catalog:dev",
     "unocss-preset-onmax": "catalog:ui",
+    "vitest": "catalog:test",
     "wrangler": "catalog:dev"
   }
 }
