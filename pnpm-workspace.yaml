@@ -1,45 +1,39 @@
-catalogs:
-  database:
-    drizzle-kit: latest
-    drizzle-orm: latest
-    postgres: latest
-  dev:
-    '@antfu/eslint-config': latest
-    '@iconify-json/tabler': latest
-    '@nuxt/eslint': latest
-    '@unocss/eslint-plugin': latest
-    eslint: ^9.37.0
-    eslint-plugin-format: latest
-    typescript: latest
-    wrangler: latest
-  framework:
-    '@nuxt/fonts': latest
-    '@nuxt/icon': latest
-    '@nuxt/image': latest
-    '@nuxthub/core': latest
-    '@nuxtjs/i18n': latest
-    '@vueuse/nuxt': latest
-    nuxt: latest
-    nuxt-safe-runtime-config: latest
-  test:
-    '@nuxt/test-utils': latest
-    '@vue/test-utils': latest
-    happy-dom: ^18.0.0
-    playwright-core: latest
-    vitest: latest
-  ui:
-    '@unocss/nuxt': latest
-    '@unocss/preset-attributify': latest
-    nimiq-css: 1.0.0-beta.120
-    nimiq-icons: 1.0.0-beta.120
-    reka-ui: latest
-    unocss-preset-onmax: latest
-  utils:
-    consola: latest
-    date-fns-tz: latest
-    opening_hours: latest
-    valibot: latest
-
+catalog:
+  '@antfu/eslint-config': ^5.4.1
+  '@iconify-json/tabler': latest
+  '@nuxt/eslint': ^1.9.0
+  '@nuxt/fonts': ^0.11.4
+  '@nuxt/icon': ^2.0.0
+  '@nuxt/image': 1.11.0
+  '@nuxt/test-utils': latest
+  '@nuxthub/core': latest
+  '@nuxtjs/i18n': latest
+  '@unocss/eslint-plugin': ^66.5.2
+  '@unocss/nuxt': ^66.5.2
+  '@unocss/preset-attributify': ^66.5.2
+  '@vue/test-utils': latest
+  '@vueuse/nuxt': ^13.9.0
+  consola: ^3.4.2
+  date-fns-tz: latest
+  drizzle-kit: latest
+  drizzle-orm: latest
+  eslint: ^9.36.0
+  eslint-plugin-format: ^1.0.2
+  happy-dom: ^18.0.0
+  nimiq-css: 1.0.0-beta.110
+  nimiq-icons: 1.0.0-beta.110
+  nuxt: latest
+  nuxt-safe-runtime-config: ^0.0.3
+  openai: ^6.1.0
+  opening_hours: latest
+  playwright-core: latest
+  postgres: ^3.4.7
+  reka-ui: ^2.5.1
+  typescript: ^5.7.3
+  unocss-preset-onmax: 1.0.0-beta.43
+  valibot: ^1.1.0
+  vitest: latest
+  wrangler: latest
 onlyBuiltDependencies:
   - '@parcel/watcher'
   - esbuild
