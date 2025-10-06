@@ -1,9 +1,10 @@
 import type { Location } from '../../shared/types'
 import { consola } from 'consola'
 import { toZonedTime } from 'date-fns-tz'
-import { and, count, eq, ilike, inArray, sql } from 'drizzle-orm'
+import { count, eq, inArray, sql } from 'drizzle-orm'
 import OpeningHours from 'opening_hours'
 import * as v from 'valibot'
+import { useSearchService } from '../utils/search'
 
 const querySchema = v.object({
   lat: v.optional(v.pipe(
@@ -24,6 +25,60 @@ const querySchema = v.object({
   openNow: v.optional(v.pipe(v.string(), v.transform(val => val === 'true'))),
   categories: v.optional(v.union([v.string(), v.array(v.string())])),
 })
+
+/**
+ * Fallback search using traditional keyword-based approach
+ * Used when hybrid search fails or vector operations are unavailable
+ */
+async function fallbackKeywordSearch(query: string): Promise<LocationResponse[]> {
+  const db = useDrizzle()
+
+  try {
+    const results = await db
+      .select({
+        uuid: tables.locations.uuid,
+        name: tables.locations.name,
+        address: tables.locations.address,
+        latitude: sql<number>`ST_Y(${tables.locations.location})`.as('latitude'),
+        longitude: sql<number>`ST_X(${tables.locations.location})`.as('longitude'),
+        rating: tables.locations.rating,
+        photo: tables.locations.photo,
+        gmapsPlaceId: tables.locations.gmapsPlaceId,
+        gmapsUrl: tables.locations.gmapsUrl,
+        website: tables.locations.website,
+        source: tables.locations.source,
+        timezone: tables.locations.timezone,
+        openingHours: tables.locations.openingHours,
+        createdAt: tables.locations.createdAt,
+        updatedAt: tables.locations.updatedAt,
+        categoryIds: sql<string>`STRING_AGG(${tables.locationCategories.categoryId}, ',')`.as('categoryIds'),
+      })
+      .from(tables.locations)
+      .leftJoin(tables.locationCategories, eq(tables.locations.uuid, tables.locationCategories.locationUuid))
+      .where(sql`${tables.locations.name} LIKE ${`%${query}%`}`)
+      .groupBy(tables.locations.uuid)
+      .limit(10)
+
+    // Get all categories once
+    const allCategories = await db.select().from(tables.categories)
+    const categoryMap = new Map(allCategories.map(cat => [cat.id, { id: cat.id, name: cat.name, icon: cat.icon }]))
+
+    return results.map(loc => ({
+      ...loc,
+      timezone: loc.timezone || 'UTC',
+      categories: loc.categoryIds
+        ? loc.categoryIds.split(',').map(id => categoryMap.get(id)!).filter(Boolean)
+        : [],
+    }))
+  }
+  catch (error) {
+    consola.error('Fallback keyword search failed:', error)
+    throw createError({
+      statusCode: 500,
+      statusMessage: 'Search operation failed',
+    })
+  }
+}
 
 export default defineEventHandler(async (event): Promise<LocationResponse[]> => {
   const queryParams = getQuery(event)
@@ -156,60 +211,42 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
     }))
   }
 
-  // Search locations by name
-  const searchQueryBuilder = db
-    .select({
-      uuid: tables.locations.uuid,
-      name: tables.locations.name,
-      address: tables.locations.address,
-      latitude: sql<number>`ST_Y(${tables.locations.location})`.as('latitude'),
-      longitude: sql<number>`ST_X(${tables.locations.location})`.as('longitude'),
-      rating: tables.locations.rating,
-      photo: tables.locations.photo,
-      gmapsPlaceId: tables.locations.gmapsPlaceId,
-      gmapsUrl: tables.locations.gmapsUrl,
-      website: tables.locations.website,
-      source: tables.locations.source,
-      timezone: tables.locations.timezone,
-      openingHours: tables.locations.openingHours,
-      createdAt: tables.locations.createdAt,
-      updatedAt: tables.locations.updatedAt,
-      categoryIds: sql<string>`STRING_AGG(${tables.locationCategories.categoryId}, ',')`.as('categoryIds'),
-    })
-    .from(tables.locations)
-    .leftJoin(tables.locationCategories, eq(tables.locations.uuid, tables.locationCategories.locationUuid))
-    .groupBy(tables.locations.uuid)
+  // Perform hybrid search with comprehensive error handling
+  try {
+    const searchService = useSearchService()
+    const searchResults = await searchService.hybridSearch(searchQuery)
+    const formattedResults = await searchService.formatResults(searchResults)
 
-  const whereConditions = [ilike(tables.locations.name, `%${searchQuery}%`)]
-
-  if (categoryIds.length > 0) {
-    // Subquery to find locations that have ALL required categories
-    const locationsWithCategories = db
-      .select({ locationUuid: tables.locationCategories.locationUuid })
-      .from(tables.locationCategories)
-      .where(inArray(tables.locationCategories.categoryId, categoryIds))
-      .groupBy(tables.locationCategories.locationUuid)
-      .having(eq(count(), categoryIds.length))
-
-    whereConditions.push(
-      inArray(tables.locations.uuid, sql`(${locationsWithCategories})`),
-    )
+    consola.info(`Hybrid search completed successfully, returning ${formattedResults.length} results`)
+    return formattedResults
   }
+  catch (error) {
+    // Log the specific error for debugging
+    consola.error('Hybrid search failed, attempting fallback to keyword search:', error)
 
-  const searchResults = await searchQueryBuilder
-    .where(and(...whereConditions))
-    .limit(10)
+    // Check if this is an OpenAI API configuration error
+    if (error instanceof Error && error.message.includes('OpenAI API key')) {
+      consola.warn('OpenAI API key not configured, falling back to keyword-only search')
+    }
+    else if (error instanceof Error && error.message.includes('OpenAI authentication')) {
+      consola.warn('OpenAI authentication failed, falling back to keyword-only search')
+    }
+    else if (error instanceof Error && error.message.includes('vector')) {
+      consola.warn('Vector database operations failed, falling back to keyword-only search')
+    }
 
-  // Get all categories once
-  const allCategories = await db.select().from(tables.categories)
-  const categoryMap = new Map(allCategories.map(cat => [cat.id, { id: cat.id, name: cat.name, icon: cat.icon, createdAt: cat.createdAt }]))
-
-  const filteredResults = filterOpenNow(searchResults)
-
-  return filteredResults.map(loc => ({
-    ...loc,
-    categories: loc.categoryIds
-      ? loc.categoryIds.split(',').map(id => categoryMap.get(id)!).filter(Boolean)
-      : [],
-  }))
+    // Attempt fallback to keyword-only search
+    try {
+      const fallbackResults = await fallbackKeywordSearch(searchQuery)
+      consola.info(`Fallback keyword search completed, returning ${fallbackResults.length} results`)
+      return fallbackResults
+    }
+    catch (fallbackError) {
+      consola.error('Both hybrid and fallback searches failed:', fallbackError)
+      throw createError({
+        statusCode: 500,
+        statusMessage: 'Search operation failed',
+      })
+    }
+  }
 })

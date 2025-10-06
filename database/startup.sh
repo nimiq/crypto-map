@@ -18,5 +18,9 @@ echo "Running migrations on startup..."
 echo "Running seeds on startup..."
 /docker-entrypoint-initdb.d/03-seed.sh || true
 
+# Run the vector embeddings generation
+echo "Running vector embeddings generation on startup..."
+/docker-entrypoint-initdb.d/04-generate-embeddings.sh || true
+
 # Keep postgres running in foreground
 wait $PID

@@ -205,7 +205,7 @@ export function useEmbeddingService(): EmbeddingService {
   if (!embeddingServiceInstance) {
     const runtimeConfig = useRuntimeConfig()
 
-    if (!runtimeConfig.openaiApiKey) {
+    if (!runtimeConfig.openaiApiKey || runtimeConfig.openaiApiKey.trim() === '') {
       throw new Error('OpenAI API key is not configured. Please set OPENAI_API_KEY environment variable.')
     }
 
