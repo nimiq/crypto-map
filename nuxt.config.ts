@@ -1,5 +1,5 @@
 import process from 'node:process'
-import { icons as nimiqIcons } from 'nimiq-icons'
+// import { icons as nimiqIcons } from 'nimiq-icons'
 import { defineNuxtConfig } from 'nuxt/config'
 import * as v from 'valibot'
 
@@ -49,7 +49,7 @@ export default defineNuxtConfig({
   },
   icon: {
     collections: ['tabler'],
-    customCollections: [nimiqIcons],
+    // customCollections: [nimiqIcons],
     clientBundle: {
       sizeLimitKb: 512, // 512KB
     },
@@ -58,12 +58,12 @@ export default defineNuxtConfig({
     defaultLocale: 'en',
     locales: [
       { code: 'en', name: 'English', file: 'en.json' },
-      { code: 'es',  name: 'Español', file: 'es.json' },
-      { code: 'de',  name: 'Deutsch', file: 'de.json' },
-      { code: 'fr',  name: 'Français', file: 'fr.json' },
-      { code: 'pt',  name: 'Português', file: 'pt.json' },
+      { code: 'es', name: 'Español', file: 'es.json' },
+      { code: 'de', name: 'Deutsch', file: 'de.json' },
+      { code: 'fr', name: 'Français', file: 'fr.json' },
+      { code: 'pt', name: 'Português', file: 'pt.json' },
     ],
- 
+    langDir: 'locales',
   },
   compatibilityDate: '2025-10-01',
 })

@@ -39,6 +39,7 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "catalog:dev",
+    "@iconify-json/tabler": "catalog:dev",
     "@nuxt/eslint": "catalog:dev",
     "@nuxt/test-utils": "catalog:test",
     "@unocss/eslint-plugin": "catalog:dev",

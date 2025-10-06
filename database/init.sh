@@ -41,21 +41,4 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
 	ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT EXECUTE ON ROUTINES TO anon, authenticated, service_role;
 EOSQL
 
-echo "Running Drizzle migrations..."
-for migration in /docker-entrypoint-initdb.d/migrations/*.sql; do
-  if [ -f "$migration" ]; then
-    echo "Applying migration: $(basename $migration)"
-    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -f "$migration"
-  fi
-done
-
-echo "Applying RLS policies..."
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -f /docker-entrypoint-initdb.d/seeds/rls-policies.sql
-
-echo "Seeding categories..."
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -f /docker-entrypoint-initdb.d/seeds/categories.sql
-
-echo "Seeding dummy data..."
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -f /docker-entrypoint-initdb.d/seeds/sources/dummy.sql
-
-echo "Database initialization complete!"
+echo "Database initialization complete (extensions and roles only)."

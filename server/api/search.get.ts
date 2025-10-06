@@ -94,10 +94,9 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
     })
   }
 
-
   // If no search query, return 10 random locations
   if (!searchQuery || searchQuery.trim().length === 0) {
-    let baseQuery = db
+    const baseQueryBuilder = db
       .select({
         uuid: tables.locations.uuid,
         name: tables.locations.name,
@@ -120,6 +119,7 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
       .leftJoin(tables.locationCategories, eq(tables.locations.uuid, tables.locationCategories.locationUuid))
       .groupBy(tables.locations.uuid)
 
+    let randomLocations
     if (categoryIds.length > 0) {
       // Subquery to find locations that have ALL required categories
       const locationsWithCategories = db
@@ -129,14 +129,18 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
         .groupBy(tables.locationCategories.locationUuid)
         .having(eq(count(), categoryIds.length))
 
-      baseQuery = baseQuery.where(
-        inArray(tables.locations.uuid, sql`(${locationsWithCategories})`)
-      )
+      randomLocations = await baseQueryBuilder
+        .where(
+          inArray(tables.locations.uuid, sql`(${locationsWithCategories})`),
+        )
+        .orderBy(sql`RANDOM()`)
+        .limit(10)
     }
-
-    const randomLocations = await baseQuery
-      .orderBy(sql`RANDOM()`)
-      .limit(10)
+    else {
+      randomLocations = await baseQueryBuilder
+        .orderBy(sql`RANDOM()`)
+        .limit(10)
+    }
 
     // Get all categories once
     const allCategories = await db.select().from(tables.categories)
@@ -153,7 +157,7 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
   }
 
   // Search locations by name
-  let searchQueryBuilder = db
+  const searchQueryBuilder = db
     .select({
       uuid: tables.locations.uuid,
       name: tables.locations.name,
@@ -188,7 +192,7 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
       .having(eq(count(), categoryIds.length))
 
     whereConditions.push(
-      inArray(tables.locations.uuid, sql`(${locationsWithCategories})`)
+      inArray(tables.locations.uuid, sql`(${locationsWithCategories})`),
     )
   }
 

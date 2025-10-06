@@ -44,7 +44,7 @@ WITH default_hours AS (
     NOW()
   FROM seed_data
   CROSS JOIN default_hours
-  ON CONFLICT (uuid) DO NOTHING
+  ON CONFLICT (gmaps_place_id) DO UPDATE SET gmaps_place_id = EXCLUDED.gmaps_place_id
   RETURNING uuid, gmaps_place_id
 )
 -- Insert location-category relationships using the returned UUIDs

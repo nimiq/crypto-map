@@ -44,12 +44,16 @@ const params = useUrlSearchParams('history')
 // Store only category IDs (URL + state)
 const selectedCategories = computed<string[]>({
   get: () => params.categories ? (params.categories as string).split(',') : [],
-  set: (val) => params.categories = val.length ? val.join(',') : null,
+  set: (val) => {
+    params.categories = val.length ? val.join(',') : null as any
+  },
 })
 
 const filters = computed<string[]>({
   get: () => params.filters ? (params.filters as string).split(',') : [],
-  set: (val) => params.filters = val.length ? val.join(',') : null,
+  set: (val) => {
+    params.filters = val.length ? val.join(',') : null as any
+  },
 })
 
 const { locale, locales } = useI18n()
@@ -62,7 +66,7 @@ async function changeLocale(code: string) {
   if (code === locale.value)
     return
 
-  const path = switchLocalePath(code)
+  const path = switchLocalePath(code as any)
   if (!path)
     return
 
@@ -120,12 +124,12 @@ function getCategoryById(categoryId: string) {
 <template>
   <div bg-neutral-100 h-screen relative overflow-hidden>
     <!-- Background SVG at bottom -->
-      <NuxtImg src="/assets/lugano.svg" alt="Lugano" h-auto w-full mx-auto  op-3 flex pointer-events-none items-end absolute bottom-0 left-0 right-0 z-0/>
+    <NuxtImg src="/assets/lugano.svg" alt="Lugano" mx-auto op-3 flex h-auto w-full pointer-events-none items-end bottom-0 left-0 right-0 absolute z-0 />
 
     <!-- Language Selector -->
     <DevOnly>
       <div right-16 top-16 fixed z-50>
-        <SelectRoot :model-value="locale" @update:modelValue="changeLocale">
+        <SelectRoot :model-value="locale" @update:model-value="changeLocale">
           <SelectTrigger
             outline="~ 1.5 neutral-300"
             flex="~ items-center gap-8" shadow-sm font-medium py-8 rounded-8 bg-white cursor-pointer text-f-sm f-px-md
@@ -193,7 +197,7 @@ function getCategoryById(categoryId: string) {
             flex="~ items-center gap-6"
             @click="removeCategory(categoryId)"
           >
-            <Icon :name="getCategoryById(categoryId)?.icon" size-16 />
+            <Icon :name="getCategoryById(categoryId)?.icon || ''" size-16 />
             {{ getCategoryById(categoryId)?.name }}
             <Icon name="i-nimiq:cross" size-16 />
           </button>
@@ -225,45 +229,43 @@ function getCategoryById(categoryId: string) {
           <div
             v-for="i in 6"
             :key="`skeleton-${i}`"
-            bg-white
-            rounded-12
-            overflow-hidden
+
             outline="~ 1 neutral-200"
-            shadow-sm
+
             flex="~ col"
-            animate-pulse
+            shadow-sm rounded-12 bg-white overflow-hidden animate-pulse
           >
             <!-- Image skeleton -->
-            <div aspect="16/9" bg-neutral-200 flex-shrink-0></div>
+            <div aspect="16/9" bg-neutral-200 flex-shrink-0 />
 
             <!-- Content skeleton -->
             <div f-p-md flex="~ col gap-12">
               <!-- Title -->
-              <div h-20 bg-neutral-200 rounded-6 w="3/4"></div>
+              <div rounded-6 bg-neutral-200 h-20 w="3/4" />
 
               <!-- Status -->
               <div flex="~ gap-8">
-                <div h-24 bg-neutral-200 rounded-full w-80></div>
-                <div h-24 bg-neutral-200 rounded-6 w-100></div>
+                <div rounded-full bg-neutral-200 h-24 w-80 />
+                <div rounded-6 bg-neutral-200 h-24 w-100 />
               </div>
 
               <!-- Address -->
               <div flex="~ gap-8">
-                <div size-16 bg-neutral-200 rounded-4 flex-shrink-0 mt-2></div>
+                <div mt-2 rounded-4 bg-neutral-200 flex-shrink-0 size-16 />
                 <div flex="~ col gap-6 flex-1">
-                  <div h-16 bg-neutral-200 rounded-4 w-full></div>
-                  <div h-16 bg-neutral-200 rounded-4 w="2/3"></div>
+                  <div rounded-4 bg-neutral-200 h-16 w-full />
+                  <div rounded-4 bg-neutral-200 h-16 w="2/3" />
                 </div>
               </div>
 
               <!-- Categories -->
               <div flex="~ gap-6">
-                <div h-24 bg-neutral-200 rounded-full w-80></div>
-                <div h-24 bg-neutral-200 rounded-full w-60></div>
+                <div rounded-full bg-neutral-200 h-24 w-80 />
+                <div rounded-full bg-neutral-200 h-24 w-60 />
               </div>
 
               <!-- Action -->
-              <div h-20 bg-neutral-200 rounded-6 w-100 mt-auto pt-8></div>
+              <div mt-auto pt-8 rounded-6 bg-neutral-200 h-20 w-100 />
             </div>
           </div>
         </div>
@@ -277,47 +279,32 @@ function getCategoryById(categoryId: string) {
             :aria-label="`View ${location.name} on Google Maps`"
             target="_blank"
             rel="noopener noreferrer"
-            nq-hoverable
-            p-0
-            bg-white
-            rounded-12
-            overflow-hidden
+
             outline="~ 1 neutral-200"
-            block
-            no-underline
-            group
+
             flex="~ col"
-            h-full
+            group p-0 rounded-12 bg-white no-underline h-full block overflow-hidden nq-hoverable
           >
             <!-- Image with Rating Overlay (16:9 aspect ratio) -->
-            <div relative aspect="16/9" bg-neutral-200 overflow-hidden flex-shrink-0>
+            <div aspect="16/9" bg-neutral-200 flex-shrink-0 relative overflow-hidden>
               <NuxtImg
                 v-if="location.photo"
                 :src="location.photo"
                 :alt="`Photo of ${location.name}`"
-                h-full
-                w-full
-                object-cover
-                transition-transform
-                duration-300
-                group-hover:scale-105
+
+                h-full w-full transition-transform duration-300 object-cover group-hover:scale-105
               />
 
               <!-- Rating Pill Overlay -->
               <div
                 v-if="location.rating"
-                absolute
-                top-8
-                right-8
+
                 flex="~ items-center gap-4"
                 bg="white/95"
-                backdrop-blur-sm
+
                 text="neutral-900 f-sm"
-                font-semibold
-                px-8
-                py-4
-                rounded-full
-                shadow-sm
+
+                shadow-sm font-semibold px-8 py-4 rounded-full right-8 top-8 absolute backdrop-blur-sm
                 outline="1.5 offset--1.5 neutral/10"
               >
                 <Icon name="i-nimiq:star" text-gold size-16 />
@@ -326,7 +313,7 @@ function getCategoryById(categoryId: string) {
             </div>
 
             <!-- Content with consistent vertical rhythm -->
-            <div f-p-md flex="~ col gap-12" flex-1>
+            <div flex="~ col gap-12" flex-1 f-p-md>
               <!-- Name (1 line max) -->
               <h3
                 text="f-lg neutral-900"
@@ -343,8 +330,7 @@ function getCategoryById(categoryId: string) {
                 flex="~ items-center gap-8 wrap"
               >
                 <span
-                  :class="[
-                    'px-8 py-4 rounded-full text-f-xs font-semibold whitespace-nowrap',
+                  class="font-semibold px-8 py-4 rounded-full whitespace-nowrap text-f-xs" :class="[
                     location.hoursStatus.variant === 'open' && 'bg-green-400 text-green-1100 outline-1.5 outline-green-400',
                     location.hoursStatus.variant === 'closing-soon' && 'bg-orange-400 text-orange-1100 outline-1.5 outline-orange-400',
                     location.hoursStatus.variant === 'closed' && 'bg-neutral-200 text-neutral-800',
@@ -371,16 +357,13 @@ function getCategoryById(categoryId: string) {
               <div flex="~ items-start gap-8">
                 <Icon
                   name="i-tabler:map-pin"
-                  size-16
-                  text-neutral-700
-                  flex-shrink-0
-                  mt-2
+
+                  text-neutral-700 mt-2 flex-shrink-0 size-16
                 />
                 <p
                   text="neutral-800 f-sm"
-                  m-0
-                  line-clamp-2
-                  flex-1
+
+                  m-0 flex-1 line-clamp-2
                 >
                   {{ location.address }}
                 </p>
@@ -429,13 +412,10 @@ function getCategoryById(categoryId: string) {
                   :aria-label="`Visit ${location.name} website`"
                   target="_blank"
                   rel="noopener noreferrer"
-                  @click.stop.prevent="(e) => { window.open(location.website, '_blank') }"
                   un-text="neutral-600 hover:neutral-900 f-sm"
                   font-medium
-                  ml-auto
-                  transition-colors
-                  no-underline
-                  nq-arrow
+
+                  ml-auto no-underline transition-colors nq-arrow @click.stop
                 >
                   Website
                 </a>
@@ -447,33 +427,27 @@ function getCategoryById(categoryId: string) {
         <!-- Empty State -->
         <div
           v-if="!pending && (!locations || locations.length === 0)"
-          bg-white
+
           outline="~ 1 neutral-200"
-          shadow-sm
-          text-center
-          rounded-12
-          f-py-2xl
-          f-px-lg
-          f-mt-xl
+
+          shadow-sm text-center rounded-12 bg-white f-px-lg f-py-2xl f-mt-xl
         >
           <div
-            size-64
-            bg-neutral-100
-            rounded-full
+
             flex="~ items-center justify-center"
-            mx-auto
-            f-mb-md
+
+            mx-auto rounded-full bg-neutral-100 size-64 f-mb-md
           >
             <Icon
               name="i-nimiq:magnifying-glass"
-              size-32
-              text-neutral-400
+
+              text-neutral-400 size-32
             />
           </div>
           <p text="neutral-800 f-lg" font-semibold m-0>
             {{ $t('empty.title') }}
           </p>
-          <p text="neutral-600 f-sm" f-mt-xs m-0>
+          <p text="neutral-600 f-sm" m-0 f-mt-xs>
             {{ $t('empty.subtitle') }}
           </p>
         </div>
