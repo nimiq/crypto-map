@@ -209,7 +209,16 @@ export function useEmbeddingService(): EmbeddingService {
       throw new Error('OpenAI API key is not configured. Please set OPENAI_API_KEY environment variable.')
     }
 
-    embeddingServiceInstance = new EmbeddingService(runtimeConfig.openaiApiKey)
+    // Create embedding service with configuration from runtime config
+    const config: EmbeddingConfig = {
+      model: runtimeConfig.openaiEmbedding.model,
+      maxRetries: runtimeConfig.openaiEmbedding.maxRetries,
+      baseDelay: runtimeConfig.openaiEmbedding.baseDelay,
+      maxDelay: runtimeConfig.openaiEmbedding.maxDelay,
+      batchSize: runtimeConfig.openaiEmbedding.batchSize,
+    }
+
+    embeddingServiceInstance = new EmbeddingService(runtimeConfig.openaiApiKey, config)
   }
 
   return embeddingServiceInstance

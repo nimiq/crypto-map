@@ -309,7 +309,17 @@ let searchServiceInstance: SearchService | null = null
 
 export function useSearchService(): SearchService {
   if (!searchServiceInstance) {
-    searchServiceInstance = new SearchService()
+    const runtimeConfig = useRuntimeConfig()
+
+    // Create search service with configuration from runtime config
+    const config: SearchConfig = {
+      keywordSearchLimit: runtimeConfig.vectorSearch.keywordLimit,
+      vectorSearchLimit: runtimeConfig.vectorSearch.vectorLimit,
+      hybridThreshold: runtimeConfig.vectorSearch.hybridThreshold,
+      similarityThreshold: runtimeConfig.vectorSearch.similarityThreshold,
+    }
+
+    searchServiceInstance = new SearchService(config)
   }
   return searchServiceInstance
 }
