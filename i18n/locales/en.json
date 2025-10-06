@@ -9,10 +9,11 @@
   },
   "filters": {
     "openNow": "Open now",
-    "walkableDistance": "Walkable distance"
+    "walkableDistance": "Walkable distance (WIP)"
   },
   "location": {
-    "visitWebsite": "Visit Website"
+    "viewOnMaps": "View on Maps",
+    "visitWebsite": "Visit website"
   },
   "empty": {
     "title": "No locations found",

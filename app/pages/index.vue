@@ -29,6 +29,23 @@ const searchQuery = ref('')
 const selectedCategories = ref<CategoryResponse[]>([])
 const filters = ref<string[]>([])
 
+const { locale, locales } = useI18n()
+const router = useRouter()
+const switchLocalePath = useSwitchLocalePath()
+
+const availableLocales = computed(() => locales.value as { code: string, name: string }[])
+
+async function changeLocale(code: string) {
+  if (code === locale.value)
+    return
+
+  const path = switchLocalePath(code)
+  if (!path)
+    return
+
+  await router.push(path)
+}
+
 const { data: categories, refresh: refreshCategories } = useFetch('/api/categories', {
   query: {
     q: searchQuery,
@@ -62,9 +79,9 @@ function removeCategory(categoryId: string) {
 </script>
 
 <template>
-  <div bg-neutral-100 min-h-screen relative overflow-hidden f-py-xl>
-    <!-- Background SVG -->
-    <div opacity-3 flex pointer-events-none items-end bottom-0 left-0 right-0 fixed>
+  <div bg-neutral-100 h-screen relative overflow-hidden>
+    <!-- Background SVG at bottom -->
+    <div opacity-3 flex pointer-events-none items-end absolute bottom-0 left-0 right-0 z-0>
       <NuxtImg
         src="/assets/lugano.svg"
         alt="Lugano"
@@ -75,12 +92,13 @@ function removeCategory(categoryId: string) {
     <!-- Language Selector -->
     <DevOnly>
       <div right-16 top-16 fixed z-50>
-        <SelectRoot v-model="$i18n.locale">
+        <SelectRoot :model-value="locale" @update:modelValue="changeLocale">
           <SelectTrigger
             outline="~ 1.5 neutral-300"
             flex="~ items-center gap-8" shadow-sm font-medium py-8 rounded-8 bg-white cursor-pointer text-f-sm f-px-md
           >
             <SelectValue placeholder="Language" />
+            <span text="neutral-500 f-xs" ml--4>(dev)</span>
             <Icon name="i-tabler:chevron-down" />
           </SelectTrigger>
           <SelectContent
@@ -89,14 +107,14 @@ function removeCategory(categoryId: string) {
           >
             <SelectViewport f-p-xs>
               <SelectItem
-                v-for="locale in $i18n.locales.value"
-                :key="locale.code"
-                :value="locale.code"
+                v-for="availableLocale in availableLocales"
+                :key="availableLocale.code"
+                :value="availableLocale.code"
                 flex="~ items-center gap-8" text="f-sm neutral-800 data-[highlighted]:neutral-900"
                 bg="data-[highlighted]:neutral-50" py-10 outline-none rounded-6 cursor-pointer
                 transition-colors f-px-md
               >
-                {{ locale.name }}
+                {{ availableLocale.name }}
               </SelectItem>
             </SelectViewport>
           </SelectContent>
@@ -104,8 +122,8 @@ function removeCategory(categoryId: string) {
       </div>
     </DevOnly>
 
-    <div mx-auto max-w-640 relative z-1 f-px-md>
-      <div f-mb-2xl>
+    <div h-full overflow-y-auto f-py-xl>
+      <div mx-auto max-w-640 relative z-1 f-px-md>
         <h1 text="neutral-900 f-2xl" font-bold f-mb-xs>
           {{ $t('hero.title') }}
         </h1>
@@ -124,7 +142,7 @@ function removeCategory(categoryId: string) {
                 <Icon v-if="category.icon" :name="category.icon" size-18 />
                 {{ category.name }}
               </ComboboxItem>
-              <ComboboxEmpty v-if="!categories?.length" f-p-md text="f-sm neutral-500 center">
+              <ComboboxEmpty v-if="!categories?.length" f-p-md text="f-sm neutral-700 center">
                 {{ $t('search.noCategoriesFound') }}
               </ComboboxEmpty>
             </ComboboxViewport>
@@ -150,16 +168,16 @@ function removeCategory(categoryId: string) {
           <ToggleGroupRoot v-model="filters" type="multiple" flex="~ wrap gap-8">
             <ToggleGroupItem
               value="open_now"
-              outline="~ neutral-400 1.5 reka-active:reka-blue"
-              bg="neutral-100 hocus:neutral-200"
-              text="14 neutral-800 hocus:neutral"
+              outline="~ neutral-400 1.5 reka-on:transparent"
+              bg="neutral-100 hocus:neutral-200 reka-on:blue"
+              text="14 neutral-800 hocus:neutral reka-on:white"
               font-medium py-4 rounded-full cursor-pointer transition-colors f-px-2xs
             >
               {{ $t('filters.openNow') }}
             </ToggleGroupItem>
             <ToggleGroupItem
               value="walkable"
-              outline="~ neutral-400 1.5 reka-active:reka-blue"
+              outline="~ neutral-400 1.5 reka-on:reka-blue"
               bg="neutral-100 hocus:neutral-200"
               text="14 neutral-800 hocus:neutral"
               font-medium py-4 rounded-full cursor-pointer transition-colors f-px-2xs
@@ -174,9 +192,9 @@ function removeCategory(categoryId: string) {
           <div
             v-for="location in locations"
             :key="location.gmapsPlaceId"
-            shadow="md hover:lg"
+            shadow-md
 
-            rounded-12 cursor-pointer transition-all overflow-hidden
+            rounded-12 overflow-hidden
           >
             <div flex="~ gap-16" f-p-md>
               <!-- Image -->
@@ -213,7 +231,7 @@ function removeCategory(categoryId: string) {
                   <p
                     v-if="location.openingHours"
                     text="f-sm"
-                    :class="location.hoursStatus.isOpen ? 'text-green-600' : 'text-neutral-500'"
+                    :class="location.hoursStatus.isOpen ? 'text-green' : 'text-neutral-700'"
                     font-medium mb-0 mt-6
                   >
                     <template v-if="location.hoursStatus.nextChange">
@@ -243,13 +261,21 @@ function removeCategory(categoryId: string) {
                   </div>
                 </div>
 
-                <NuxtLink
-                  v-if="location.website"
-                  :to="location.website"
-                  target="_blank" external w-fit f-mt-sm nq-arrow nq-pill-blue
-                >
-                  {{ $t('location.visitWebsite') }}
-                </NuxtLink>
+                <div flex="~ gap-8" f-mt-sm>
+                  <NuxtLink
+                    :to="location.gmapsUrl"
+                    target="_blank" external w-fit nq-arrow nq-pill-blue
+                  >
+                    {{ $t('location.viewOnMaps') }}
+                  </NuxtLink>
+                  <NuxtLink
+                    v-if="location.website"
+                    :to="location.website"
+                    target="_blank" external w-fit nq-arrow nq-pill-tertiary
+                  >
+                    {{ $t('location.visitWebsite') }}
+                  </NuxtLink>
+                </div>
               </div>
             </div>
           </div>
@@ -261,10 +287,10 @@ function removeCategory(categoryId: string) {
 
           shadow-md text-center rounded-12 f-py-2xl f-mt-xl
         >
-          <p text="neutral-500" font-medium f-text-lg>
+          <p text="neutral-700" font-medium f-text-lg>
             {{ $t('empty.title') }}
           </p>
-          <p text="neutral-400 f-sm" f-mt-xs>
+          <p text="neutral-700 f-sm" f-mt-xs>
             {{ $t('empty.subtitle') }}
           </p>
         </div>
