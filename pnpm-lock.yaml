@@ -51,7 +51,7 @@ catalogs:
       specifier: latest
       version: 0.9.0
     '@nuxtjs/i18n':
-      specifier: ^10.1.0
+      specifier: catalog:framework
       version: 10.1.0
     '@vueuse/nuxt':
       specifier: ^13.9.0
