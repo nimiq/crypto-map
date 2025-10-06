@@ -22,6 +22,7 @@ const querySchema = v.object({
   )),
   q: v.optional(v.string()),
   openNow: v.optional(v.pipe(v.string(), v.transform(val => val === 'true'))),
+  categories: v.optional(v.string()),
 })
 
 export default defineEventHandler(async (event): Promise<LocationResponse[]> => {
@@ -41,6 +42,7 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
   let lng = result.output.lng
   const searchQuery = result.output.q
   const openNow = result.output.openNow ?? false
+  const categoryIds = result.output.categories ? result.output.categories.split(',') : []
 
   // Try to get lat/lng from Cloudflare IP if not provided
   if (lat === undefined || lng === undefined) {
@@ -65,6 +67,7 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
 
   const db = useDrizzle()
   const referenceTime = new Date()
+
   const filterOpenNow = <T extends {
     openingHours: Location['openingHours']
     timezone: Location['timezone']
@@ -86,6 +89,20 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
       catch {
         return false
       }
+    })
+  }
+
+  const filterByCategories = <T extends { categoryIds: string | null }>(locations: T[]) => {
+    if (categoryIds.length === 0)
+      return locations
+
+    return locations.filter((loc) => {
+      if (!loc.categoryIds)
+        return false
+
+      const locCategoryIds = loc.categoryIds.split(',')
+      // Location must have ALL selected categories
+      return categoryIds.every(catId => locCategoryIds.includes(catId))
     })
   }
 
@@ -120,7 +137,7 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
     const allCategories = await db.select().from(tables.categories)
     const categoryMap = new Map(allCategories.map(cat => [cat.id, { id: cat.id, name: cat.name, icon: cat.icon }]))
 
-    const filteredLocations = filterOpenNow(randomLocations)
+    const filteredLocations = filterByCategories(filterOpenNow(randomLocations))
 
     return filteredLocations.map(loc => ({
       ...loc,
@@ -160,7 +177,7 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
   const allCategories = await db.select().from(tables.categories)
   const categoryMap = new Map(allCategories.map(cat => [cat.id, { id: cat.id, name: cat.name, icon: cat.icon, createdAt: cat.createdAt }]))
 
-  const filteredResults = filterOpenNow(searchResults)
+  const filteredResults = filterByCategories(filterOpenNow(searchResults))
 
   return filteredResults.map(loc => ({
     ...loc,
