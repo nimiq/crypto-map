@@ -55,6 +55,8 @@ export default defineNuxtConfig({
     },
   },
   i18n: {
+    lazy: true,
+    langDir: 'locales',
     locales: [
       { code: 'en', language: 'en-US', name: 'English', file: 'en.json' },
       { code: 'es', language: 'es-ES', name: 'Español', file: 'es.json' },
@@ -63,6 +65,12 @@ export default defineNuxtConfig({
       { code: 'pt', language: 'pt-PT', name: 'Português', file: 'pt.json' },
     ],
     defaultLocale: 'en',
+    strategy: 'prefix',
+    rootRedirect: 'en',
+    detectBrowserLanguage: {
+      redirectOn: 'root',
+      useCookie: true,
+    },
   },
   compatibilityDate: '2025-10-01',
 })
