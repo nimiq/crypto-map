@@ -1,7 +1,7 @@
 import type { Location } from '../../shared/types'
 import { consola } from 'consola'
 import { toZonedTime } from 'date-fns-tz'
-import { eq, sql } from 'drizzle-orm'
+import { and, count, eq, ilike, inArray, sql } from 'drizzle-orm'
 import OpeningHours from 'opening_hours'
 import * as v from 'valibot'
 
@@ -22,13 +22,13 @@ const querySchema = v.object({
   )),
   q: v.optional(v.string()),
   openNow: v.optional(v.pipe(v.string(), v.transform(val => val === 'true'))),
-  categories: v.optional(v.string()),
+  categories: v.optional(v.union([v.string(), v.array(v.string())])),
 })
 
 export default defineEventHandler(async (event): Promise<LocationResponse[]> => {
-  const query = getQuery(event)
+  const queryParams = getQuery(event)
 
-  const result = v.safeParse(querySchema, query)
+  const result = v.safeParse(querySchema, queryParams)
 
   if (!result.success) {
     throw createError({
@@ -42,7 +42,9 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
   let lng = result.output.lng
   const searchQuery = result.output.q
   const openNow = result.output.openNow ?? false
-  const categoryIds = result.output.categories ? result.output.categories.split(',') : []
+  const categoryIds = result.output.categories
+    ? (Array.isArray(result.output.categories) ? result.output.categories : [result.output.categories])
+    : []
 
   // Try to get lat/lng from Cloudflare IP if not provided
   if (lat === undefined || lng === undefined) {
@@ -92,23 +94,10 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
     })
   }
 
-  const filterByCategories = <T extends { categoryIds: string | null }>(locations: T[]) => {
-    if (categoryIds.length === 0)
-      return locations
-
-    return locations.filter((loc) => {
-      if (!loc.categoryIds)
-        return false
-
-      const locCategoryIds = loc.categoryIds.split(',')
-      // Location must have ALL selected categories
-      return categoryIds.every(catId => locCategoryIds.includes(catId))
-    })
-  }
 
   // If no search query, return 10 random locations
   if (!searchQuery || searchQuery.trim().length === 0) {
-    const randomLocations = await db
+    let baseQuery = db
       .select({
         uuid: tables.locations.uuid,
         name: tables.locations.name,
@@ -130,6 +119,22 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
       .from(tables.locations)
       .leftJoin(tables.locationCategories, eq(tables.locations.uuid, tables.locationCategories.locationUuid))
       .groupBy(tables.locations.uuid)
+
+    if (categoryIds.length > 0) {
+      // Subquery to find locations that have ALL required categories
+      const locationsWithCategories = db
+        .select({ locationUuid: tables.locationCategories.locationUuid })
+        .from(tables.locationCategories)
+        .where(inArray(tables.locationCategories.categoryId, categoryIds))
+        .groupBy(tables.locationCategories.locationUuid)
+        .having(eq(count(), categoryIds.length))
+
+      baseQuery = baseQuery.where(
+        inArray(tables.locations.uuid, sql`(${locationsWithCategories})`)
+      )
+    }
+
+    const randomLocations = await baseQuery
       .orderBy(sql`RANDOM()`)
       .limit(10)
 
@@ -137,7 +142,7 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
     const allCategories = await db.select().from(tables.categories)
     const categoryMap = new Map(allCategories.map(cat => [cat.id, { id: cat.id, name: cat.name, icon: cat.icon }]))
 
-    const filteredLocations = filterByCategories(filterOpenNow(randomLocations))
+    const filteredLocations = filterOpenNow(randomLocations)
 
     return filteredLocations.map(loc => ({
       ...loc,
@@ -148,7 +153,7 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
   }
 
   // Search locations by name
-  const searchResults = await db
+  let searchQueryBuilder = db
     .select({
       uuid: tables.locations.uuid,
       name: tables.locations.name,
@@ -169,15 +174,33 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
     })
     .from(tables.locations)
     .leftJoin(tables.locationCategories, eq(tables.locations.uuid, tables.locationCategories.locationUuid))
-    .where(sql`${tables.locations.name} LIKE ${`%${searchQuery}%`}`)
     .groupBy(tables.locations.uuid)
+
+  const whereConditions = [ilike(tables.locations.name, `%${searchQuery}%`)]
+
+  if (categoryIds.length > 0) {
+    // Subquery to find locations that have ALL required categories
+    const locationsWithCategories = db
+      .select({ locationUuid: tables.locationCategories.locationUuid })
+      .from(tables.locationCategories)
+      .where(inArray(tables.locationCategories.categoryId, categoryIds))
+      .groupBy(tables.locationCategories.locationUuid)
+      .having(eq(count(), categoryIds.length))
+
+    whereConditions.push(
+      inArray(tables.locations.uuid, sql`(${locationsWithCategories})`)
+    )
+  }
+
+  const searchResults = await searchQueryBuilder
+    .where(and(...whereConditions))
     .limit(10)
 
   // Get all categories once
   const allCategories = await db.select().from(tables.categories)
   const categoryMap = new Map(allCategories.map(cat => [cat.id, { id: cat.id, name: cat.name, icon: cat.icon, createdAt: cat.createdAt }]))
 
-  const filteredResults = filterByCategories(filterOpenNow(searchResults))
+  const filteredResults = filterOpenNow(searchResults)
 
   return filteredResults.map(loc => ({
     ...loc,
