@@ -55,22 +55,15 @@ export default defineNuxtConfig({
     },
   },
   i18n: {
-    lazy: true,
-    langDir: 'locales',
-    locales: [
-      { code: 'en', language: 'en-US', name: 'English', file: 'en.json' },
-      { code: 'es', language: 'es-ES', name: 'Español', file: 'es.json' },
-      { code: 'de', language: 'de-DE', name: 'Deutsch', file: 'de.json' },
-      { code: 'fr', language: 'fr-FR', name: 'Français', file: 'fr.json' },
-      { code: 'pt', language: 'pt-PT', name: 'Português', file: 'pt.json' },
-    ],
     defaultLocale: 'en',
-    strategy: 'prefix',
-    rootRedirect: 'en',
-    detectBrowserLanguage: {
-      redirectOn: 'root',
-      useCookie: true,
-    },
+    locales: [
+      { code: 'en', name: 'English', file: 'en.json' },
+      { code: 'es',  name: 'Español', file: 'es.json' },
+      { code: 'de',  name: 'Deutsch', file: 'de.json' },
+      { code: 'fr',  name: 'Français', file: 'fr.json' },
+      { code: 'pt',  name: 'Português', file: 'pt.json' },
+    ],
+ 
   },
   compatibilityDate: '2025-10-01',
 })
