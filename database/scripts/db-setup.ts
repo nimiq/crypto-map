@@ -4,15 +4,15 @@ import { join } from 'node:path'
 import process from 'node:process'
 import consola from 'consola'
 import { config } from 'dotenv'
+import { eq } from 'drizzle-orm'
+import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
+import * as schema from '../schema'
 
 config()
 
-interface MigrationRecord {
-  filename: string
-}
-
 async function runMigrations(sql: postgres.Sql) {
+  const db = drizzle(sql, { schema })
   const migrationsDir = join(process.cwd(), 'database/migrations')
 
   // Enable PostGIS extension
@@ -20,7 +20,7 @@ async function runMigrations(sql: postgres.Sql) {
   await sql`CREATE EXTENSION IF NOT EXISTS postgis`
   consola.success('PostGIS extension enabled')
 
-  // Create migrations tracking table
+  // Create migrations tracking table (Drizzle will handle this on first insert, but we need to ensure it exists for first run)
   await sql`
     CREATE TABLE IF NOT EXISTS public.__container_migrations (
       filename text PRIMARY KEY,
@@ -37,12 +37,14 @@ async function runMigrations(sql: postgres.Sql) {
   consola.info(`Found ${sqlFiles.length} migration files`)
 
   for (const file of sqlFiles) {
-    // Check if already applied
-    const [existing] = await sql<MigrationRecord[]>`
-      SELECT filename FROM public.__container_migrations WHERE filename = ${file}
-    `
+    // Check if already applied using Drizzle
+    const existing = await db
+      .select()
+      .from(schema.containerMigrations)
+      .where(eq(schema.containerMigrations.filename, file))
+      .limit(1)
 
-    if (existing) {
+    if (existing.length > 0) {
       consola.info(`Skipping migration ${file} (already applied)`)
       continue
     }
@@ -52,13 +54,14 @@ async function runMigrations(sql: postgres.Sql) {
 
     try {
       await sql.unsafe(content)
-      await sql`INSERT INTO public.__container_migrations (filename) VALUES (${file})`
+      // Mark as applied using Drizzle
+      await db.insert(schema.containerMigrations).values({ filename: file })
       consola.success(`Applied migration: ${file}`)
     }
     catch (error: any) {
       if (error.message?.includes('already exists')) {
         consola.warn(`Migration ${file} appears to have been applied previously; marking as applied`)
-        await sql`INSERT INTO public.__container_migrations (filename) VALUES (${file}) ON CONFLICT (filename) DO NOTHING`
+        await db.insert(schema.containerMigrations).values({ filename: file }).onConflictDoNothing()
       }
       else {
         consola.error(`Migration ${file} failed:`, error)

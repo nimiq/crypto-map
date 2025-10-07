@@ -1,7 +1,3 @@
-catalog:
-  dotenv: ^17.2.3
-  tsx: ^4.20.6
-
 catalogs:
   database:
     drizzle-kit: latest
@@ -12,8 +8,10 @@ catalogs:
     '@iconify-json/tabler': latest
     '@nuxt/eslint': latest
     '@unocss/eslint-plugin': latest
+    dotenv: ^17.2.3
     eslint: ^9.37.0
     eslint-plugin-format: latest
+    tsx: ^4.20.6
     typescript: latest
     wrangler: latest
   framework:

@@ -71,9 +71,10 @@ The project uses **Supabase** for remote database management:
 2. Apply migrations and seeds to remote: `pnpm run db:setup`
 3. (Optional) Push via Supabase CLI: `pnpm run db:push`
 
-The `db:setup` script (`scripts/db-setup.ts`):
+The `db:setup` script (`database/scripts/db-setup.ts`):
 
 - Enables PostGIS extension automatically
+- Uses **Drizzle ORM** for migration tracking (select/insert operations)
 - Runs all migrations in order, tracking applied migrations to avoid duplicates
 - Applies RLS policies and seeds data from SQL files
 - Uses connection pooler with `prepare: false` for transaction pooling mode
@@ -161,7 +162,7 @@ The app uses **UnoCSS with Nimiq presets**:
 - **`uno.config.ts`** - UnoCSS with Nimiq presets
 - **`eslint.config.mjs`** - Antfu's ESLint config with Nuxt integration
 - **`supabase/config.toml`** - Supabase local development configuration
-- **`scripts/db-setup.ts`** - Unified migration and seeding script
+- **`database/scripts/db-setup.ts`** - Unified migration and seeding script (uses Drizzle)
 - **`database/migrations/`** - Drizzle-generated SQL migrations
 - **`database/seeds/rls-policies.sql`** - Row Level Security policies
 - **`database/seeds/categories.sql`** - All Google Maps categories with icons

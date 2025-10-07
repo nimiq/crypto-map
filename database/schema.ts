@@ -39,3 +39,10 @@ export const locationCategories = pgTable('location_categories', {
 ])
 
 export type LocationCategory = typeof locationCategories.$inferSelect
+
+export const containerMigrations = pgTable('__container_migrations', {
+  filename: text('filename').primaryKey(),
+  appliedAt: timestamp('applied_at').$defaultFn(() => new Date()),
+})
+
+export type ContainerMigration = typeof containerMigrations.$inferSelect
