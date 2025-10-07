@@ -1,5 +1,6 @@
 services:
   # PostgreSQL with PostGIS
+  # TODO: After starting, run `pnpm run db:setup` to apply migrations and seeds
   db:
     container_name: supabase-db
     image: supabase/postgres:15.8.1.060
@@ -8,12 +9,6 @@ services:
       - '${POSTGRES_PORT:-5432}:5432'
     volumes:
       - db_data:/var/lib/postgresql/data
-      - ./init.sh:/docker-entrypoint-initdb.d/01-init.sh
-      - ./migrate.sh:/docker-entrypoint-initdb.d/02-migrate.sh
-      - ./seed.sh:/docker-entrypoint-initdb.d/03-seed.sh
-      - ./startup.sh:/startup.sh
-      - ./migrations:/docker-entrypoint-initdb.d/migrations:ro
-      - ./seeds:/docker-entrypoint-initdb.d/seeds:ro
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -21,7 +16,6 @@ services:
     env_file:
       - path: ../.env
         required: true
-    command: /startup.sh
     healthcheck:
       test: [CMD-SHELL, pg_isready -U postgres]
       interval: 10s
