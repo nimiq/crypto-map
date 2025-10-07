@@ -19,6 +19,11 @@ export default defineNuxtConfig({
   hub: {
     database: true,
     blob: true,
+    bindings: {
+      observability: {
+        logs: true,
+      },
+    },
   },
   eslint: {
     config: {
