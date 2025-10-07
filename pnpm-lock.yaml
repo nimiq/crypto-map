@@ -28,12 +28,18 @@ catalogs:
     '@unocss/eslint-plugin':
       specifier: latest
       version: 66.5.2
+    dotenv:
+      specifier: ^17.2.3
+      version: 17.2.3
     eslint:
       specifier: ^9.37.0
       version: 9.37.0
     eslint-plugin-format:
       specifier: latest
       version: 1.0.2
+    tsx:
+      specifier: ^4.20.6
+      version: 4.20.6
     typescript:
       specifier: latest
       version: 5.9.3
@@ -191,6 +197,9 @@ importers:
       '@vue/test-utils':
         specifier: catalog:test
         version: 2.4.6
+      dotenv:
+        specifier: catalog:dev
+        version: 17.2.3
       drizzle-kit:
         specifier: catalog:database
         version: 0.31.5
@@ -209,6 +218,9 @@ importers:
       playwright-core:
         specifier: catalog:test
         version: 1.55.1
+      tsx:
+        specifier: catalog:dev
+        version: 4.20.6
       typescript:
         specifier: catalog:dev
         version: 5.9.3
@@ -12935,7 +12947,6 @@ snapshots:
       get-tsconfig: 4.10.1
     optionalDependencies:
       fsevents: 2.3.3
-    optional: true
 
   tunnel-agent@0.6.0:
     dependencies:

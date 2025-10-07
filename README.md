@@ -32,12 +32,50 @@ pnpm install
 
 # Set up environment variables
 cp .env.example .env
-# Edit .env with your PostgreSQL credentials
-
-# Start PostgreSQL + PostGIS with Docker
-pnpm run db:start
-# Database is automatically seeded on first start
+# Edit .env with your database connection string
 ```
+
+## Database Setup
+
+This project supports both **remote Supabase** and **local development** with Supabase CLI.
+
+### Option 1: Remote Supabase (Recommended for Production)
+
+The project is configured to use a remote Supabase database by default.
+
+```bash
+# 1. Add your Supabase connection string to .env
+# DATABASE_URL=postgresql://postgres.PROJECT_REF:PASSWORD@aws-1-eu-central-1.pooler.supabase.com:6543/postgres
+
+# 2. Run migrations and seeds
+pnpm run db:setup
+```
+
+**Note:** The connection string uses the Supabase pooler (port 6543) which provides transaction pooling and IPv4 connectivity.
+
+### Option 2: Local Development with Supabase CLI
+
+For local development, you can run a local Supabase instance:
+
+```bash
+# 1. Start local Supabase (includes PostgreSQL + PostGIS)
+pnpm run db:local
+
+# 2. Update .env to use local connection
+# DATABASE_URL=postgresql://postgres:postgres@localhost:54322/postgres
+
+# 3. Run migrations and seeds
+pnpm run db:setup
+
+# 4. Stop local Supabase when done
+pnpm run db:local:stop
+```
+
+**Local Supabase includes:**
+
+- PostgreSQL with PostGIS on `localhost:54322`
+- Supabase Studio on `localhost:54323`
+- REST API on `localhost:54321`
 
 ## Development
 
@@ -179,10 +217,11 @@ pnpm run build            # Build for production
 pnpm run preview          # Preview production build
 
 # Database
-pnpm run db:start         # Start PostgreSQL + PostGIS with Docker
-pnpm run db:stop          # Stop database
-pnpm run db:restart       # Restart database (useful for reseeding)
-pnpm run db:generate      # Generate migrations (stored in database/migrations/)
+pnpm run db:setup         # Run migrations and seeds (local or remote)
+pnpm run db:generate      # Generate migrations from schema changes
+pnpm run db:push          # Push migrations to remote Supabase via CLI
+pnpm run db:local         # Start local Supabase (PostgreSQL + PostGIS)
+pnpm run db:local:stop    # Stop local Supabase
 
 # Code Quality
 pnpm run lint             # Run ESLint
@@ -192,47 +231,47 @@ pnpm run typecheck        # Run TypeScript checks
 
 ## Environment Variables
 
-Create a `.env` file in the project root (see `.env.example`):
+Create a `.env` file in the project root:
 
 ```env
-# PostgreSQL Configuration
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=your_password
-POSTGRES_DB=postgres
+# Database Connection String
+# Remote Supabase (default)
+DATABASE_URL=postgresql://postgres.PROJECT_REF:PASSWORD@aws-1-eu-central-1.pooler.supabase.com:6543/postgres
 
-# JWT Configuration (if using Supabase Studio)
-JWT_SECRET=your_jwt_secret
+# Or Local Supabase (when using pnpm run db:local)
+# DATABASE_URL=postgresql://postgres:postgres@localhost:54322/postgres
 
 # API Keys
-ANON_KEY=your_anon_key
-SERVICE_ROLE_KEY=your_service_role_key
 NUXT_GOOGLE_API_KEY=your_google_api_key
-
-# Kong & Studio (optional)
-KONG_HTTP_PORT=8100
-STUDIO_PORT=4000
-SUPABASE_PUBLIC_URL=http://localhost:8100
 ```
 
 ## Database Development
 
-This repository includes a PostgreSQL + PostGIS setup in the `database/` directory.
+The database uses **Supabase** for PostgreSQL + PostGIS hosting.
 
-**Quick Start:**
+### Remote Database
+
+The project is connected to a remote Supabase instance. All migrations and seeds are tracked in the `database/` folder and can be applied via:
 
 ```bash
-pnpm run db:start      # Start services
+pnpm run db:setup
 ```
 
-**Access:**
+### Local Database
 
-- **Supabase Studio**: http://localhost:4000
-- **PostgreSQL**: `localhost:5432`
-- **REST API**: http://localhost:8100
+For local development, you can spin up a local Supabase instance:
 
-See [`database/README.md`](database/README.md) for PostGIS examples and REST API usage.
+```bash
+pnpm run db:local
+```
+
+**Local Access:**
+
+- **Supabase Studio**: http://localhost:54323
+- **PostgreSQL**: `localhost:54322`
+- **REST API**: http://localhost:54321
+
+See [`database/README.md`](database/README.md) for PostGIS examples and database structure.
 
 ## Learn More
 

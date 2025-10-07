@@ -27,24 +27,12 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     googleApiKey: process.env.NUXT_GOOGLE_API_KEY || '',
-    postgres: {
-      host: process.env.POSTGRES_HOST || '',
-      port: process.env.POSTGRES_PORT || '',
-      user: process.env.POSTGRES_USER || '',
-      password: process.env.POSTGRES_PASSWORD || '',
-      db: process.env.POSTGRES_DB || '',
-    },
+    databaseUrl: process.env.DATABASE_URL || '',
   },
   safeRuntimeConfig: {
     $schema: v.object({
-      googleApiKey: v.pipe(v.string(), v.minLength(1, 'Google API key is required')),
-      postgres: v.object({
-        host: v.pipe(v.string(), v.minLength(1, 'PostgreSQL host is required')),
-        port: v.pipe(v.string(), v.minLength(1, 'PostgreSQL port is required')),
-        user: v.pipe(v.string(), v.minLength(1, 'PostgreSQL user is required')),
-        password: v.pipe(v.string(), v.minLength(1, 'PostgreSQL password is required')),
-        db: v.pipe(v.string(), v.minLength(1, 'PostgreSQL database is required')),
-      }),
+      googleApiKey: v.string(),
+      databaseUrl: v.string(),
     }),
   },
   icon: {

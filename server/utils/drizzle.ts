@@ -14,11 +14,10 @@ export function useDrizzle() {
     return db
 
   const runtimeConfig = useRuntimeConfig()
-  const { host, port, user, password, db: database } = runtimeConfig.postgres
-
-  const connectionString = `postgresql://${user}:${password}@${host}:${port}/${database}`
+  const connectionString = runtimeConfig.databaseUrl
 
   const client = postgres(connectionString, {
+    prepare: false, // Required for Supabase transaction pooler
     max: 10,
     idle_timeout: 20,
     connect_timeout: 10,
