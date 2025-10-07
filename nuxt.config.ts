@@ -31,8 +31,8 @@ export default defineNuxtConfig({
   },
   safeRuntimeConfig: {
     $schema: v.object({
-      googleApiKey: v.pipe(v.string(), v.minLength(1, 'Google API key is required')),
-      databaseUrl: v.pipe(v.string(), v.minLength(1, 'Database URL is required')),
+      googleApiKey: v.string(),
+      databaseUrl: v.string(),
     }),
   },
   icon: {
