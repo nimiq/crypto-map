@@ -1,3 +1,4 @@
+import { ilike } from 'drizzle-orm'
 import * as v from 'valibot'
 
 const querySchema = v.object({
@@ -20,9 +21,9 @@ export default defineEventHandler(async (event): Promise<CategoryResponse[]> => 
   const db = useDrizzle()
   const { q: searchQuery } = result.output
 
-  const categoriesFromDb = await (searchQuery
-    ? db.select().from(tables.categories).where(ilike(tables.categories.name, `%${searchQuery}%`))
-    : db.select().from(tables.categories))
+  const categoriesFromDb = searchQuery
+    ? await db.select().from(tables.categories).where(ilike(tables.categories.name, `%${searchQuery}%`))
+    : await db.select().from(tables.categories)
 
   return categoriesFromDb.map(cat => ({
     id: cat.id,
