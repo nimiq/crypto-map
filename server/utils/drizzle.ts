@@ -3,7 +3,7 @@ import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 import * as schema from '../../database/schema'
 
-export { and, eq, or, sql } from 'drizzle-orm'
+export { and, eq, ilike, or, sql } from 'drizzle-orm'
 
 export const tables = schema
 
