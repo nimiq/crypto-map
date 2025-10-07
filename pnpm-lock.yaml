@@ -15,13 +15,6 @@ catalogs:
     postgres:
       specifier: latest
       version: 3.4.7
-  default:
-    dotenv:
-      specifier: ^17.2.3
-      version: 17.2.3
-    tsx:
-      specifier: ^4.20.6
-      version: 4.20.6
   dev:
     '@antfu/eslint-config':
       specifier: latest
@@ -35,12 +28,18 @@ catalogs:
     '@unocss/eslint-plugin':
       specifier: latest
       version: 66.5.2
+    dotenv:
+      specifier: ^17.2.3
+      version: 17.2.3
     eslint:
       specifier: ^9.37.0
       version: 9.37.0
     eslint-plugin-format:
       specifier: latest
       version: 1.0.2
+    tsx:
+      specifier: ^4.20.6
+      version: 4.20.6
     typescript:
       specifier: latest
       version: 5.9.3
@@ -199,7 +198,7 @@ importers:
         specifier: catalog:test
         version: 2.4.6
       dotenv:
-        specifier: 'catalog:'
+        specifier: catalog:dev
         version: 17.2.3
       drizzle-kit:
         specifier: catalog:database
@@ -220,7 +219,7 @@ importers:
         specifier: catalog:test
         version: 1.55.1
       tsx:
-        specifier: 'catalog:'
+        specifier: catalog:dev
         version: 4.20.6
       typescript:
         specifier: catalog:dev
