@@ -6,6 +6,7 @@ A Nuxt 4 application for discovering locations that accept cryptocurrency paymen
 
 - 🗺️ Browse crypto-friendly locations with images and details
 - 🔍 Search locations by name
+- 🏷️ Category filtering with semantic embeddings (OpenAI text-embedding-3-small)
 - 📍 Optional location-based search with Cloudflare IP geolocation
 - 💾 PostgreSQL database with PostGIS for geospatial queries
 - 🎨 UnoCSS with Nimiq design system (attributify mode)
@@ -32,50 +33,11 @@ pnpm install
 
 # Set up environment variables
 cp .env.example .env
-# Edit .env with your database connection string
+# Edit .env with your Supabase DATABASE_URL and API keys
+
+# Set up database (run migrations and seed data)
+DATABASE_URL="your_supabase_url" pnpm run db:setup
 ```
-
-## Database Setup
-
-This project supports both **remote Supabase** and **local development** with Supabase CLI.
-
-### Option 1: Remote Supabase (Recommended for Production)
-
-The project is configured to use a remote Supabase database by default.
-
-```bash
-# 1. Add your Supabase connection string to .env
-# DATABASE_URL=postgresql://postgres.PROJECT_REF:PASSWORD@aws-1-eu-central-1.pooler.supabase.com:6543/postgres
-
-# 2. Run migrations and seeds
-pnpm run db:setup
-```
-
-**Note:** The connection string uses the Supabase pooler (port 6543) which provides transaction pooling and IPv4 connectivity.
-
-### Option 2: Local Development with Supabase CLI
-
-For local development, you can run a local Supabase instance:
-
-```bash
-# 1. Start local Supabase (includes PostgreSQL + PostGIS)
-pnpm run db:local
-
-# 2. Update .env to use local connection
-# DATABASE_URL=postgresql://postgres:postgres@localhost:54322/postgres
-
-# 3. Run migrations and seeds
-pnpm run db:setup
-
-# 4. Stop local Supabase when done
-pnpm run db:local:stop
-```
-
-**Local Supabase includes:**
-
-- PostgreSQL with PostGIS on `localhost:54322`
-- Supabase Studio on `localhost:54323`
-- REST API on `localhost:54321`
 
 ## Development
 
@@ -86,7 +48,7 @@ pnpm run dev
 
 The app will be available at `http://localhost:3000`
 
-**Note:** Make sure PostgreSQL with PostGIS is running and accessible with the credentials in your `.env` file.
+**Note:** Make sure your `DATABASE_URL` in `.env` points to a valid Supabase PostgreSQL instance with PostGIS and pgvector extensions enabled.
 
 ## Project Structure
 
@@ -104,17 +66,18 @@ pay-app/
 │       ├── drizzle.ts       # Database utilities and types
 │       └── geoip.ts         # GeoIP location service
 ├── database/
-│   ├── schema.ts            # Drizzle schema (3 tables, PostGIS)
-│   ├── docker-compose.yml   # Docker setup for PostgreSQL + PostGIS
-│   ├── init.sh              # Database initialization (PostGIS, roles)
-│   ├── run-migrations.sh    # Migration runner script
-│   ├── rls-policies.sql     # Row Level Security policies
-│   ├── seed.sql             # Main seed orchestration
+│   ├── schema.ts            # Drizzle schema (3 tables, PostGIS + pgvector)
 │   ├── migrations/          # Drizzle migrations (auto-generated)
-│   └── seeds/
-│       ├── categories.sql   # All Google Maps categories
-│       └── sources/
-│           └── dummy.sql    # Dummy location data
+│   ├── embeddings/
+│   │   └── categories/      # OpenAI embeddings for 301 categories (1536 dims)
+│   ├── scripts/
+│   │   ├── db-setup.ts      # Database setup (migrations + seeding)
+│   │   ├── reset-db.ts      # Drop all tables
+│   │   ├── generate-category-embeddings.ts  # Generate embeddings
+│   │   └── categories.json  # 301 Google Maps categories
+│   └── sql/
+│       ├── 1.rls-policies.sql  # Row Level Security policies
+│       └── 2.locations.sql     # Dummy location data
 ├── nuxt.config.ts           # Nuxt configuration
 ├── uno.config.ts            # UnoCSS configuration
 ├── drizzle.config.ts        # Drizzle ORM configuration
@@ -125,15 +88,19 @@ pay-app/
 
 ### `GET /api/categories`
 
-Returns all available categories from the database.
+Returns all available categories from the database with their semantic embeddings.
 
 **Response:**
 
-```json
+```ts
 [
-  { "id": "restaurant", "name": "Restaurant" },
-  { "id": "cafe", "name": "Cafe" },
-  { "id": "lodging", "name": "Lodging" }
+  {
+    id: 'restaurant',
+    name: 'Restaurant',
+    icon: 'i-tabler:tools-kitchen-2',
+    embedding: [0.012, -0.034, 0.056], // 1536-dim OpenAI embedding (truncated)
+    createdAt: '2025-01-15T12:00:00Z'
+  }
 ]
 ```
 
@@ -175,6 +142,8 @@ The database uses PostgreSQL with PostGIS and a normalized relational schema wit
 
 - `id`: Category ID (primary key, e.g., "restaurant", "cafe")
 - `name`: Display name (e.g., "Restaurant", "Cafe")
+- `icon`: Tabler icon name (e.g., "i-tabler:tools-kitchen-2")
+- `embedding`: **pgvector(1536)** - OpenAI text-embedding-3-small vector for semantic search
 - `createdAt`: Creation timestamp
 
 ### `locations`
@@ -217,11 +186,9 @@ pnpm run build            # Build for production
 pnpm run preview          # Preview production build
 
 # Database
-pnpm run db:setup         # Run migrations and seeds (local or remote)
-pnpm run db:generate      # Generate migrations from schema changes
-pnpm run db:push          # Push migrations to remote Supabase via CLI
-pnpm run db:local         # Start local Supabase (PostgreSQL + PostGIS)
-pnpm run db:local:stop    # Stop local Supabase
+pnpm run db:setup         # Run migrations and seed data (requires DATABASE_URL)
+pnpm run db:generate      # Generate Drizzle migrations from schema changes
+pnpm run db:generate-category-embeddings  # Generate OpenAI embeddings for categories
 
 # Code Quality
 pnpm run lint             # Run ESLint
@@ -234,44 +201,40 @@ pnpm run typecheck        # Run TypeScript checks
 Create a `.env` file in the project root:
 
 ```env
-# Database Connection String
-# Remote Supabase (default)
-DATABASE_URL=postgresql://postgres.PROJECT_REF:PASSWORD@aws-1-eu-central-1.pooler.supabase.com:6543/postgres
-
-# Or Local Supabase (when using pnpm run db:local)
-# DATABASE_URL=postgresql://postgres:postgres@localhost:54322/postgres
+# PostgreSQL Configuration (Supabase Remote)
+DATABASE_URL=postgresql://postgres.[project-ref]:[password]@aws-1-eu-central-1.pooler.supabase.com:6543/postgres
 
 # API Keys
 NUXT_GOOGLE_API_KEY=your_google_api_key
+
+# OpenAI (for generating embeddings)
+OPENAI_API_KEY=your_openai_api_key
 ```
+
+**Note:** The `DATABASE_URL` should use Supabase's connection pooler (port 6543) with `prepare: false` for transaction pooling mode.
 
 ## Database Development
 
-The database uses **Supabase** for PostgreSQL + PostGIS hosting.
+The database uses **Supabase** (remote PostgreSQL with PostGIS and pgvector extensions).
 
-### Remote Database
-
-The project is connected to a remote Supabase instance. All migrations and seeds are tracked in the `database/` folder and can be applied via:
+**Setup:**
 
 ```bash
-pnpm run db:setup
+# Set up database (run migrations and seed data)
+DATABASE_URL="your_supabase_url" pnpm run db:setup
+
+# Generate new migrations after schema changes
+pnpm run db:generate
+
+# Generate category embeddings (one-time, already committed)
+OPENAI_API_KEY="sk-..." pnpm run db:generate-category-embeddings
 ```
 
-### Local Database
+**Database Structure:**
 
-For local development, you can spin up a local Supabase instance:
-
-```bash
-pnpm run db:local
-```
-
-**Local Access:**
-
-- **Supabase Studio**: http://localhost:54323
-- **PostgreSQL**: `localhost:54322`
-- **REST API**: http://localhost:54321
-
-See [`database/README.md`](database/README.md) for PostGIS examples and database structure.
+- 301 categories with OpenAI embeddings (1536 dimensions each)
+- Embeddings stored as individual `.txt` files in `database/embeddings/categories/`
+- Each embedding file contains comma-separated float values
 
 ## Learn More
 
@@ -281,6 +244,8 @@ See [`database/README.md`](database/README.md) for PostGIS examples and database
 - [UnoCSS Documentation](https://unocss.dev/)
 - [Nimiq CSS](https://github.com/onmax/nimiq-ui)
 - [PostGIS Documentation](https://postgis.net/documentation/)
+- [pgvector Documentation](https://github.com/pgvector/pgvector)
+- [Vercel AI SDK](https://sdk.vercel.ai/docs)
 
 ## License
 

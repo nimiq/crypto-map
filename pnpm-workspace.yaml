@@ -4,16 +4,15 @@ catalogs:
     drizzle-orm: latest
     postgres: latest
   dev:
-    '@antfu/eslint-config': latest
-    '@iconify-json/tabler': latest
-    '@nuxt/eslint': latest
-    '@unocss/eslint-plugin': latest
-    dotenv: ^17.2.3
+    '@antfu/eslint-config': ^5.4.1
+    '@iconify-json/tabler': ^1.2.13
+    '@nuxt/eslint': ^1.9.0
+    '@unocss/eslint-plugin': ^0.66.5
     eslint: ^9.37.0
-    eslint-plugin-format: latest
+    eslint-plugin-format: ^1.0.2
     tsx: ^4.20.6
-    typescript: latest
-    wrangler: latest
+    typescript: ^5.7.3
+    wrangler: ^4.41.0
   framework:
     '@nuxt/fonts': latest
     '@nuxt/icon': latest
@@ -37,10 +36,13 @@ catalogs:
     reka-ui: latest
     unocss-preset-onmax: latest
   utils:
-    consola: latest
-    date-fns-tz: latest
-    opening_hours: latest
-    valibot: latest
+    '@ai-sdk/openai': ^2.0.44
+    ai: ^5.0.60
+    consola: ^3.4.2
+    date-fns-tz: ^3.2.0
+    opening_hours: ^4.1.0
+    pathe: ^2.0.3
+    valibot: ^1.1.0
 
 onlyBuiltDependencies:
   - '@parcel/watcher'

@@ -22,6 +22,20 @@
       "when": 1759482276567,
       "tag": "0002_opening_hours",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1759846971257,
+      "tag": "0003_great_lyja",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1759849287159,
+      "tag": "0004_premium_james_howlett",
+      "breakpoints": true
     }
   ]
 }

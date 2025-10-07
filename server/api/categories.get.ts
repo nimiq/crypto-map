@@ -20,9 +20,11 @@ export default defineEventHandler(async (event): Promise<CategoryResponse[]> => 
   const db = useDrizzle()
   const { q: searchQuery } = result.output
 
-  const categoriesFromDb = searchQuery
-    ? await db.select().from(tables.categories).where(ilike(tables.categories.name, `%${searchQuery}%`))
-    : await db.select().from(tables.categories)
+  const dbQuery = db.select().from(tables.categories)
+
+  const categoriesFromDb = await (searchQuery
+    ? dbQuery.where(sql`${tables.categories.name} ILIKE ${`%${searchQuery}%`}`)
+    : dbQuery)
 
   return categoriesFromDb.map(cat => ({
     id: cat.id,

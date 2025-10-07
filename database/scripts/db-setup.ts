@@ -1,160 +1,112 @@
-#!/usr/bin/env node
 import { readdir, readFile } from 'node:fs/promises'
-import { join } from 'node:path'
 import process from 'node:process'
-import consola from 'consola'
-import { config } from 'dotenv'
-import { eq } from 'drizzle-orm'
-import { drizzle } from 'drizzle-orm/postgres-js'
+import { createConsola } from 'consola'
+import { join } from 'pathe'
 import postgres from 'postgres'
-import * as schema from '../schema'
 
-config()
+const consola = createConsola().withTag('db-setup')
 
-async function runMigrations(sql: postgres.Sql) {
-  const db = drizzle(sql, { schema })
-  const migrationsDir = join(process.cwd(), 'database/migrations')
-
-  // Enable PostGIS extension
-  consola.info('Enabling PostGIS extension...')
-  await sql`CREATE EXTENSION IF NOT EXISTS postgis`
-  consola.success('PostGIS extension enabled')
-
-  // Create migrations tracking table (Drizzle will handle this on first insert, but we need to ensure it exists for first run)
-  await sql`
-    CREATE TABLE IF NOT EXISTS public.__container_migrations (
-      filename text PRIMARY KEY,
-      applied_at timestamptz DEFAULT now()
-    )
-  `
-
-  // Get all migration files
-  const files = await readdir(migrationsDir)
-  const sqlFiles = files
-    .filter(f => f.endsWith('.sql'))
-    .sort()
-
-  consola.info(`Found ${sqlFiles.length} migration files`)
-
-  for (const file of sqlFiles) {
-    // Check if already applied using Drizzle
-    const existing = await db
-      .select()
-      .from(schema.containerMigrations)
-      .where(eq(schema.containerMigrations.filename, file))
-      .limit(1)
-
-    if (existing.length > 0) {
-      consola.info(`Skipping migration ${file} (already applied)`)
-      continue
-    }
-
-    consola.start(`Applying migration: ${file}`)
-    const content = await readFile(join(migrationsDir, file), 'utf-8')
-
-    try {
-      await sql.unsafe(content)
-      // Mark as applied using Drizzle
-      await db.insert(schema.containerMigrations).values({ filename: file })
-      consola.success(`Applied migration: ${file}`)
-    }
-    catch (error: any) {
-      if (error.message?.includes('already exists')) {
-        consola.warn(`Migration ${file} appears to have been applied previously; marking as applied`)
-        await db.insert(schema.containerMigrations).values({ filename: file }).onConflictDoNothing()
-      }
-      else {
-        consola.error(`Migration ${file} failed:`, error)
-        throw error
-      }
-    }
-  }
-
-  consola.success('Migrations complete!')
-}
-
-async function runSeeds(sql: postgres.Sql) {
-  const seedsDir = join(process.cwd(), 'database/seeds')
-
-  consola.start('Running database seeds...')
-
-  // Run RLS policies first
-  const rlsPath = join(seedsDir, 'rls-policies.sql')
-  try {
-    const rlsContent = await readFile(rlsPath, 'utf-8')
-    consola.start('Applying RLS policies...')
-    await sql.unsafe(rlsContent)
-    consola.success('RLS policies applied')
-  }
-  catch (error: any) {
-    if (error.code !== 'ENOENT') {
-      consola.error('Failed to apply RLS policies:', error)
-      throw error
-    }
-  }
-
-  // Run categories seed
-  const categoriesPath = join(seedsDir, 'categories.sql')
-  try {
-    const categoriesContent = await readFile(categoriesPath, 'utf-8')
-    consola.start('Seeding categories...')
-    await sql.unsafe(categoriesContent)
-    consola.success('Categories seeded')
-  }
-  catch (error: any) {
-    if (error.code !== 'ENOENT') {
-      consola.error('Failed to seed categories:', error)
-      throw error
-    }
-  }
-
-  // Run all source seeds
-  const sourcesDir = join(seedsDir, 'sources')
-  try {
-    const sourceFiles = await readdir(sourcesDir)
-    const sqlFiles = sourceFiles.filter(f => f.endsWith('.sql')).sort()
-
-    for (const file of sqlFiles) {
-      const content = await readFile(join(sourcesDir, file), 'utf-8')
-      consola.start(`Seeding ${file}...`)
-      await sql.unsafe(content)
-      consola.success(`Seeded ${file}`)
-    }
-  }
-  catch (error: any) {
-    if (error.code !== 'ENOENT') {
-      consola.error('Failed to seed sources:', error)
-      throw error
-    }
-  }
-
-  consola.success('Seeds complete!')
+interface Category {
+  id: string
+  name: string
+  icon: string
 }
 
 async function main() {
-  const { DATABASE_URL } = process.env
+  const databaseUrl = process.env.DATABASE_URL
 
-  if (!DATABASE_URL) {
+  if (!databaseUrl) {
     consola.error('DATABASE_URL environment variable is required')
+    consola.info('Usage: DATABASE_URL=xxx pnpm run db:setup')
     process.exit(1)
   }
 
-  const sql = postgres(DATABASE_URL, {
-    prepare: false, // Disable prefetch for Transaction pool mode
-    ssl: 'require',
-    connection: {
-      application_name: 'pay-app-setup',
-    },
-  })
+  const sql = postgres(databaseUrl, { prepare: false })
 
   try {
-    consola.info('Starting database setup...')
-    await runMigrations(sql)
-    await runSeeds(sql)
-    consola.success('Database setup complete!')
+    consola.start('Setting up database...')
+
+    // Enable extensions
+    consola.info('Enabling extensions...')
+    await sql.unsafe('CREATE EXTENSION IF NOT EXISTS postgis')
+    await sql.unsafe('CREATE EXTENSION IF NOT EXISTS vector')
+
+    // Run migrations
+    consola.info('Running migrations...')
+    const migrationsDir = join(import.meta.dirname, '..', 'migrations')
+    const migrationFiles = (await readdir(migrationsDir))
+      .filter(f => f.endsWith('.sql'))
+      .sort()
+
+    for (const file of migrationFiles) {
+      const migrationPath = join(migrationsDir, file)
+      const migrationSql = await readFile(migrationPath, 'utf-8')
+      // Remove drizzle statement breakpoints
+      const cleanSql = migrationSql.replace(/--> statement-breakpoint/g, ';')
+      await sql.unsafe(cleanSql)
+      consola.info(`Applied migration: ${file}`)
+    }
+
+    // Seed categories with embeddings
+    consola.info('Seeding categories...')
+    const categoriesPath = join(import.meta.dirname, 'categories.json')
+    const categoriesContent = await readFile(categoriesPath, 'utf-8')
+    const categories: Category[] = JSON.parse(categoriesContent)
+
+    const embeddingsDir = join(import.meta.dirname, '..', 'embeddings', 'categories')
+
+    // Prepare all category data
+    const categoryData = await Promise.all(
+      categories.map(async (category) => {
+        const embeddingPath = join(embeddingsDir, `${category.id}.txt`)
+        try {
+          const embeddingContent = await readFile(embeddingPath, 'utf-8')
+          const embeddingArray = embeddingContent.split(',').map(Number)
+          return {
+            id: category.id,
+            name: category.name,
+            icon: category.icon,
+            embedding: JSON.stringify(embeddingArray),
+          }
+        }
+        catch {
+          return {
+            id: category.id,
+            name: category.name,
+            icon: category.icon,
+            embedding: null,
+          }
+        }
+      }),
+    )
+
+    // Batch insert all categories
+    await sql`
+      INSERT INTO categories ${sql(categoryData, 'id', 'name', 'icon', 'embedding')}
+      ON CONFLICT (id) DO UPDATE
+      SET name = EXCLUDED.name, icon = EXCLUDED.icon, embedding = EXCLUDED.embedding
+    `
+
+    consola.info(`Seeded ${categories.length} categories`)
+
+    // Run SQL files in order
+    consola.info('Running SQL seed files...')
+    const sqlDir = join(import.meta.dirname, '..', 'sql')
+    const sqlFiles = (await readdir(sqlDir))
+      .filter(f => f.endsWith('.sql'))
+      .sort()
+
+    for (const file of sqlFiles) {
+      const sqlPath = join(sqlDir, file)
+      const sqlContent = await readFile(sqlPath, 'utf-8')
+      await sql.unsafe(sqlContent)
+      consola.info(`Applied: ${file}`)
+    }
+
+    consola.success('Database setup complete')
   }
   catch (error) {
-    consola.error('Database setup failed:', error)
+    consola.error('Failed to setup database:', error)
     process.exit(1)
   }
   finally {
