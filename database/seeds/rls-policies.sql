@@ -84,3 +84,31 @@ CREATE POLICY "Only service_role can delete location_categories"
 ON location_categories FOR DELETE
 TO service_role
 USING (true);
+
+-- Enable RLS on __container_migrations table
+ALTER TABLE __container_migrations ENABLE ROW LEVEL SECURITY;
+
+-- __container_migrations: Read for all, write only for service_role
+DROP POLICY IF EXISTS "Allow read access for all users" ON __container_migrations;
+CREATE POLICY "Allow read access for all users"
+ON __container_migrations FOR SELECT
+TO anon, authenticated, service_role
+USING (true);
+
+DROP POLICY IF EXISTS "Only service_role can insert migrations" ON __container_migrations;
+CREATE POLICY "Only service_role can insert migrations"
+ON __container_migrations FOR INSERT
+TO service_role
+WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Block updates on migrations" ON __container_migrations;
+CREATE POLICY "Block updates on migrations"
+ON __container_migrations FOR UPDATE
+TO anon, authenticated
+USING (false);
+
+DROP POLICY IF EXISTS "Block deletes on migrations" ON __container_migrations;
+CREATE POLICY "Block deletes on migrations"
+ON __container_migrations FOR DELETE
+TO anon, authenticated
+USING (false);

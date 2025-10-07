@@ -1,3 +1,7 @@
+catalog:
+  dotenv: ^17.2.3
+  tsx: ^4.20.6
+
 catalogs:
   database:
     drizzle-kit: latest
