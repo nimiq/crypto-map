@@ -68,13 +68,11 @@ pay-app/
 ├── database/
 │   ├── schema.ts            # Drizzle schema (3 tables, PostGIS + pgvector)
 │   ├── migrations/          # Drizzle migrations (auto-generated)
-│   ├── embeddings/
-│   │   └── categories/      # OpenAI embeddings for 301 categories (1536 dims)
 │   ├── scripts/
 │   │   ├── db-setup.ts      # Database setup (migrations + seeding)
 │   │   ├── reset-db.ts      # Drop all tables
 │   │   ├── generate-category-embeddings.ts  # Generate embeddings
-│   │   └── categories.json  # 301 Google Maps categories
+│   │   └── categories.json  # 301 Google Maps categories with embeddings
 │   └── sql/
 │       ├── 1.rls-policies.sql  # Row Level Security policies
 │       └── 2.locations.sql     # Dummy location data
@@ -233,8 +231,8 @@ OPENAI_API_KEY="sk-..." pnpm run db:generate-category-embeddings
 **Database Structure:**
 
 - 301 categories with OpenAI embeddings (1536 dimensions each)
-- Embeddings stored as individual `.txt` files in `database/embeddings/categories/`
-- Each embedding file contains comma-separated float values
+- Embeddings stored directly in `database/scripts/categories.json` as arrays
+- Each category object includes an `embeddings` field with 1536 float values
 
 ## Learn More
 

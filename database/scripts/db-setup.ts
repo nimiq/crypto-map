@@ -10,6 +10,7 @@ interface Category {
   id: string
   name: string
   icon: string
+  embeddings?: number[]
 }
 
 async function main() {
@@ -53,32 +54,15 @@ async function main() {
     const categoriesContent = await readFile(categoriesPath, 'utf-8')
     const categories: Category[] = JSON.parse(categoriesContent)
 
-    const embeddingsDir = join(import.meta.dirname, '..', 'embeddings', 'categories')
-
-    // Prepare all category data
-    const categoryData = await Promise.all(
-      categories.map(async (category) => {
-        const embeddingPath = join(embeddingsDir, `${category.id}.txt`)
-        try {
-          const embeddingContent = await readFile(embeddingPath, 'utf-8')
-          const embeddingArray = embeddingContent.split(',').map(Number)
-          return {
-            id: category.id,
-            name: category.name,
-            icon: category.icon,
-            embedding: JSON.stringify(embeddingArray),
-          }
-        }
-        catch {
-          return {
-            id: category.id,
-            name: category.name,
-            icon: category.icon,
-            embedding: null,
-          }
-        }
-      }),
-    )
+    // Prepare all category data (embeddings are now included in the JSON)
+    const categoryData = categories.map((category) => {
+      return {
+        id: category.id,
+        name: category.name,
+        icon: category.icon,
+        embedding: category.embeddings ? JSON.stringify(category.embeddings) : null,
+      }
+    })
 
     // Batch insert all categories
     await sql`

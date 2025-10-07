@@ -15,6 +15,7 @@ interface Category {
   id: string
   name: string
   icon: string
+  embeddings?: number[]
 }
 
 async function main() {
@@ -26,18 +27,19 @@ async function main() {
     process.exit(1)
   }
 
-  // Check if embeddings directory already exists
-  const outputDir = join(import.meta.dirname, '..', 'embeddings', 'categories')
-  if (existsSync(outputDir)) {
-    consola.warn('Embeddings directory already exists!')
-    consola.warn(`Delete database/embeddings/categories/ and run again to regenerate`)
-    process.exit(0)
-  }
-
-  // Load categories from JSON
+  // Check if embeddings already exist in categories.json
   const categoriesPath = join(import.meta.dirname, 'categories.json')
   const categoriesContent = await readFile(categoriesPath, 'utf-8')
   const categories: Category[] = JSON.parse(categoriesContent)
+
+  const hasEmbeddings = categories.some(cat => cat.embeddings && cat.embeddings.length > 0)
+  if (hasEmbeddings) {
+    consola.warn('Categories already have embeddings!')
+    consola.warn('Remove the "embeddings" field from categories.json and run again to regenerate')
+    process.exit(0)
+  }
+
+
 
   consola.info(`Found ${categories.length} categories`)
   consola.start(`Generating embeddings using ${EMBEDDING_MODEL}`)
@@ -56,20 +58,17 @@ async function main() {
     consola.success(`Generated ${embeddings.length} embeddings`)
     consola.info(`Token usage: ${usage.tokens} tokens`)
 
-    // Create output directory
-    await mkdir(outputDir, { recursive: true })
+    // Add embeddings to categories
+    const updatedCategories = categories.map((cat, i) => ({
+      ...cat,
+      embeddings: embeddings[i],
+    }))
 
-    // Write each embedding to a separate file
-    await Promise.all(
-      categories.map(async (cat, i) => {
-        const embeddingStr = embeddings[i].join(',')
-        const filePath = join(outputDir, `${cat.id}.txt`)
-        await writeFile(filePath, embeddingStr, 'utf-8')
-      }),
-    )
+    // Write updated categories back to JSON file
+    await writeFile(categoriesPath, JSON.stringify(updatedCategories, null, 2), 'utf-8')
 
-    consola.success(`Embeddings saved to ${outputDir}`)
-    consola.info('Commit these files to git to avoid regenerating embeddings')
+    consola.success(`Embeddings saved to ${categoriesPath}`)
+    consola.info('Commit the updated categories.json file to git')
   }
   catch (error) {
     consola.error('Failed to generate embeddings:', error)
