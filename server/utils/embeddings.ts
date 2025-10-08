@@ -4,10 +4,7 @@ import { embed } from 'ai'
 const EMBEDDING_MODEL = 'text-embedding-3-small'
 const EMBEDDING_DIMENSIONS = 1536
 
-/**
- * Generate embedding for a text query using OpenAI
- * Uses AI SDK with caching support
- */
+// AI SDK handles retries and error handling better than direct API calls
 export async function generateEmbedding(text: string): Promise<number[]> {
   const config = useRuntimeConfig()
 
@@ -23,25 +20,20 @@ export async function generateEmbedding(text: string): Promise<number[]> {
   return embedding
 }
 
-/**
- * Generate embedding with KV cache
- * Caches embeddings to avoid regenerating for same queries
- */
+// Permanent cache reduces API costs and improves response times for repeated searches
 export async function generateEmbeddingCached(text: string): Promise<number[]> {
-  // Normalize the text for consistent caching
+  // Normalize to maximize cache hits across user input variations
   const normalizedText = text.trim().toLowerCase()
   const cacheKey = `embedding:${normalizedText}`
 
-  // Try to get from cache
   const cached = await hubKV().get<number[]>(cacheKey)
   if (cached) {
     return cached
   }
 
-  // Generate new embedding
   const embedding = await generateEmbedding(text)
 
-  // Cache permanently
+  // No TTL - embeddings never change for the same text
   await hubKV().set(cacheKey, embedding)
 
   return embedding

@@ -20,10 +20,9 @@ export default defineEventHandler(async (event) => {
 
   const { q: searchQuery } = result.output
 
-  // Fast full-text search for autocomplete
+  // Only text search - semantic search is too slow for autocomplete
   const locations = await searchLocationsByText(searchQuery)
 
-  // Get categories for each location
   const db = useDrizzle()
   const allCategories = await db.select().from(tables.categories)
   const categoryMap = new Map(allCategories.map(cat => [cat.id, { id: cat.id, name: cat.name, icon: cat.icon }]))

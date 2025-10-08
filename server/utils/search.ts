@@ -1,9 +1,10 @@
 import { eq, inArray, sql } from 'drizzle-orm'
 import { generateEmbeddingCached } from './embeddings'
 
-const SIMILARITY_THRESHOLD = 0.7 // Categories with similarity >= 0.7
+// Lower threshold means more results, higher means more precise matches
+const SIMILARITY_THRESHOLD = 0.7
 
-// Common select for location queries
+// Reusable to avoid duplicating 20+ lines of SELECT columns
 export const locationSelect = {
   uuid: tables.locations.uuid,
   name: tables.locations.name,
@@ -23,16 +24,13 @@ export const locationSelect = {
   categoryIds: sql<string>`STRING_AGG(${tables.locationCategories.categoryId}, ',')`.as('categoryIds'),
 }
 
-/**
- * Search for similar categories using vector embeddings
- */
+// Enables semantic search - "coffee shop" matches "cafe" even without exact text match
 export async function searchSimilarCategories(query: string): Promise<string[]> {
   const db = useDrizzle()
 
-  // Generate embedding for the query (cached)
   const queryEmbedding = await generateEmbeddingCached(query)
 
-  // Find similar categories using cosine similarity
+  // <=> is pgvector's cosine distance operator
   const results = await db
     .select({
       id: tables.categories.id,
@@ -47,14 +45,11 @@ export async function searchSimilarCategories(query: string): Promise<string[]> 
   return results.map(r => r.id)
 }
 
-/**
- * Search locations using PostgreSQL full-text search
- * With ts_headline for highlighting matches
- */
+// PostgreSQL's built-in FTS is faster than vector search for exact/prefix matches
 export async function searchLocationsByText(query: string) {
   const db = useDrizzle()
 
-  // Create a tsquery from the search string
+  // '&' requires all words to match (AND logic)
   const tsQuery = query.trim().split(/\s+/).join(' & ')
 
   return await db
@@ -72,9 +67,7 @@ export async function searchLocationsByText(query: string) {
     .limit(10)
 }
 
-/**
- * Search locations by category IDs
- */
+// Used in hybrid search to find locations matching semantically similar categories
 export async function searchLocationsByCategories(categoryIds: string[]) {
   if (categoryIds.length === 0)
     return []

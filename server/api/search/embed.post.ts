@@ -20,12 +20,10 @@ export default defineEventHandler(async (event) => {
 
   const { q: searchQuery } = result.output
 
-  // Precompute and cache embedding in background
-  // Don't await - let it run async
+  // Fire-and-forget to avoid blocking autocomplete responses
   generateEmbeddingCached(searchQuery).catch(() => {
-    // Silently fail - this is just precomputing
+    // Silent fail - precomputing is optional, search still works without it
   })
 
-  // Return immediately
   return { ok: true }
 })

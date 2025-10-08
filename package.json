@@ -48,7 +48,7 @@
     "@unocss/nuxt": "catalog:ui",
     "@unocss/preset-attributify": "catalog:ui",
     "@vue/test-utils": "catalog:test",
-    "dotenv": "catalog:",
+    "dotenv": "catalog:dev",
     "drizzle-kit": "catalog:database",
     "eslint": "catalog:dev",
     "eslint-plugin-format": "catalog:dev",

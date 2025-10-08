@@ -52,7 +52,7 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
 
   const db = useDrizzle()
 
-  // If UUID provided, return specific location
+  // User selected a specific location from autocomplete
   if (locationUuid) {
     const location = await db
       .select(locationSelect)
@@ -80,7 +80,7 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
     }))
   }
 
-  // Try to get lat/lng from Cloudflare IP if not provided
+  // Cloudflare adds IP geolocation in production (unavailable in dev)
   if (lat === undefined || lng === undefined) {
     const cfConnectingIp = getHeader(event, 'cf-connecting-ip')
 
@@ -91,7 +91,7 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
         lng = location.lng
       }
       catch {
-        // Silently continue without location
+        // Non-blocking - search works without user location
       }
     }
   }
@@ -127,7 +127,7 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
     })
   }
 
-  // If no search query, return 10 random locations
+  // Show random results on page load for discovery
   if (!searchQuery || searchQuery.trim().length === 0) {
     const baseQueryBuilder = db
       .select(locationSelect)
@@ -137,7 +137,7 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
 
     let randomLocations
     if (categoryIds.length > 0) {
-      // Subquery to find locations that have ALL required categories
+      // HAVING ensures location matches ALL selected categories (AND logic)
       const locationsWithCategories = db
         .select({ locationUuid: tables.locationCategories.locationUuid })
         .from(tables.locationCategories)
@@ -158,7 +158,6 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
         .limit(10)
     }
 
-    // Get all categories once
     const allCategories = await db.select().from(tables.categories)
     const categoryMap = new Map(allCategories.map(cat => [cat.id, { id: cat.id, name: cat.name, icon: cat.icon }]))
 
@@ -172,24 +171,21 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
     }))
   }
 
-  // Search using full-text search and category similarity
+  // Hybrid search: fast text search + smart semantic matching
   try {
-    // 1. Full-text search on location name and address
     const textResults = await searchLocationsByText(searchQuery)
 
-    // 2. Category similarity search using embeddings
     const similarCategories = await searchSimilarCategories(searchQuery)
     const categoryResults = await searchLocationsByCategories(similarCategories)
 
-    // 3. Combine results, deduplicate by uuid
+    // Text results prioritized - they appear first in the list
     const combinedMap = new Map()
 
-    // Add text results (higher priority)
     for (const loc of textResults) {
       combinedMap.set(loc.uuid, loc)
     }
 
-    // Add category results if not already present
+    // Category results added only if not already matched by text search
     for (const loc of categoryResults) {
       if (!combinedMap.has(loc.uuid)) {
         combinedMap.set(loc.uuid, loc)
@@ -198,7 +194,7 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
 
     let searchResults = Array.from(combinedMap.values())
 
-    // 4. Filter by user-selected categories if provided
+    // User-selected categories act as additional filter on search results
     if (categoryIds.length > 0) {
       searchResults = searchResults.filter((loc) => {
         if (!loc.categoryIds)
@@ -208,7 +204,6 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
       })
     }
 
-    // Get all categories once
     const allCategories = await db.select().from(tables.categories)
     const categoryMap = new Map(allCategories.map(cat => [cat.id, { id: cat.id, name: cat.name, icon: cat.icon }]))
 
