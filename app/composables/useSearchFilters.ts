@@ -2,13 +2,6 @@
 export function useSearchFilters() {
   const params = useUrlSearchParams('history')
 
-  const selectedCategories = computed<string[]>({
-    get: () => params.categories ? (params.categories as string).split(',') : [],
-    set: (val) => {
-      params.categories = val.length ? val.join(',') : null as any
-    },
-  })
-
   const openNow = computed<boolean>({
     get: () => params.openNow === 'true',
     set: (val) => {
@@ -23,14 +16,8 @@ export function useSearchFilters() {
     },
   })
 
-  function removeCategory(categoryId: string) {
-    selectedCategories.value = selectedCategories.value.filter(id => id !== categoryId)
-  }
-
   return {
-    selectedCategories,
     openNow,
     walkable,
-    removeCategory,
   }
 }

@@ -20,15 +20,14 @@ const querySchema = v.object({
   )),
   q: v.optional(v.string()),
   openNow: v.optional(v.pipe(v.string(), v.transform(val => val === 'true'))),
-  categories: v.optional(v.array(v.string())),
 })
 
 export default defineEventHandler(async (event) => {
-  const { q: searchQuery, openNow = false, categories: categoryIds =[], lat: qLat, lng: qLng } = await getValidatedQuery(event, data => v.parse(querySchema, data))
+  const { q: searchQuery, openNow = false, lat: qLat, lng: qLng } = await getValidatedQuery(event, data => v.parse(querySchema, data))
   if (!searchQuery || searchQuery.trim().length === 0)
     return []
 
-  const {lat, lng} = (!qLat || !qLng)
+  const { lat, lng } = (!qLat || !qLng)
     ? await locateByHost(getHeader(event, 'cf-connecting-ip')).catch(() => ({ lat: undefined, lng: undefined }))
     : { lat: qLat, lng: qLng }
 
@@ -55,18 +54,7 @@ export default defineEventHandler(async (event) => {
       combinedMap.set(loc.uuid, loc)
   }
 
-  let searchResults = Array.from(combinedMap.values())
-
-  // User-selected categories act as additional filter on search results
-  if (categoryIds.length > 0) {
-    searchResults = searchResults.filter((loc) => {
-      if (!loc.categoryIds)
-        return false
-      const locCategoryIds = loc.categoryIds.split(',')
-      return categoryIds.every(id => locCategoryIds.includes(id))
-    })
-  }
+  const searchResults = Array.from(combinedMap.values())
 
   return openNow ? filterOpenNow(searchResults) : searchResults
-
 })

@@ -1,6 +1,6 @@
 // Search logic with autocomplete and embedding precomputation
 export function useLocationSearch() {
-  const { selectedCategories, openNow } = useSearchFilters()
+  const { openNow } = useSearchFilters()
 
   const searchQuery = ref('')
   const autocompleteResults = ref<any[]>([])
@@ -10,7 +10,6 @@ export function useLocationSearch() {
     query: {
       q: computed(() => searchQuery.value),
       openNow: computed(() => openNow.value || undefined),
-      categories: computed(() => selectedCategories.value.length ? selectedCategories.value.join(',') : undefined),
     },
     transform: locations => locations.map(loc => ({
       ...loc,
