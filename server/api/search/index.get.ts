@@ -1,6 +1,6 @@
+import type { SearchLocationResponse } from '../../../shared/types'
 import { consola } from 'consola'
 import * as v from 'valibot'
-import type { SearchLocationResponse } from '../../../shared/types'
 import { filterOpenNow } from '~~/server/utils/open-now'
 
 const querySchema = v.object({

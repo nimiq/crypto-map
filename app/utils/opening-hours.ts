@@ -1,7 +1,7 @@
 import { toZonedTime } from 'date-fns-tz'
 import OpeningHours from 'opening_hours'
 
-export type OpeningHoursStatus = {
+export interface OpeningHoursStatus {
   isOpen: boolean
   nextChange: Date | null
   variant: 'open' | 'closing-soon' | 'closed' | 'unavailable'

@@ -138,27 +138,16 @@ flowchart TB
 
 ## API Endpoints
 
-### `GET /api/categories`
-
-Returns all available categories from the database.
-
-**Response:**
-```typescript
-Array<{
-  id: string        // Category ID (e.g., "restaurant", "cafe")
-  name: string      // Display name (e.g., "Restaurant", "Cafe")
-  icon: string      // Icon identifier
-}>
-```
-
 ### `GET /api/locations/[uuid]`
 
 Fetch a single location by UUID.
 
 **Path Parameters:**
+
 - `uuid`: Location UUID
 
 **Response:**
+
 ```typescript
 {
   uuid: string
@@ -185,12 +174,13 @@ Fetch a single location by UUID.
 Hybrid search endpoint combining PostgreSQL FTS with semantic category matching.
 
 **Query Parameters:**
+
 - `q` (required): Search query
 - `lat`/`lng` (optional): User location for future distance sorting
-- `categories` (optional): Array of category IDs to filter by
 - `openNow` (optional): Filter by opening hours (boolean)
 
 **Response:**
+
 ```typescript
 Array<{
   uuid: string
@@ -206,8 +196,8 @@ Array<{
   source: 'naka' | 'bluecode'
   timezone: string
   openingHours?: string
-  categoryIds: string  // Comma-separated category IDs
-  categories: Array<{id: string, name: string, icon: string}>
+  categoryIds: string // Comma-separated category IDs
+  categories: Array<{ id: string, name: string, icon: string }>
   createdAt: Date
   updatedAt: Date
 }>
@@ -218,13 +208,15 @@ Array<{
 Fast text-only search for autocomplete dropdown (PostgreSQL FTS only). Precomputes embeddings in background for future hybrid searches.
 
 **Query Parameters:**
+
 - `q` (required, min 2 chars): Search query
 
 **Response:**
+
 ```typescript
 Array<{
   // Same as /api/search response
-  highlightedName: string  // HTML with <mark> tags highlighting matches
+  highlightedName: string // HTML with <mark> tags highlighting matches
   // ... other fields
 }>
 ```
@@ -243,6 +235,7 @@ Stores category types with vector embeddings for semantic search.
 - `embedding` (vector(1536)): OpenAI text-embedding-3-small vector
 
 **Indexes:**
+
 - Primary key on `id`
 - Vector index for cosine similarity search on `embedding`
 
@@ -265,11 +258,13 @@ Main location data with PostGIS geometry and opening hours.
 - `createdAt`/`updatedAt` (timestamp): Timestamps
 
 **Indexes:**
+
 - Primary key on `uuid`
 - Unique index on `gmapsPlaceId`
 - GIST spatial index on `location` for efficient proximity queries
 
 **PostGIS Functions:**
+
 - Extract longitude: `ST_X(location)`
 - Extract latitude: `ST_Y(location)`
 - Calculate distance: `ST_Distance(location1, location2)`
@@ -284,6 +279,7 @@ Junction table for many-to-many relationship between locations and categories.
 - `createdAt` (timestamp): Creation timestamp
 
 **Indexes:**
+
 - Composite primary key on (locationUuid, categoryId)
 - Index on `locationUuid` for joins
 - Index on `categoryId` for reverse lookups

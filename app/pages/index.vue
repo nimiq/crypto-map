@@ -58,13 +58,6 @@ async function changeLocale(code: string) {
 }
 </script>
 
-<style scoped>
-mark {
-  background: none;
-  font-weight: 700;
-}
-</style>
-
 <template>
   <div bg-neutral-100 h-screen relative overflow-hidden>
     <NuxtImg src="/assets/lugano.svg" alt="Lugano" mx-auto op-3 flex h-auto w-full pointer-events-none items-end bottom-0 left-0 right-0 absolute z-0 />
@@ -88,18 +81,22 @@ mark {
     </DevOnly>
     <div h-full overflow-y-auto f-py-xl>
       <div mx-auto relative z-1 f-px-xl>
-        <h1 text="neutral-900 f-2xl" font-bold f-mb-xs>{{ $t('hero.title') }}</h1>
-        <p text="neutral-600 f-md" f-mb-lg>{{ $t('hero.subtitle') }}</p>
+        <h1 text="neutral-900 f-2xl" font-bold f-mb-xs>
+          {{ $t('hero.title') }}
+        </h1>
+        <p text="neutral-600 f-md" f-mb-lg>
+          {{ $t('hero.subtitle') }}
+        </p>
         <form @submit.prevent="handleSubmit">
           <div relative>
             <input v-model="searchQuery" type="text" :placeholder="$t('search.placeholder')" nq-input-box @focus="searchQuery.length >= 2 && fetchAutocomplete()">
-            <div v-if="showAutocomplete" position="absolute" top-full left-0 w-full bg-white outline="~ 1.5 neutral-200" rounded-b-8 max-h-256 shadow z-50 of-auto mt-1>
-              <button type="button" flex="~ items-center gap-8" text="f-sm neutral-900" bg="hover:neutral-50" w-full py-10 outline-none cursor-pointer transition-colors f-px-md font-medium @click="selectLocation(null)">
+            <div v-if="showAutocomplete" position="absolute" outline="~ 1.5 neutral-200" mt-1 rounded-b-8 bg-white max-h-256 w-full shadow left-0 top-full z-50 of-auto>
+              <button type="button" flex="~ items-center gap-8" text="f-sm neutral-900" bg="hover:neutral-50" font-medium py-10 outline-none w-full cursor-pointer transition-colors f-px-md @click="selectLocation(null)">
                 <Icon name="i-tabler:search" size-18 />
                 {{ searchQuery }}
               </button>
               <div v-if="autocompleteResults.length" border="t neutral-200" mx-2 />
-              <button v-for="location in autocompleteResults" :key="location.uuid" type="button" flex="~ col gap-2" items-start text-left text="f-sm neutral-800" bg="hover:neutral-50" w-full py-10 outline-none cursor-pointer transition-colors f-px-md @click="selectLocation(location)">
+              <button v-for="location in autocompleteResults" :key="location.uuid" type="button" flex="~ col gap-2" text="f-sm neutral-800" bg="hover:neutral-50" py-10 text-left outline-none w-full cursor-pointer transition-colors items-start f-px-md @click="selectLocation(location)">
                 <span font-medium v-html="location.highlightedName || location.name" />
                 <span text="f-xs neutral-600">{{ location.address }}</span>
               </button>
@@ -107,8 +104,12 @@ mark {
           </div>
         </form>
         <div flex="~ wrap gap-8" mt-4>
-          <Toggle v-model="openNow" outline="~ neutral-400 1.5 reka-on:transparent" bg="neutral-100 hocus:neutral-200 reka-on:blue" text="14 neutral-800 hocus:neutral reka-on:white" font-medium py-4 rounded-full cursor-pointer transition-colors f-px-2xs>{{ $t('filters.openNow') }}</Toggle>
-          <Toggle v-model="walkable" outline="~ neutral-400 1.5 reka-on:reka-blue" bg="neutral-100 hocus:neutral-200" text="14 neutral-800 hocus:neutral" font-medium py-4 rounded-full cursor-pointer transition-colors f-px-2xs>{{ $t('filters.walkableDistance') }}</Toggle>
+          <Toggle v-model="openNow" outline="~ neutral-400 1.5 reka-on:transparent" bg="neutral-100 hocus:neutral-200 reka-on:blue" text="14 neutral-800 hocus:neutral reka-on:white" font-medium py-4 rounded-full cursor-pointer transition-colors f-px-2xs>
+            {{ $t('filters.openNow') }}
+          </Toggle>
+          <Toggle v-model="walkable" outline="~ neutral-400 1.5 reka-on:reka-blue" bg="neutral-100 hocus:neutral-200" text="14 neutral-800 hocus:neutral" font-medium py-4 rounded-full cursor-pointer transition-colors f-px-2xs>
+            {{ $t('filters.walkableDistance') }}
+          </Toggle>
         </div>
 
         <div v-if="pending" grid="~ cols-1 sm:cols-2 lg:cols-3 gap-24" f-mt-xl>
@@ -173,10 +174,21 @@ mark {
           <div flex="~ items-center justify-center" mx-auto rounded-full bg-neutral-100 size-64 f-mb-md>
             <Icon name="i-nimiq:magnifying-glass" text-neutral-400 size-32 />
           </div>
-          <p text="neutral-800 f-lg" font-semibold m-0>{{ $t('empty.title') }}</p>
-          <p text="neutral-600 f-sm" m-0 f-mt-xs>{{ $t('empty.subtitle') }}</p>
+          <p text="neutral-800 f-lg" font-semibold m-0>
+            {{ $t('empty.title') }}
+          </p>
+          <p text="neutral-600 f-sm" m-0 f-mt-xs>
+            {{ $t('empty.subtitle') }}
+          </p>
         </div>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+mark {
+  background: none;
+  font-weight: 700;
+}
+</style>

@@ -1,5 +1,5 @@
-import { eq, inArray, sql } from 'drizzle-orm'
 import type { LocationResponse, SearchLocationResponse } from '../../shared/types'
+import { eq, inArray, sql } from 'drizzle-orm'
 import { generateEmbeddingCached } from './embeddings'
 
 // Lower threshold means more results, higher means more precise matches
