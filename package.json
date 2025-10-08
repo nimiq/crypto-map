@@ -16,6 +16,7 @@
     "lint": "eslint . --cache",
     "lint:fix": "eslint . --fix --cache",
     "test": "vitest run",
+    "test:e2e": "npx playwright test",
     "typecheck": "nuxt typecheck"
   },
   "dependencies": {
@@ -44,6 +45,7 @@
     "@iconify-json/tabler": "catalog:dev",
     "@nuxt/eslint": "catalog:dev",
     "@nuxt/test-utils": "catalog:test",
+    "@playwright/test": "catalog:test",
     "@unocss/eslint-plugin": "catalog:dev",
     "@unocss/nuxt": "catalog:ui",
     "@unocss/preset-attributify": "catalog:ui",

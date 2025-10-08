@@ -30,3 +30,7 @@ supabase/volumes/storage/
 supabase/.env
 !supabase/.env.example
 supabase/.temp/
+
+# Playwright
+playwright-report/
+test-results/
