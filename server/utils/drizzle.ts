@@ -3,7 +3,7 @@ import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 import * as schema from '../../database/schema'
 
-export { and, eq, ilike, or, sql } from 'drizzle-orm'
+export { and, eq, or, sql } from 'drizzle-orm'
 
 export const tables = schema
 
@@ -14,10 +14,11 @@ export function useDrizzle() {
     return db
 
   const runtimeConfig = useRuntimeConfig()
-  const connectionString = runtimeConfig.databaseUrl
+  const { host, port, user, password, db: database } = runtimeConfig.postgres
+
+  const connectionString = `postgresql://${user}:${password}@${host}:${port}/${database}`
 
   const client = postgres(connectionString, {
-    prepare: false, // Required for Supabase transaction pooler
     max: 10,
     idle_timeout: 20,
     connect_timeout: 10,
