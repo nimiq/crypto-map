@@ -1,10 +1,12 @@
 import { eq, sql } from 'drizzle-orm'
 import * as v from 'valibot'
 
+const querySchema = v.object({
+  uuid: v.pipe(v.string(), v.uuid()),
+})
+
 export default defineEventHandler(async (event) => {
-  const { uuid } = await getValidatedRouterParams(event, v.object({
-    uuid: v.pipe(v.string(), v.uuid()),
-  }))
+  const { uuid } = await getValidatedRouterParams(event, data => v.parse(querySchema, data))
 
   const db = useDrizzle()
 

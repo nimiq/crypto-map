@@ -1,11 +1,11 @@
 import { eq, inArray, sql } from 'drizzle-orm'
+import type { LocationResponse, SearchLocationResponse } from '../../shared/types'
 import { generateEmbeddingCached } from './embeddings'
 
 // Lower threshold means more results, higher means more precise matches
 const SIMILARITY_THRESHOLD = 0.7
 
-// Reusable to avoid duplicating 20+ lines of SELECT columns
-export const locationSelect = {
+const locationSelect = {
   uuid: tables.locations.uuid,
   name: tables.locations.name,
   address: tables.locations.address,
@@ -22,7 +22,7 @@ export const locationSelect = {
   createdAt: tables.locations.createdAt,
   updatedAt: tables.locations.updatedAt,
   categoryIds: sql<string>`STRING_AGG(${tables.locationCategories.categoryId}, ',')`.as('categoryIds'),
-  categories: sql`COALESCE(
+  categories: sql<LocationResponse['categories']>`COALESCE(
     json_agg(
       json_build_object(
         'id', ${tables.categories.id},
@@ -55,12 +55,10 @@ export async function searchSimilarCategories(query: string): Promise<string[]> 
 }
 
 // PostgreSQL's built-in FTS is faster than vector search for exact/prefix matches
-export async function searchLocationsByText(query: string) {
-  const db = useDrizzle()
-
+export async function searchLocationsByText(query: string): Promise<SearchLocationResponse[]> {
   const tsQuery = query.trim().split(/\s+/).join(' & ')
 
-  return await db
+  return await useDrizzle()
     .select({
       ...locationSelect,
       highlightedName: sql<string>`ts_headline('english', ${tables.locations.name}, to_tsquery('english', ${tsQuery}), 'StartSel=<mark>, StopSel=</mark>')`.as('highlightedName'),
@@ -77,13 +75,11 @@ export async function searchLocationsByText(query: string) {
 }
 
 // Used in hybrid search to find locations matching semantically similar categories
-export async function searchLocationsByCategories(categoryIds: string[]) {
+export async function searchLocationsByCategories(categoryIds: string[]): Promise<LocationResponse[]> {
   if (categoryIds.length === 0)
     return []
 
-  const db = useDrizzle()
-
-  return await db
+  return await useDrizzle()
     .select(locationSelect)
     .from(tables.locations)
     .innerJoin(tables.locationCategories, eq(tables.locations.uuid, tables.locationCategories.locationUuid))

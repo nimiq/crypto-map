@@ -18,7 +18,6 @@ export const categories = pgTable('categories', {
   name: text('name').notNull(),
   icon: text('icon').notNull(),
   embedding: vector({ dimensions: 1536 }),
-  createdAt: timestamp('created_at').$defaultFn(() => new Date()),
 })
 
 export type Category = typeof categories.$inferSelect
