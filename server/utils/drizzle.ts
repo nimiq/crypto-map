@@ -14,9 +14,7 @@ export function useDrizzle() {
     return db
 
   const runtimeConfig = useRuntimeConfig()
-  const { host, port, user, password, db: database } = runtimeConfig.postgres
-
-  const connectionString = `postgresql://${user}:${password}@${host}:${port}/${database}`
+  const connectionString = runtimeConfig.databaseUrl
 
   const client = postgres(connectionString, {
     max: 10,

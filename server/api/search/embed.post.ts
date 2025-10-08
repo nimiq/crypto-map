@@ -1,5 +1,5 @@
 import * as v from 'valibot'
-import { generateEmbeddingCached } from '~/server/utils/embeddings'
+import { generateEmbeddingCached } from '../../utils/embeddings'
 
 const bodySchema = v.object({
   q: v.pipe(v.string(), v.minLength(2, 'Query must be at least 2 characters')),

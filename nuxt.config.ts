@@ -28,27 +28,14 @@ export default defineNuxtConfig({
   runtimeConfig: {
     googleApiKey: process.env.NUXT_GOOGLE_API_KEY || '',
     openaiApiKey: process.env.OPENAI_API_KEY || '',
-    postgres: {
-      host: process.env.POSTGRES_HOST || '',
-      port: process.env.POSTGRES_PORT || '',
-      user: process.env.POSTGRES_USER || '',
-      password: process.env.POSTGRES_PASSWORD || '',
-      db: process.env.POSTGRES_DB || '',
-    },
+    databaseUrl: process.env.DATABASE_URL || '',
   },
   safeRuntimeConfig: {
-    // Only validate at runtime, not during build
-    $validate: 'runtime',
+    // Optional at build time, validated at runtime when used
     $schema: v.object({
-      googleApiKey: v.pipe(v.string(), v.minLength(1, 'Google API key is required')),
-      openaiApiKey: v.pipe(v.string(), v.minLength(1, 'OpenAI API key is required')),
-      postgres: v.object({
-        host: v.pipe(v.string(), v.minLength(1, 'PostgreSQL host is required')),
-        port: v.pipe(v.string(), v.minLength(1, 'PostgreSQL port is required')),
-        user: v.pipe(v.string(), v.minLength(1, 'PostgreSQL user is required')),
-        password: v.pipe(v.string(), v.minLength(1, 'PostgreSQL password is required')),
-        db: v.pipe(v.string(), v.minLength(1, 'PostgreSQL database is required')),
-      }),
+      googleApiKey: v.optional(v.pipe(v.string(), v.minLength(1)), ''),
+      openaiApiKey: v.optional(v.pipe(v.string(), v.minLength(1)), ''),
+      databaseUrl: v.optional(v.pipe(v.string(), v.minLength(1)), ''),
     }),
   },
   icon: {

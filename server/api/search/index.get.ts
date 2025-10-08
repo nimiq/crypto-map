@@ -4,7 +4,7 @@ import { toZonedTime } from 'date-fns-tz'
 import { count, eq, inArray, sql } from 'drizzle-orm'
 import OpeningHours from 'opening_hours'
 import * as v from 'valibot'
-import { locationSelect, searchLocationsByCategories, searchLocationsByText, searchSimilarCategories } from '../utils/search'
+import { locationSelect, searchLocationsByCategories, searchLocationsByText, searchSimilarCategories } from '../../utils/search'
 
 const querySchema = v.object({
   lat: v.optional(v.pipe(
