@@ -46,8 +46,7 @@ export async function searchSimilarCategories(query: string): Promise<string[]> 
       similarity: sql<number>`1 - (${tables.categories.embedding} <=> ${JSON.stringify(queryEmbedding)}::vector)`.as('similarity'),
     })
     .from(tables.categories)
-    .where(sql`${tables.categories.embedding} IS NOT NULL`)
-    .having(sql`1 - (${tables.categories.embedding} <=> ${JSON.stringify(queryEmbedding)}::vector) >= ${SIMILARITY_THRESHOLD}`)
+    .where(sql`${tables.categories.embedding} IS NOT NULL AND 1 - (${tables.categories.embedding} <=> ${JSON.stringify(queryEmbedding)}::vector) >= ${SIMILARITY_THRESHOLD}`)
     .orderBy(sql`similarity DESC`)
     .limit(5)
 
