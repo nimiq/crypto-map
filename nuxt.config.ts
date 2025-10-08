@@ -1,5 +1,6 @@
 import process from 'node:process'
-// import { icons as nimiqIcons} from 'nimiq-icons'
+import { icons as nimiqFlags } from 'nimiq-flags'
+import { icons as nimiqIcons } from 'nimiq-icons'
 import { defineNuxtConfig } from 'nuxt/config'
 import * as v from 'valibot'
 
@@ -41,10 +42,7 @@ export default defineNuxtConfig({
   },
   icon: {
     collections: ['tabler'],
-    // customCollections: [nimiqIcons],
-    clientBundle: {
-      sizeLimitKb: 512, // 512KB
-    },
+    customCollections: [nimiqIcons, nimiqFlags],
   },
   i18n: {
     defaultLocale: 'en',

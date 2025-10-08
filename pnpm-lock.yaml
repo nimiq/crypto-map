@@ -167,6 +167,9 @@ importers:
       drizzle-orm:
         specifier: catalog:database
         version: 0.44.6(@cloudflare/workers-types@4.20251003.0)(@opentelemetry/api@1.9.0)(postgres@3.4.7)
+      nimiq-flags:
+        specifier: 1.0.0-beta.129
+        version: 1.0.0-beta.129
       nimiq-icons:
         specifier: catalog:ui
         version: 1.0.0-beta.120
@@ -4900,6 +4903,9 @@ packages:
   nimiq-css@1.0.0-beta.120:
     resolution: {integrity: sha512-6F9jOpxj3skygRBBi0fVYrZiLNM1k07fwbKOe62ilxGLNkZVDnt5n+jsNCQu/weLMRoxcA3vKV3W4He/6ese9w==}
     engines: {node: '>=18'}
+
+  nimiq-flags@1.0.0-beta.129:
+    resolution: {integrity: sha512-xdWea8J819qGMrhdQiiSOw/Bu5mwNGB41QsOzpyfclbKTNOglLpeUG0Gz4WSB5s45A4L0b0LaiNEGNsozv/cvg==}
 
   nimiq-icons@1.0.0-beta.120:
     resolution: {integrity: sha512-2jdPnTE580DMd8CaYOSRVPsLXuD9bGu6bZjJQO8H9uJ9ilhhIPaO+4fDj2ZFZaspRHgyU9HQNBEwb4Lt7NXPXg==}
@@ -11687,6 +11693,10 @@ snapshots:
       - postcss
       - supports-color
       - vite
+
+  nimiq-flags@1.0.0-beta.129:
+    dependencies:
+      '@iconify/types': 2.0.0
 
   nimiq-icons@1.0.0-beta.120:
     dependencies:

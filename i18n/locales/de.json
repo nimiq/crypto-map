@@ -16,8 +16,10 @@
     "visitWebsite": "Website besuchen"
   },
   "empty": {
-    "title": "Keine Standorte gefunden",
-    "subtitle": "Versuche, deine Suche oder Filter anzupassen"
+    "title": "Gib deine Krypto aus",
+    "subtitle": "In Lugano findest du mehr als {count} Geschäfte, die Krypto akzeptieren",
+    "noResults": "Keine Standorte gefunden",
+    "noResultsSubtitle": "Versuche, deine Suche oder Filter anzupassen"
   },
   "hours": {
     "open": "Jetzt geöffnet",

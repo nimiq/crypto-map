@@ -18,7 +18,6 @@ async function changeLocale(code: string) {
 </script>
 
 <template>
-  <DevOnly>
     <div right-16 top-16 fixed z-50>
       <SelectRoot :model-value="locale" @update:model-value="changeLocale">
         <SelectTrigger outline="~ 1.5 neutral-300" flex="~ items-center gap-8" shadow-sm font-medium py-8 rounded-8 bg-white cursor-pointer text-f-sm f-px-md>
@@ -35,5 +34,4 @@ async function changeLocale(code: string) {
         </SelectContent>
       </SelectRoot>
     </div>
-  </DevOnly>
 </template>

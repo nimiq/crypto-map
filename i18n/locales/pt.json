@@ -16,8 +16,10 @@
     "visitWebsite": "Visitar site"
   },
   "empty": {
-    "title": "Nenhum local encontrado",
-    "subtitle": "Tente ajustar sua pesquisa ou filtros"
+    "title": "Gaste suas criptomoedas",
+    "subtitle": "Em Lugano, você pode encontrar mais de {count} lojas que aceitam criptomoedas",
+    "noResults": "Nenhum local encontrado",
+    "noResultsSubtitle": "Tente ajustar sua pesquisa ou filtros"
   },
   "hours": {
     "open": "Aberto agora",

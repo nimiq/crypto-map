@@ -12,13 +12,6 @@ let db: PostgresJsDatabase<typeof schema> | null = null
 export function useDrizzle() {
   if (db)
     return db
-
-  const client = postgres(useRuntimeConfig().databaseUrl, {
-    max: 10,
-    idle_timeout: 20,
-    connect_timeout: 10,
-  })
-
-  db = drizzle(client, { schema })
+  db = drizzle(postgres(useRuntimeConfig().databaseUrl), { schema })
   return db
 }

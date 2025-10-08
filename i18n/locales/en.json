@@ -16,8 +16,10 @@
     "visitWebsite": "Visit website"
   },
   "empty": {
-    "title": "No locations found",
-    "subtitle": "Try adjusting your search or filters"
+    "title": "Spend your crypto",
+    "subtitle": "In Lugano, you can find more than {count} stores accepting crypto",
+    "noResults": "No locations found",
+    "noResultsSubtitle": "Try adjusting your search or filters"
   },
   "hours": {
     "open": "Open now",
