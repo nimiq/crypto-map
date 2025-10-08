@@ -1,4 +1,8 @@
 <script setup lang="ts">
+const emit = defineEmits<{
+  selectLocation: [location: any]
+}>()
+
 const {
   searchQuery,
   autocompleteResults,
@@ -6,10 +10,6 @@ const {
   fetchAutocomplete,
   handleSubmit,
 } = useLocationSearch()
-
-const emit = defineEmits<{
-  selectLocation: [location: any]
-}>()
 
 function onSelectLocation(location: any) {
   emit('selectLocation', location)
