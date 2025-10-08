@@ -30,3 +30,7 @@ supabase/volumes/storage/
 supabase/.env
 !supabase/.env.example
 supabase/.temp/
+
+# Database import data (contains API responses)
+database/data/
+database/sql/*.sql
