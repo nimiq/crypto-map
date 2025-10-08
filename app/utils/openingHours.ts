@@ -5,7 +5,15 @@ export type OpeningHoursStatus = {
   isOpen: boolean
   nextChange: Date | null
   variant: 'open' | 'closing-soon' | 'closed' | 'unavailable'
+  messageKey: string
 }
+
+const variantConfig = {
+  'open': 'hours.open',
+  'closing-soon': 'hours.closingSoon',
+  'closed': 'hours.closed',
+  'unavailable': 'hours.unavailable',
+} as const
 
 // Calculates opening hours status with visual indicators for UX
 export function getOpeningHoursStatus(
@@ -14,7 +22,7 @@ export function getOpeningHoursStatus(
   reference: Date = new Date(),
 ): OpeningHoursStatus {
   if (!expression || !timezone)
-    return { isOpen: false, nextChange: null, variant: 'unavailable' }
+    return { isOpen: false, nextChange: null, variant: 'unavailable', messageKey: variantConfig.unavailable }
 
   try {
     const localDate = toZonedTime(reference, timezone)
@@ -34,20 +42,9 @@ export function getOpeningHoursStatus(
       }
     }
 
-    return { isOpen, nextChange, variant }
+    return { isOpen, nextChange, variant, messageKey: variantConfig[variant] }
   }
   catch {
-    return { isOpen: false, nextChange: null, variant: 'unavailable' }
+    return { isOpen: false, nextChange: null, variant: 'unavailable', messageKey: variantConfig.unavailable }
   }
-}
-
-// Get i18n message key for status variant
-export function getHoursMessageKey(variant: OpeningHoursStatus['variant']): string {
-  const map = {
-    'open': 'hours.open',
-    'closing-soon': 'hours.closingSoon',
-    'closed': 'hours.closed',
-    'unavailable': 'hours.unavailable',
-  }
-  return map[variant]
 }

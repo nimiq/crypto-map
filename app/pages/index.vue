@@ -152,7 +152,7 @@ mark {
             <div flex="~ col gap-12" flex-1 f-p-md>
               <h3 text="f-lg neutral-900" font-bold m-0 line-clamp-1>{{ location.name }}</h3>
               <div v-if="location.openingHours" flex="~ items-center gap-8 wrap">
-                <span class="font-semibold px-8 py-4 rounded-full whitespace-nowrap text-f-xs" :class="[location.hoursStatus.variant === 'open' && 'bg-green-400 text-green-1100 outline-1.5 outline-green-400', location.hoursStatus.variant === 'closing-soon' && 'bg-orange-400 text-orange-1100 outline-1.5 outline-orange-400', location.hoursStatus.variant === 'closed' && 'bg-neutral-200 text-neutral-800', location.hoursStatus.variant === 'unavailable' && 'bg-neutral-200 text-neutral-700']">{{ $t(getHoursMessageKey(location.hoursStatus.variant)) }}</span>
+                <span class="font-semibold px-8 py-4 rounded-full whitespace-nowrap text-f-xs" :class="[location.hoursStatus.variant === 'open' && 'bg-green-400 text-green-1100 outline-1.5 outline-green-400', location.hoursStatus.variant === 'closing-soon' && 'bg-orange-400 text-orange-1100 outline-1.5 outline-orange-400', location.hoursStatus.variant === 'closed' && 'bg-neutral-200 text-neutral-800', location.hoursStatus.variant === 'unavailable' && 'bg-neutral-200 text-neutral-700']">{{ $t(location.hoursStatus.messageKey) }}</span>
                 <span v-if="location.hoursStatus.nextChange" text="f-xs neutral-800" whitespace-nowrap>{{ location.hoursStatus.isOpen ? 'Closes' : 'Opens' }} at <NuxtTime :datetime="location.hoursStatus.nextChange" hour="numeric" minute="2-digit" /></span>
               </div>
               <div flex="~ items-start gap-8">
