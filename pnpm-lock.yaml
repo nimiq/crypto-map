@@ -15,30 +15,37 @@ catalogs:
     postgres:
       specifier: latest
       version: 3.4.7
+  default:
+    dotenv:
+      specifier: ^17.2.3
+      version: 17.2.3
   dev:
     '@antfu/eslint-config':
-      specifier: latest
+      specifier: ^5.4.1
       version: 5.4.1
     '@iconify-json/tabler':
-      specifier: latest
+      specifier: ^1.2.13
       version: 1.2.23
     '@nuxt/eslint':
-      specifier: latest
+      specifier: ^1.9.0
       version: 1.9.0
     '@unocss/eslint-plugin':
-      specifier: latest
+      specifier: ^0.66.5
       version: 66.5.2
     eslint:
       specifier: ^9.37.0
       version: 9.37.0
     eslint-plugin-format:
-      specifier: latest
+      specifier: ^1.0.2
       version: 1.0.2
+    tsx:
+      specifier: ^4.20.6
+      version: 4.20.6
     typescript:
-      specifier: latest
+      specifier: ^5.7.3
       version: 5.9.3
     wrangler:
-      specifier: latest
+      specifier: ^4.41.0
       version: 4.41.0
   framework:
     '@nuxt/fonts':
@@ -101,17 +108,26 @@ catalogs:
       specifier: latest
       version: 1.0.0-beta.43
   utils:
+    '@ai-sdk/openai':
+      specifier: ^2.0.44
+      version: 2.0.44
+    ai:
+      specifier: ^5.0.60
+      version: 5.0.60
     consola:
-      specifier: latest
+      specifier: ^3.4.2
       version: 3.4.2
     date-fns-tz:
-      specifier: latest
+      specifier: ^3.2.0
       version: 3.2.0
     opening_hours:
-      specifier: latest
+      specifier: ^4.1.0
       version: 3.9.0
+    pathe:
+      specifier: ^2.0.3
+      version: 2.0.3
     valibot:
-      specifier: latest
+      specifier: ^1.1.0
       version: 1.1.0
 
 importers:
@@ -119,7 +135,7 @@ importers:
   .:
     dependencies:
       '@ai-sdk/openai':
-        specifier: ^2.0.44
+        specifier: catalog:utils
         version: 2.0.44(zod@3.25.76)
       '@nuxt/fonts':
         specifier: catalog:framework
@@ -140,7 +156,7 @@ importers:
         specifier: catalog:framework
         version: 13.9.0(magicast@0.3.5)(nuxt@4.1.2(@parcel/watcher@2.5.1)(@types/node@24.6.2)(@vue/compiler-sfc@3.5.22)(db0@0.3.4(drizzle-orm@0.44.6(@cloudflare/workers-types@4.20251003.0)(@opentelemetry/api@1.9.0)(postgres@3.4.7)))(drizzle-orm@0.44.6(@cloudflare/workers-types@4.20251003.0)(@opentelemetry/api@1.9.0)(postgres@3.4.7))(eslint@9.37.0(jiti@2.6.1))(ioredis@5.8.0)(magicast@0.3.5)(optionator@0.9.4)(rollup@4.52.4)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(vite@7.1.9(@types/node@24.6.2)(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1))(yaml@2.8.1))(vue@3.5.22(typescript@5.9.3))
       ai:
-        specifier: ^5.0.60
+        specifier: catalog:utils
         version: 5.0.60(zod@3.25.76)
       consola:
         specifier: catalog:utils
@@ -164,7 +180,7 @@ importers:
         specifier: catalog:utils
         version: 3.9.0(typescript@5.9.3)
       pathe:
-        specifier: ^2.0.3
+        specifier: catalog:utils
         version: 2.0.3
       postgres:
         specifier: catalog:database
@@ -172,9 +188,6 @@ importers:
       reka-ui:
         specifier: catalog:ui
         version: 2.5.1(typescript@5.9.3)(vue@3.5.22(typescript@5.9.3))
-      tsx:
-        specifier: ^4.20.6
-        version: 4.20.6
       valibot:
         specifier: catalog:utils
         version: 1.1.0(typescript@5.9.3)
@@ -203,6 +216,9 @@ importers:
       '@vue/test-utils':
         specifier: catalog:test
         version: 2.4.6
+      dotenv:
+        specifier: 'catalog:'
+        version: 17.2.3
       drizzle-kit:
         specifier: catalog:database
         version: 0.31.5
@@ -221,6 +237,9 @@ importers:
       playwright-core:
         specifier: catalog:test
         version: 1.55.1
+      tsx:
+        specifier: catalog:dev
+        version: 4.20.6
       typescript:
         specifier: catalog:dev
         version: 5.9.3
