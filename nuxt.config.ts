@@ -37,6 +37,8 @@ export default defineNuxtConfig({
     },
   },
   safeRuntimeConfig: {
+    // Only validate at runtime, not during build
+    $validate: 'runtime',
     $schema: v.object({
       googleApiKey: v.pipe(v.string(), v.minLength(1, 'Google API key is required')),
       openaiApiKey: v.pipe(v.string(), v.minLength(1, 'OpenAI API key is required')),
