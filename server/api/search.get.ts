@@ -1,9 +1,10 @@
 import type { Location } from '../../shared/types'
 import { consola } from 'consola'
 import { toZonedTime } from 'date-fns-tz'
-import { and, count, eq, inArray, ilike, sql } from 'drizzle-orm'
+import { count, eq, inArray, sql } from 'drizzle-orm'
 import OpeningHours from 'opening_hours'
 import * as v from 'valibot'
+import { searchLocationsByCategories, searchLocationsByText, searchSimilarCategories } from '../utils/search'
 
 const querySchema = v.object({
   lat: v.optional(v.pipe(
@@ -157,60 +158,56 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
     }))
   }
 
-  // Search locations by name
-  const searchQueryBuilder = db
-    .select({
-      uuid: tables.locations.uuid,
-      name: tables.locations.name,
-      address: tables.locations.address,
-      latitude: sql<number>`ST_Y(${tables.locations.location})`.as('latitude'),
-      longitude: sql<number>`ST_X(${tables.locations.location})`.as('longitude'),
-      rating: tables.locations.rating,
-      photo: tables.locations.photo,
-      gmapsPlaceId: tables.locations.gmapsPlaceId,
-      gmapsUrl: tables.locations.gmapsUrl,
-      website: tables.locations.website,
-      source: tables.locations.source,
-      timezone: tables.locations.timezone,
-      openingHours: tables.locations.openingHours,
-      createdAt: tables.locations.createdAt,
-      updatedAt: tables.locations.updatedAt,
-      categoryIds: sql<string>`STRING_AGG(${tables.locationCategories.categoryId}, ',')`.as('categoryIds'),
-    })
-    .from(tables.locations)
-    .leftJoin(tables.locationCategories, eq(tables.locations.uuid, tables.locationCategories.locationUuid))
-    .groupBy(tables.locations.uuid)
+  // Search using full-text search and category similarity
+  try {
+    // 1. Full-text search on location name and address
+    const textResults = await searchLocationsByText(searchQuery)
 
-  const whereConditions = [ilike(tables.locations.name, `%${searchQuery}%`)]
+    // 2. Category similarity search using embeddings
+    const similarCategories = await searchSimilarCategories(searchQuery)
+    const categoryResults = await searchLocationsByCategories(similarCategories)
 
-  if (categoryIds.length > 0) {
-    // Subquery to find locations that have ALL required categories
-    const locationsWithCategories = db
-      .select({ locationUuid: tables.locationCategories.locationUuid })
-      .from(tables.locationCategories)
-      .where(inArray(tables.locationCategories.categoryId, categoryIds))
-      .groupBy(tables.locationCategories.locationUuid)
-      .having(eq(count(), categoryIds.length))
+    // 3. Combine results, deduplicate by uuid
+    const combinedMap = new Map()
 
-    whereConditions.push(
-      inArray(tables.locations.uuid, sql`(${locationsWithCategories})`),
-    )
+    // Add text results (higher priority)
+    for (const loc of textResults) {
+      combinedMap.set(loc.uuid, loc)
+    }
+
+    // Add category results if not already present
+    for (const loc of categoryResults) {
+      if (!combinedMap.has(loc.uuid)) {
+        combinedMap.set(loc.uuid, loc)
+      }
+    }
+
+    let searchResults = Array.from(combinedMap.values())
+
+    // 4. Filter by user-selected categories if provided
+    if (categoryIds.length > 0) {
+      searchResults = searchResults.filter((loc) => {
+        if (!loc.categoryIds)
+          return false
+        const locCategoryIds = loc.categoryIds.split(',')
+        return categoryIds.every(id => locCategoryIds.includes(id))
+      })
+    }
+
+    // Get all categories once
+    const allCategories = await db.select().from(tables.categories)
+    const categoryMap = new Map(allCategories.map(cat => [cat.id, { id: cat.id, name: cat.name, icon: cat.icon }]))
+
+    const filteredResults = filterOpenNow(searchResults)
+
+    return filteredResults.map(loc => ({
+      ...loc,
+      categories: loc.categoryIds
+        ? loc.categoryIds.split(',').map(id => categoryMap.get(id)!).filter(Boolean)
+        : [],
+    }))
   }
-
-  const searchResults = await searchQueryBuilder
-    .where(and(...whereConditions))
-    .limit(10)
-
-  // Get all categories once
-  const allCategories = await db.select().from(tables.categories)
-  const categoryMap = new Map(allCategories.map(cat => [cat.id, { id: cat.id, name: cat.name, icon: cat.icon }]))
-
-  const filteredResults = filterOpenNow(searchResults)
-
-  return filteredResults.map(loc => ({
-    ...loc,
-    categories: loc.categoryIds
-      ? loc.categoryIds.split(',').map(id => categoryMap.get(id)!).filter(Boolean)
-      : [],
-  }))
+  catch (error) {
+    throw createError(error)
+  }
 })

@@ -27,6 +27,7 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     googleApiKey: process.env.NUXT_GOOGLE_API_KEY || '',
+    openaiApiKey: process.env.OPENAI_API_KEY || '',
     postgres: {
       host: process.env.POSTGRES_HOST || '',
       port: process.env.POSTGRES_PORT || '',
@@ -38,6 +39,7 @@ export default defineNuxtConfig({
   safeRuntimeConfig: {
     $schema: v.object({
       googleApiKey: v.pipe(v.string(), v.minLength(1, 'Google API key is required')),
+      openaiApiKey: v.pipe(v.string(), v.minLength(1, 'OpenAI API key is required')),
       postgres: v.object({
         host: v.pipe(v.string(), v.minLength(1, 'PostgreSQL host is required')),
         port: v.pipe(v.string(), v.minLength(1, 'PostgreSQL port is required')),
