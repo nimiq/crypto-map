@@ -1,4 +1,3 @@
-import process from 'node:process'
 import { createOpenAI } from '@ai-sdk/openai'
 import { embed } from 'ai'
 
@@ -9,10 +8,10 @@ export const EMBEDDING_MODEL = 'text-embedding-3-small'
 export const EMBEDDING_DIMENSIONS = 1536
 
 /**
- * Create OpenAI provider instance using environment API key
+ * Create OpenAI provider instance using runtime config
  */
 function createOpenAIProvider() {
-  const apiKey = process.env.OPENAI_API_KEY
+  const apiKey = useRuntimeConfig().openaiApiKey
 
   if (!apiKey) {
     throw new Error('OPENAI_API_KEY environment variable is required for embedding generation')
