@@ -11,7 +11,7 @@ const {
   refreshSearch,
 } = useLocationSearch()
 
-const selectedLocation = ref(null)
+const selectedLocation = ref<{ uuid: string, name: string } | null>(null)
 
 const { data: locationResult, pending: locationPending, refresh: refreshLocation } = useFetch(
   () => `/api/locations/${selectedLocation.value?.uuid}`,
