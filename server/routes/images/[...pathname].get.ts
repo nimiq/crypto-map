@@ -7,7 +7,6 @@ async function fetchPhotoFromGoogle(placeId: string): Promise<{ data: ArrayBuffe
       return { data: null, error: 'Google API key not configured' }
     }
 
-    // Get photo reference from Place Details
     const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=photos&key=${apiKey}`
     const detailsResponse = await fetch(detailsUrl)
     const detailsData = await detailsResponse.json()
@@ -23,7 +22,6 @@ async function fetchPhotoFromGoogle(placeId: string): Promise<{ data: ArrayBuffe
 
     const photoReference = photos[0].photo_reference
 
-    // Fetch the actual photo
     const photoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${photoReference}&key=${apiKey}`
     const photoResponse = await fetch(photoUrl)
 
@@ -46,15 +44,12 @@ export default eventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Invalid pathname' })
   }
 
-  // Handle location images: /images/location/{uuid}.jpg
   if (pathname.startsWith('location/')) {
     const uuid = pathname.replace('location/', '').replace(/\.[^/.]+$/, '')
 
-    // Check if image exists in blob storage
     const blob = hubBlob()
     const existingImage = await blob.head(pathname).catch(() => null)
 
-    // If not cached, fetch from external URL or Google Maps and store
     if (!existingImage) {
       const db = useDrizzle()
       const results = await db
@@ -71,7 +66,6 @@ export default eventHandler(async (event) => {
 
       let imageBuffer: ArrayBuffer | null = null
 
-      // Try fetching from external URL first
       if (location.photo) {
         try {
           const response = await fetch(location.photo)
@@ -84,7 +78,6 @@ export default eventHandler(async (event) => {
         }
       }
 
-      // Fallback to Google Maps API if no photo URL or fetch failed
       if (!imageBuffer && location.gmapsPlaceId) {
         const { data, error } = await fetchPhotoFromGoogle(location.gmapsPlaceId)
         if (!error && data) {

@@ -46,3 +46,19 @@ export async function generateEmbedding(text: string): Promise<number[]> {
     throw new Error(`Failed to generate embedding: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }
+
+/**
+ * Generate embedding with NuxtHub KV cache
+ * Permanent cache reduces API costs and improves response times for repeated searches
+ */
+export async function generateEmbeddingCached(text: string): Promise<number[]> {
+  const cacheKey = `embedding:${text.trim().toLowerCase()}`
+
+  const cached = await hubKV().get<number[]>(cacheKey)
+  if (cached)
+    return cached
+
+  const embedding = await generateEmbedding(text)
+  await hubKV().set(cacheKey, embedding)
+  return embedding
+}

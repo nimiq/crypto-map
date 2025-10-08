@@ -12,3 +12,7 @@ export type LocationResponse = Omit<Location, 'location'> & {
   categoryIds: string
   categories: CategoryResponse[]
 }
+
+export type SearchLocationResponse = LocationResponse & {
+  highlightedName?: string
+}

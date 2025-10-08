@@ -1,5 +1,5 @@
 import process from 'node:process'
-// import { icons as nimiqIcons } from 'nimiq-icons'
+// import { icons as nimiqIcons} from 'nimiq-icons'
 import { defineNuxtConfig } from 'nuxt/config'
 import * as v from 'valibot'
 
@@ -19,6 +19,7 @@ export default defineNuxtConfig({
   hub: {
     database: true,
     blob: true,
+    kv: true,
   },
   eslint: {
     config: {
@@ -27,24 +28,15 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     googleApiKey: process.env.NUXT_GOOGLE_API_KEY || '',
-    postgres: {
-      host: process.env.POSTGRES_HOST || '',
-      port: process.env.POSTGRES_PORT || '',
-      user: process.env.POSTGRES_USER || '',
-      password: process.env.POSTGRES_PASSWORD || '',
-      db: process.env.POSTGRES_DB || '',
-    },
+    openaiApiKey: process.env.OPENAI_API_KEY || '',
+    databaseUrl: process.env.DATABASE_URL || '',
   },
   safeRuntimeConfig: {
+    // Allow empty strings for CI builds, validate manually at runtime
     $schema: v.object({
-      googleApiKey: v.pipe(v.string(), v.minLength(1, 'Google API key is required')),
-      postgres: v.object({
-        host: v.pipe(v.string(), v.minLength(1, 'PostgreSQL host is required')),
-        port: v.pipe(v.string(), v.minLength(1, 'PostgreSQL port is required')),
-        user: v.pipe(v.string(), v.minLength(1, 'PostgreSQL user is required')),
-        password: v.pipe(v.string(), v.minLength(1, 'PostgreSQL password is required')),
-        db: v.pipe(v.string(), v.minLength(1, 'PostgreSQL database is required')),
-      }),
+      googleApiKey: v.string(),
+      openaiApiKey: v.string(),
+      databaseUrl: v.string(),
     }),
   },
   icon: {

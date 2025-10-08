@@ -5,10 +5,12 @@ A Nuxt 4 application for discovering locations that accept cryptocurrency paymen
 ## Features
 
 - 🗺️ Browse crypto-friendly locations with images and details
-- 🔍 Search locations by name
-- 🏷️ Category filtering with semantic embeddings (OpenAI text-embedding-3-small)
+- 🔍 Hybrid search combining PostgreSQL FTS + semantic embeddings
+- ⚡ Fast autocomplete with text search and background embedding precomputation
+- 🎯 Category-based filtering and opening hours filtering
 - 📍 Optional location-based search with Cloudflare IP geolocation
-- 💾 PostgreSQL database with PostGIS for geospatial queries
+- 💾 PostgreSQL with PostGIS + pgvector for geospatial and semantic queries
+- 🤖 OpenAI embeddings for intelligent category matching
 - 🎨 UnoCSS with Nimiq design system (attributify mode)
 - 🧩 Accessible UI with Reka UI components
 - 🚀 Deployed on NuxtHub/Cloudflare
@@ -16,8 +18,10 @@ A Nuxt 4 application for discovering locations that accept cryptocurrency paymen
 ## Tech Stack
 
 - **Framework**: Nuxt 4
-- **Database**: PostgreSQL with PostGIS extension
+- **Database**: PostgreSQL with PostGIS and pgvector extensions
 - **ORM**: Drizzle ORM
+- **AI**: OpenAI text-embedding-3-small for semantic search
+- **Cache**: NuxtHub KV for embedding storage
 - **Styling**: UnoCSS with `nimiq-css` and `unocss-preset-onmax`
 - **UI Components**: Reka UI
 - **Validation**: Valibot
@@ -60,11 +64,21 @@ pay-app/
 │       └── index.vue        # Main locations page with search
 ├── server/
 │   ├── api/
-│   │   ├── categories.get.ts # Get all categories
-│   │   └── search.get.ts    # Search locations by name
+│   │   ├── categories.get.ts           # Get all categories
+│   │   ├── locations/
+│   │   │   └── [uuid].get.ts          # Get single location by UUID
+│   │   └── search/
+│   │       ├── index.get.ts           # Hybrid search (text + semantic)
+│   │       └── autocomplete.get.ts    # Fast text-only autocomplete
 │   └── utils/
 │       ├── drizzle.ts       # Database utilities and types
-│       └── geoip.ts         # GeoIP location service
+│       ├── geoip.ts         # GeoIP location service
+│       ├── embeddings.ts    # OpenAI embedding generation with cache
+│       ├── search.ts        # Search utilities (text, semantic, categories)
+│       └── open-now.ts      # Opening hours filtering
+├── shared/
+│   └── types/
+│       └── index.ts         # Shared TypeScript types
 ├── database/
 │   ├── schema.ts            # Drizzle schema (3 tables, PostGIS + pgvector)
 │   ├── migrations/          # Drizzle migrations (auto-generated)
@@ -82,84 +96,180 @@ pay-app/
 └── CLAUDE.md                # AI development guidance
 ```
 
+## Search Flow
+
+Hybrid search combining PostgreSQL full-text search with semantic category matching via vector embeddings.
+
+```mermaid
+flowchart TB
+    User[User Types Query] --> AC[Autocomplete: PostgreSQL FTS]
+    AC --> ACResults[Results with Highlighting]
+    AC -.Background.-> Cache[Cache Embedding in KV]
+
+    ACResults --> Action{User Action}
+
+    Action -->|Click Location| Single[GET /api/locations/uuid]
+    Action -->|Submit Search| Hybrid[Hybrid Search]
+
+    Hybrid --> Text[Text Search: PostgreSQL FTS]
+    Hybrid --> Semantic[Semantic Search: pgvector]
+
+    Semantic --> Embed[Get Cached Embedding]
+    Embed --> Similar[Find Similar Categories]
+    Similar --> CatLocs[Get Locations by Category]
+
+    Text --> Merge[Merge & Deduplicate]
+    CatLocs --> Merge
+
+    Merge --> Filters[Apply Filters]
+    Filters --> Results[Final Results]
+```
+
+**Key Points:**
+
+- **Autocomplete**: PostgreSQL FTS only (fast, 10-50ms) + background embedding precomputation
+- **Hybrid Search**: FTS + vector embeddings for comprehensive results
+- **Embedding Cache**: NuxtHub KV with permanent storage (no TTL)
+- **Text Search**: `to_tsvector` + `to_tsquery` with `ts_headline` highlighting on name and address
+- **Semantic Search**: OpenAI text-embedding-3-small (1536-dim) + pgvector cosine similarity
+- **Category Matching**: Similarity threshold 0.7 (configurable), returns top 5 similar categories
+- **Merge Strategy**: Text results first, then semantic results (deduplicated by UUID)
+- **Filters**: Category filters and opening hours filters applied after merge
+
 ## API Endpoints
 
 ### `GET /api/categories`
 
-Returns all available categories from the database with their semantic embeddings.
+Returns all available categories from the database.
 
 **Response:**
+```typescript
+Array<{
+  id: string        // Category ID (e.g., "restaurant", "cafe")
+  name: string      // Display name (e.g., "Restaurant", "Cafe")
+  icon: string      // Icon identifier
+}>
+```
 
-```ts
-[
-  {
-    id: 'restaurant',
-    name: 'Restaurant',
-    icon: 'i-tabler:tools-kitchen-2',
-    embedding: [0.012, -0.034, 0.056], // 1536-dim OpenAI embedding (truncated)
-    createdAt: '2025-01-15T12:00:00Z'
-  }
-]
+### `GET /api/locations/[uuid]`
+
+Fetch a single location by UUID.
+
+**Path Parameters:**
+- `uuid`: Location UUID
+
+**Response:**
+```typescript
+{
+  uuid: string
+  name: string
+  address: string
+  latitude: number
+  longitude: number
+  rating?: number
+  photo?: string
+  gmapsPlaceId: string
+  gmapsUrl: string
+  website?: string
+  source: 'naka' | 'bluecode'
+  timezone: string
+  openingHours?: string
+  categories: Array<{id: string, name: string, icon: string}>
+  createdAt: Date
+  updatedAt: Date
+}
 ```
 
 ### `GET /api/search`
 
-Search for locations by name. All parameters are optional.
+Hybrid search endpoint combining PostgreSQL FTS with semantic category matching.
 
 **Query Parameters:**
+- `q` (required): Search query
+- `lat`/`lng` (optional): User location for future distance sorting
+- `categories` (optional): Array of category IDs to filter by
+- `openNow` (optional): Filter by opening hours (boolean)
 
-- `q` (optional): Search query to filter locations by name
-- `lat` (optional): Latitude for future distance-based sorting
-- `lng` (optional): Longitude for future distance-based sorting
+**Response:**
+```typescript
+Array<{
+  uuid: string
+  name: string
+  address: string
+  latitude: number
+  longitude: number
+  rating?: number
+  photo?: string
+  gmapsPlaceId: string
+  gmapsUrl: string
+  website?: string
+  source: 'naka' | 'bluecode'
+  timezone: string
+  openingHours?: string
+  categoryIds: string  // Comma-separated category IDs
+  categories: Array<{id: string, name: string, icon: string}>
+  createdAt: Date
+  updatedAt: Date
+}>
+```
 
-**Behavior:**
+### `GET /api/search/autocomplete`
 
-- Without search query: Returns 10 random locations
-- With search query: Returns up to 10 locations matching the search term (case-insensitive)
-- Location data is logged but not yet used for sorting
-- Uses PostGIS to extract latitude/longitude from geometry points
+Fast text-only search for autocomplete dropdown (PostgreSQL FTS only). Precomputes embeddings in background for future hybrid searches.
 
-**Examples:**
+**Query Parameters:**
+- `q` (required, min 2 chars): Search query
 
-```bash
-# Get random locations
-curl "http://localhost:3000/api/search"
-
-# Search by name
-curl "http://localhost:3000/api/search?q=cafe"
-
-# With location (for future distance sorting)
-curl "http://localhost:3000/api/search?q=restaurant&lat=46.0037&lng=8.9511"
+**Response:**
+```typescript
+Array<{
+  // Same as /api/search response
+  highlightedName: string  // HTML with <mark> tags highlighting matches
+  // ... other fields
+}>
 ```
 
 ## Database Schema
 
-The database uses PostgreSQL with PostGIS and a normalized relational schema with three tables:
+The database uses PostgreSQL with PostGIS and pgvector extensions, with a normalized relational schema:
 
 ### `categories`
 
-- `id`: Category ID (primary key, e.g., "restaurant", "cafe")
-- `name`: Display name (e.g., "Restaurant", "Cafe")
-- `icon`: Tabler icon name (e.g., "i-tabler:tools-kitchen-2")
-- `embedding`: **pgvector(1536)** - OpenAI text-embedding-3-small vector for semantic search
-- `createdAt`: Creation timestamp
+Stores category types with vector embeddings for semantic search.
+
+- `id` (text, PK): Category ID (e.g., "restaurant", "cafe")
+- `name` (text): Display name (e.g., "Restaurant", "Cafe")
+- `icon` (text): Icon identifier for UI
+- `embedding` (vector(1536)): OpenAI text-embedding-3-small vector
+
+**Indexes:**
+- Primary key on `id`
+- Vector index for cosine similarity search on `embedding`
 
 ### `locations`
 
-- `uuid`: Auto-generated unique identifier (primary key)
-- `name`: Location name
-- `address`: Full address
-- `location`: **PostGIS geometry(point, 4326)** - Stores lat/lng as a single geographic point with GIST spatial index
-- `rating`: User rating (0-5)
-- `photo`: Image URL (optional)
-- `gmapsPlaceId`: Google Maps Place ID
-- `gmapsUrl`: Google Maps URL
-- `website`: Location website (optional)
-- `source`: Data source (`naka` or `bluecode`)
-- `createdAt`/`updatedAt`: Timestamps
+Main location data with PostGIS geometry and opening hours.
+
+- `uuid` (text, PK): Auto-generated unique identifier
+- `name` (text): Location name
+- `address` (text): Full address
+- `location` (geometry(point, 4326)): **PostGIS point** - Stores lat/lng as geographic point
+- `rating` (double precision): User rating (0-5, optional)
+- `photo` (text): Image URL (optional)
+- `gmapsPlaceId` (text, unique): Google Maps Place ID
+- `gmapsUrl` (text): Google Maps URL
+- `website` (text): Location website (optional)
+- `source` (varchar): Data source (`naka` or `bluecode`)
+- `timezone` (text): IANA timezone identifier (e.g., "Europe/Zurich")
+- `openingHours` (text): JSON string with weekly opening hours (optional)
+- `createdAt`/`updatedAt` (timestamp): Timestamps
+
+**Indexes:**
+- Primary key on `uuid`
+- Unique index on `gmapsPlaceId`
+- GIST spatial index on `location` for efficient proximity queries
 
 **PostGIS Functions:**
-
 - Extract longitude: `ST_X(location)`
 - Extract latitude: `ST_Y(location)`
 - Calculate distance: `ST_Distance(location1, location2)`
@@ -167,13 +277,16 @@ The database uses PostgreSQL with PostGIS and a normalized relational schema wit
 
 ### `location_categories`
 
-Junction table for many-to-many relationship between locations and categories:
+Junction table for many-to-many relationship between locations and categories.
 
-- `locationUuid`: Foreign key to locations
-- `categoryId`: Foreign key to categories
-- `createdAt`: Creation timestamp
+- `locationUuid` (text, FK): Foreign key to locations.uuid (cascade delete)
+- `categoryId` (text, FK): Foreign key to categories.id (cascade delete)
+- `createdAt` (timestamp): Creation timestamp
+
+**Indexes:**
 - Composite primary key on (locationUuid, categoryId)
-- Indexed on both foreign keys
+- Index on `locationUuid` for joins
+- Index on `categoryId` for reverse lookups
 
 ## Scripts
 

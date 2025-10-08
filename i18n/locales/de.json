@@ -18,5 +18,11 @@
   "empty": {
     "title": "Keine Standorte gefunden",
     "subtitle": "Versuche, deine Suche oder Filter anzupassen"
+  },
+  "hours": {
+    "open": "Jetzt geöffnet",
+    "closingSoon": "Schließt bald",
+    "closed": "Geschlossen",
+    "unavailable": "Öffnungszeiten nicht verfügbar"
   }
 }
