@@ -34,6 +34,7 @@ catalogs:
     '@unocss/nuxt': latest
     '@unocss/preset-attributify': latest
     nimiq-css: 1.0.0-beta.120
+    nimiq-flags: 1.0.0-beta.129
     nimiq-icons: 1.0.0-beta.120
     reka-ui: latest
     unocss-preset-onmax: latest

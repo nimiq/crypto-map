@@ -29,7 +29,7 @@ export function useLocationSearch() {
       immediate: false,
       server: false,
       watch: false,
-    }
+    },
   )
 
   // Watch debounced query and fetch when valid

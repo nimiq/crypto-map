@@ -98,6 +98,9 @@ catalogs:
     nimiq-css:
       specifier: 1.0.0-beta.120
       version: 1.0.0-beta.120
+    nimiq-flags:
+      specifier: 1.0.0-beta.129
+      version: 1.0.0-beta.129
     nimiq-icons:
       specifier: 1.0.0-beta.120
       version: 1.0.0-beta.120
@@ -168,7 +171,7 @@ importers:
         specifier: catalog:database
         version: 0.44.6(@cloudflare/workers-types@4.20251003.0)(@opentelemetry/api@1.9.0)(postgres@3.4.7)
       nimiq-flags:
-        specifier: 1.0.0-beta.129
+        specifier: catalog:ui
         version: 1.0.0-beta.129
       nimiq-icons:
         specifier: catalog:ui

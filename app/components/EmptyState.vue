@@ -6,7 +6,8 @@ const hasSearchQuery = computed(() => searchQuery.value && searchQuery.value.len
 
 // Round down to nearest 10 (< 100) or 100 (≥ 100) for approximate count display
 const roundedCount = computed(() => {
-  if (!stats.value?.totalLocations) return 0
+  if (!stats.value?.totalLocations)
+    return 0
   const count = stats.value.totalLocations
   return count >= 100 ? Math.floor(count / 100) * 100 : Math.floor(count / 10) * 10
 })
@@ -14,8 +15,10 @@ const roundedCount = computed(() => {
 
 <template>
   <div text-center f-py-2xl f-mt-md>
-    <div v-if="!hasSearchQuery" flex="~ items-center justify-center" mx-auto rounded-full bg-neutral-100 size-64
-      f-mb-md>
+    <div
+      v-if="!hasSearchQuery" flex="~ items-center justify-center" mx-auto rounded-full bg-neutral-100 size-64
+      f-mb-md
+    >
       <Icon name="i-nimiq:icons-lg-bitcoin" text-neutral-400 size-32 />
     </div>
     <div v-else flex="~ items-center justify-center" mx-auto rounded-full bg-neutral-100 size-64 f-mb-md>

@@ -6,7 +6,8 @@ export function useGeolocation() {
   const isLoading = useState('geolocation-loading', () => false)
 
   async function requestLocation() {
-    if (!import.meta.client) return
+    if (!import.meta.client)
+      return
 
     if (!navigator.geolocation) {
       error.value = 'Geolocation is not supported by your browser'
@@ -30,7 +31,7 @@ export function useGeolocation() {
         enableHighAccuracy: false,
         timeout: 10000,
         maximumAge: 300000, // 5 minutes cache
-      }
+      },
     )
   }
 

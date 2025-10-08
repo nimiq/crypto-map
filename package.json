@@ -30,7 +30,7 @@
     "consola": "catalog:utils",
     "date-fns-tz": "catalog:utils",
     "drizzle-orm": "catalog:database",
-    "nimiq-flags": "1.0.0-beta.129",
+    "nimiq-flags": "catalog:ui",
     "nimiq-icons": "catalog:ui",
     "nuxt": "catalog:framework",
     "nuxt-safe-runtime-config": "catalog:framework",

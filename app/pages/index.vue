@@ -1,16 +1,17 @@
 <script setup lang="ts">
 const { searchResults, searchPending, refreshSearch } = useLocationSearch()
 
-type SelectedItem =
-  | { kind: 'location'; uuid: string; name: string }
-  | { kind: 'query'; query: string }
+type SelectedItem
+  = | { kind: 'location', uuid: string, name: string }
+    | { kind: 'query', query: string }
 const selectedItem = ref<SelectedItem>()
 
 const { data: locationResult, pending: locationPending, refresh: refreshLocation } = useFetch(
   () => `/api/locations/${selectedItem.value?.kind === 'location' ? selectedItem.value.uuid : ''}`,
   {
     transform: (loc) => {
-      if (!loc || !('openingHours' in loc)) return loc
+      if (!loc || !('openingHours' in loc))
+        return loc
       return {
         ...loc,
         hoursStatus: getOpeningHoursStatus(loc),
@@ -23,7 +24,8 @@ const { data: locationResult, pending: locationPending, refresh: refreshLocation
 watch(selectedItem, (value) => {
   if (value?.kind === 'query') {
     refreshSearch()
-  } else if (value?.kind === 'location') {
+  }
+  else if (value?.kind === 'location') {
     refreshLocation()
   }
 })
