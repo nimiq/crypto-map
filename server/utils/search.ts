@@ -3,6 +3,26 @@ import { generateEmbeddingCached } from './embeddings'
 
 const SIMILARITY_THRESHOLD = 0.7 // Categories with similarity >= 0.7
 
+// Common select for location queries
+export const locationSelect = {
+  uuid: tables.locations.uuid,
+  name: tables.locations.name,
+  address: tables.locations.address,
+  latitude: sql<number>`ST_Y(${tables.locations.location})`.as('latitude'),
+  longitude: sql<number>`ST_X(${tables.locations.location})`.as('longitude'),
+  rating: tables.locations.rating,
+  photo: tables.locations.photo,
+  gmapsPlaceId: tables.locations.gmapsPlaceId,
+  gmapsUrl: tables.locations.gmapsUrl,
+  website: tables.locations.website,
+  source: tables.locations.source,
+  timezone: tables.locations.timezone,
+  openingHours: tables.locations.openingHours,
+  createdAt: tables.locations.createdAt,
+  updatedAt: tables.locations.updatedAt,
+  categoryIds: sql<string>`STRING_AGG(${tables.locationCategories.categoryId}, ',')`.as('categoryIds'),
+}
+
 /**
  * Search for similar categories using vector embeddings
  */
@@ -37,24 +57,7 @@ export async function searchLocationsByText(query: string) {
   const tsQuery = query.trim().split(/\s+/).join(' & ')
 
   return await db
-    .select({
-      uuid: tables.locations.uuid,
-      name: tables.locations.name,
-      address: tables.locations.address,
-      latitude: sql<number>`ST_Y(${tables.locations.location})`.as('latitude'),
-      longitude: sql<number>`ST_X(${tables.locations.location})`.as('longitude'),
-      rating: tables.locations.rating,
-      photo: tables.locations.photo,
-      gmapsPlaceId: tables.locations.gmapsPlaceId,
-      gmapsUrl: tables.locations.gmapsUrl,
-      website: tables.locations.website,
-      source: tables.locations.source,
-      timezone: tables.locations.timezone,
-      openingHours: tables.locations.openingHours,
-      createdAt: tables.locations.createdAt,
-      updatedAt: tables.locations.updatedAt,
-      categoryIds: sql<string>`STRING_AGG(${tables.locationCategories.categoryId}, ',')`.as('categoryIds'),
-    })
+    .select(locationSelect)
     .from(tables.locations)
     .leftJoin(tables.locationCategories, eq(tables.locations.uuid, tables.locationCategories.locationUuid))
     .where(sql`
@@ -75,24 +78,7 @@ export async function searchLocationsByCategories(categoryIds: string[]) {
   const db = useDrizzle()
 
   return await db
-    .select({
-      uuid: tables.locations.uuid,
-      name: tables.locations.name,
-      address: tables.locations.address,
-      latitude: sql<number>`ST_Y(${tables.locations.location})`.as('latitude'),
-      longitude: sql<number>`ST_X(${tables.locations.location})`.as('longitude'),
-      rating: tables.locations.rating,
-      photo: tables.locations.photo,
-      gmapsPlaceId: tables.locations.gmapsPlaceId,
-      gmapsUrl: tables.locations.gmapsUrl,
-      website: tables.locations.website,
-      source: tables.locations.source,
-      timezone: tables.locations.timezone,
-      openingHours: tables.locations.openingHours,
-      createdAt: tables.locations.createdAt,
-      updatedAt: tables.locations.updatedAt,
-      categoryIds: sql<string>`STRING_AGG(${tables.locationCategories.categoryId}, ',')`.as('categoryIds'),
-    })
+    .select(locationSelect)
     .from(tables.locations)
     .innerJoin(tables.locationCategories, eq(tables.locations.uuid, tables.locationCategories.locationUuid))
     .where(inArray(tables.locationCategories.categoryId, categoryIds))

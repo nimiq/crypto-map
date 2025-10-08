@@ -1,5 +1,5 @@
 import * as v from 'valibot'
-import { searchLocationsByText } from '~/server/utils/search'
+import { searchLocationsByText } from '../../utils/search'
 
 const querySchema = v.object({
   q: v.pipe(v.string(), v.minLength(2, 'Query must be at least 2 characters')),

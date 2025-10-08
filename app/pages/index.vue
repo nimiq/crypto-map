@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { LocationResponse } from '~/shared/types'
 import { toZonedTime } from 'date-fns-tz'
 import OpeningHours from 'opening_hours'
 
@@ -38,6 +39,9 @@ function getOpeningHoursStatus(
 }
 
 const searchQuery = ref('')
+const autocompleteResults = ref<LocationResponse[]>([])
+const showAutocomplete = ref(false)
+const selectedLocation = ref<LocationResponse | null>(null)
 
 const params = useUrlSearchParams('history')
 
@@ -81,9 +85,10 @@ const { data: categories, refresh: refreshCategories } = useFetch('/api/categori
   watch: false,
 })
 
-const { data: locations, pending } = await useFetch('/api/search', {
+const { data: locations, pending, refresh: refreshLocations } = useFetch('/api/search', {
   query: {
-    q: searchQuery,
+    q: computed(() => searchQuery.value),
+    uuid: computed(() => selectedLocation.value?.uuid),
     openNow: computed(() => filters.value.includes('open_now') ? 'true' : undefined),
     categories: computed(() => selectedCategories.value.length ? selectedCategories.value.join(',') : undefined),
   },
@@ -96,10 +101,81 @@ const { data: locations, pending } = await useFetch('/api/search', {
       ),
     })) ?? []
   },
+  immediate: false,
 })
 
-const debouncedCategorySearch = useDebounceFn(refreshCategories, 300)
-watch(searchQuery, () => debouncedCategorySearch())
+// Fetch autocomplete results
+const { execute: fetchAutocomplete } = useFetch('/api/search/autocomplete', {
+  query: {
+    q: searchQuery,
+  },
+  immediate: false,
+  onResponse({ response }) {
+    if (response.ok) {
+      autocompleteResults.value = response._data
+      showAutocomplete.value = true
+    }
+  },
+})
+
+// Precompute embeddings in background
+async function precomputeEmbedding(query: string) {
+  if (query.length < 2)
+    return
+
+  // Don't await - just fire and forget
+  $fetch('/api/search/embed', {
+    method: 'POST',
+    body: { q: query },
+  }).catch(() => {
+    // Silent fail
+  })
+}
+
+// Watch search query for autocomplete
+watch(searchQuery, useDebounceFn(async (newQuery) => {
+  if (newQuery.length < 2) {
+    showAutocomplete.value = false
+    autocompleteResults.value = []
+    return
+  }
+
+  // Fetch autocomplete
+  await fetchAutocomplete()
+
+  // Precompute embedding in background
+  precomputeEmbedding(newQuery)
+}, 300))
+
+// Handle form submission
+async function handleSubmit(event: Event) {
+  event.preventDefault()
+
+  if (!searchQuery.value || searchQuery.value.length < 2)
+    return
+
+  // Close autocomplete
+  showAutocomplete.value = false
+
+  // If no location selected, user is searching by their query text
+  selectedLocation.value = null
+
+  // Trigger search
+  await refreshLocations()
+}
+
+// Handle location selection from autocomplete
+function selectLocation(location: LocationResponse | null) {
+  selectedLocation.value = location
+  showAutocomplete.value = false
+
+  if (location) {
+    searchQuery.value = location.name
+  }
+
+  // Trigger search
+  refreshLocations()
+}
 
 const comboboxOpen = ref(false)
 
@@ -168,23 +244,80 @@ function getCategoryById(categoryId: string) {
           {{ $t('hero.subtitle') }}
         </p>
 
-        <ComboboxRoot v-model="selectedCategories" v-model:open="comboboxOpen" multiple>
-          <ComboboxAnchor w-full>
-            <ComboboxInput v-model="searchQuery" :placeholder="$t('search.placeholder')" nq-input-box :display-value="() => searchQuery" @focus="refreshCategories" />
-          </ComboboxAnchor>
+        <!-- Search Form -->
+        <form @submit="handleSubmit">
+          <div relative>
+            <input
+              v-model="searchQuery"
+              type="text"
+              :placeholder="$t('search.placeholder')"
+              nq-input-box
+              @focus="searchQuery.length >= 2 && fetchAutocomplete()"
+            >
 
-          <ComboboxContent position="popper" bg="white" outline="~ 1.5 neutral-200" rounded-t-8 max-h-256 w-full shadow z-50 of-auto>
-            <ComboboxViewport f-p-xs>
-              <ComboboxItem v-for="category in categories" :key="category.id" :value="category.id" flex="~ items-center gap-8" text="f-sm neutral-800 data-[highlighted]:neutral-900" bg="data-[highlighted]:neutral-50" py-10 outline-none rounded-6 cursor-pointer transition-colors f-px-md>
-                <Icon v-if="category.icon" :name="category.icon" size-18 />
-                {{ category.name }}
-              </ComboboxItem>
-              <ComboboxEmpty v-if="!categories?.length" f-p-md text="f-sm neutral-700 center">
-                {{ $t('search.noCategoriesFound') }}
-              </ComboboxEmpty>
-            </ComboboxViewport>
-          </ComboboxContent>
-        </ComboboxRoot>
+            <!-- Autocomplete Dropdown -->
+            <div
+              v-if="showAutocomplete"
+              position="absolute"
+              top-full
+              left-0
+              w-full
+              bg-white
+              outline="~ 1.5 neutral-200"
+              rounded-b-8
+              max-h-256
+              shadow
+              z-50
+              of-auto
+              mt-1
+            >
+              <!-- User's query (first item) -->
+              <button
+                type="button"
+                flex="~ items-center gap-8"
+                text="f-sm neutral-900"
+                bg="hover:neutral-50"
+                w-full
+                py-10
+                outline-none
+                cursor-pointer
+                transition-colors
+                f-px-md
+                font-medium
+                @click="selectLocation(null)"
+              >
+                <Icon name="i-tabler:search" size-18 />
+                {{ searchQuery }}
+              </button>
+
+              <!-- Separator -->
+              <div v-if="autocompleteResults.length" border="t neutral-200" mx-2 />
+
+              <!-- Matching locations -->
+              <button
+                v-for="location in autocompleteResults"
+                :key="location.uuid"
+                type="button"
+                flex="~ items-start gap-8"
+                text="f-sm neutral-800"
+                bg="hover:neutral-50"
+                w-full
+                py-10
+                outline-none
+                cursor-pointer
+                transition-colors
+                f-px-md
+                @click="selectLocation(location)"
+              >
+                <Icon name="i-tabler:map-pin" size-18 text-neutral-600 mt-2 flex-shrink-0 />
+                <div flex="~ col gap-2" items-start text-left>
+                  <span font-medium>{{ location.name }}</span>
+                  <span text="f-xs neutral-600">{{ location.address }}</span>
+                </div>
+              </button>
+            </div>
+          </div>
+        </form>
 
         <div flex="~ wrap gap-8" mt-4>
           <button

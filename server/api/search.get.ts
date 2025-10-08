@@ -4,7 +4,7 @@ import { toZonedTime } from 'date-fns-tz'
 import { count, eq, inArray, sql } from 'drizzle-orm'
 import OpeningHours from 'opening_hours'
 import * as v from 'valibot'
-import { searchLocationsByCategories, searchLocationsByText, searchSimilarCategories } from '../utils/search'
+import { locationSelect, searchLocationsByCategories, searchLocationsByText, searchSimilarCategories } from '../utils/search'
 
 const querySchema = v.object({
   lat: v.optional(v.pipe(
@@ -22,6 +22,7 @@ const querySchema = v.object({
     v.maxValue(180, 'Longitude must be <= 180'),
   )),
   q: v.optional(v.string()),
+  uuid: v.optional(v.string()), // Specific location UUID from autocomplete
   openNow: v.optional(v.pipe(v.string(), v.transform(val => val === 'true'))),
   categories: v.optional(v.union([v.string(), v.array(v.string())])),
 })
@@ -43,10 +44,41 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
   let lat = result.output.lat
   let lng = result.output.lng
   const searchQuery = result.output.q
+  const locationUuid = result.output.uuid
   const openNow = result.output.openNow ?? false
   const categoryIds = result.output.categories
     ? (Array.isArray(result.output.categories) ? result.output.categories : [result.output.categories])
     : []
+
+  const db = useDrizzle()
+
+  // If UUID provided, return specific location
+  if (locationUuid) {
+    const location = await db
+      .select(locationSelect)
+      .from(tables.locations)
+      .leftJoin(tables.locationCategories, eq(tables.locations.uuid, tables.locationCategories.locationUuid))
+      .where(eq(tables.locations.uuid, locationUuid))
+      .groupBy(tables.locations.uuid)
+      .limit(1)
+
+    if (!location.length) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: 'Location not found',
+      })
+    }
+
+    const allCategories = await db.select().from(tables.categories)
+    const categoryMap = new Map(allCategories.map(cat => [cat.id, { id: cat.id, name: cat.name, icon: cat.icon }]))
+
+    return location.map(loc => ({
+      ...loc,
+      categories: loc.categoryIds
+        ? loc.categoryIds.split(',').map(id => categoryMap.get(id)!).filter(Boolean)
+        : [],
+    }))
+  }
 
   // Try to get lat/lng from Cloudflare IP if not provided
   if (lat === undefined || lng === undefined) {
@@ -69,7 +101,6 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
     consola.info(`User location: ${lat}, ${lng} (not used for sorting yet)`, { tag: 'geolocation' })
   }
 
-  const db = useDrizzle()
   const referenceTime = new Date()
 
   const filterOpenNow = <T extends {
@@ -99,24 +130,7 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
   // If no search query, return 10 random locations
   if (!searchQuery || searchQuery.trim().length === 0) {
     const baseQueryBuilder = db
-      .select({
-        uuid: tables.locations.uuid,
-        name: tables.locations.name,
-        address: tables.locations.address,
-        latitude: sql<number>`ST_Y(${tables.locations.location})`.as('latitude'),
-        longitude: sql<number>`ST_X(${tables.locations.location})`.as('longitude'),
-        rating: tables.locations.rating,
-        photo: tables.locations.photo,
-        gmapsPlaceId: tables.locations.gmapsPlaceId,
-        gmapsUrl: tables.locations.gmapsUrl,
-        website: tables.locations.website,
-        source: tables.locations.source,
-        timezone: tables.locations.timezone,
-        openingHours: tables.locations.openingHours,
-        createdAt: tables.locations.createdAt,
-        updatedAt: tables.locations.updatedAt,
-        categoryIds: sql<string>`STRING_AGG(${tables.locationCategories.categoryId}, ',')`.as('categoryIds'),
-      })
+      .select(locationSelect)
       .from(tables.locations)
       .leftJoin(tables.locationCategories, eq(tables.locations.uuid, tables.locationCategories.locationUuid))
       .groupBy(tables.locations.uuid)
