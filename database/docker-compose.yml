@@ -11,7 +11,6 @@ services:
       - ./init.sh:/docker-entrypoint-initdb.d/01-init.sh
       - ./migrate.sh:/docker-entrypoint-initdb.d/02-migrate.sh
       - ./seed.sh:/docker-entrypoint-initdb.d/03-seed.sh
-      - ./generate-embeddings.sh:/docker-entrypoint-initdb.d/04-generate-embeddings.sh:ro
       - ./startup.sh:/startup.sh
       - ./migrations:/docker-entrypoint-initdb.d/migrations:ro
       - ./seeds:/docker-entrypoint-initdb.d/seeds:ro
