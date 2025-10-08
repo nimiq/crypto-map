@@ -49,6 +49,7 @@ export async function searchSimilarCategories(query: string): Promise<string[]> 
 
 /**
  * Search locations using PostgreSQL full-text search
+ * With ts_headline for highlighting matches
  */
 export async function searchLocationsByText(query: string) {
   const db = useDrizzle()
@@ -57,7 +58,10 @@ export async function searchLocationsByText(query: string) {
   const tsQuery = query.trim().split(/\s+/).join(' & ')
 
   return await db
-    .select(locationSelect)
+    .select({
+      ...locationSelect,
+      highlightedName: sql<string>`ts_headline('english', ${tables.locations.name}, to_tsquery('english', ${tsQuery}), 'StartSel=<mark>, StopSel=</mark>')`.as('highlightedName'),
+    })
     .from(tables.locations)
     .leftJoin(tables.locationCategories, eq(tables.locations.uuid, tables.locationCategories.locationUuid))
     .where(sql`
