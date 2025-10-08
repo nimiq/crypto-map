@@ -87,3 +87,26 @@ export async function searchLocationsByCategories(categoryIds: string[]): Promis
     .groupBy(tables.locations.uuid)
     .limit(10)
 }
+
+// Filter locations by walkable distance (1500m) from user location using PostGIS
+export function filterByWalkableDistance<T extends { latitude: number, longitude: number }>(
+  locations: T[],
+  userLat: number,
+  userLng: number,
+): T[] {
+  const MAX_WALKABLE_DISTANCE_METERS = 1500
+
+  return locations.filter((loc) => {
+    // Haversine formula for distance calculation (approximate but fast)
+    const R = 6371000 // Earth radius in meters
+    const dLat = (loc.latitude - userLat) * Math.PI / 180
+    const dLng = (loc.longitude - userLng) * Math.PI / 180
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+      + Math.cos(userLat * Math.PI / 180) * Math.cos(loc.latitude * Math.PI / 180)
+      * Math.sin(dLng / 2) * Math.sin(dLng / 2)
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    const distance = R * c
+
+    return distance <= MAX_WALKABLE_DISTANCE_METERS
+  })
+}

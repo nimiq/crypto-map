@@ -20,10 +20,11 @@ const querySchema = v.object({
   )),
   q: v.optional(v.string()),
   openNow: v.optional(v.pipe(v.string(), v.transform(val => val === 'true'))),
+  walkable: v.optional(v.pipe(v.string(), v.transform(val => val === 'true'))),
 })
 
 export default defineEventHandler(async (event) => {
-  const { q: searchQuery, openNow = false, lat: qLat, lng: qLng } = await getValidatedQuery(event, data => v.parse(querySchema, data))
+  const { q: searchQuery, openNow = false, walkable = false, lat: qLat, lng: qLng } = await getValidatedQuery(event, data => v.parse(querySchema, data))
   if (!searchQuery || searchQuery.trim().length === 0)
     return []
 
@@ -54,7 +55,11 @@ export default defineEventHandler(async (event) => {
       combinedMap.set(loc.uuid, loc)
   }
 
-  const searchResults = Array.from(combinedMap.values())
+  let searchResults = Array.from(combinedMap.values())
+
+  // Apply walkable distance filter if requested and user location is available
+  if (walkable && lat !== undefined && lng !== undefined)
+    searchResults = filterByWalkableDistance(searchResults, lat, lng)
 
   return openNow ? filterOpenNow(searchResults) : searchResults
 })

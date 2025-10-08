@@ -1,12 +1,19 @@
 // Search logic with autocomplete and embedding precomputation
 export function useLocationSearch() {
-  const { openNow } = useSearchFilters()
+  const { openNow, walkable } = useSearchFilters()
+  const { latitude, longitude } = useGeolocation()
 
   const searchQuery = useState('searchQuery', () => '')
   const debouncedSearchQuery = refDebounced(searchQuery, 300, { maxWait: 1000 })
 
   const { data: searchResults, pending: searchPending, refresh: refreshSearch } = useFetch('/api/search', {
-    query: { q: searchQuery, openNow },
+    query: computed(() => ({
+      q: searchQuery.value,
+      openNow: openNow.value || undefined,
+      walkable: walkable.value || undefined,
+      lat: latitude.value || undefined,
+      lng: longitude.value || undefined,
+    })),
     transform: locations => locations.map(loc => ({
       ...loc,
       hoursStatus: getOpeningHoursStatus(loc),

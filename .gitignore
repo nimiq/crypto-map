@@ -26,4 +26,5 @@ logs
 
 # Database import data (contains API responses)
 database/data/
-database/sql/*naka.sql
+database/sql/*.sql
+!database/sql/1.rls-policies.sql
