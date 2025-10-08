@@ -16,6 +16,7 @@ export function useLocationSearch() {
       hoursStatus: getOpeningHoursStatus(loc),
     })),
     immediate: false,
+    watch: false,
   })
 
   const { execute: fetchAutocomplete } = useFetch('/api/search/autocomplete', {
@@ -51,6 +52,12 @@ export function useLocationSearch() {
     await refreshSearch()
   }
 
+  async function safeRefreshSearch() {
+    if (!searchQuery.value || searchQuery.value.length < 2)
+      return
+    await refreshSearch()
+  }
+
   return {
     searchQuery,
     autocompleteResults,
@@ -59,6 +66,6 @@ export function useLocationSearch() {
     searchPending,
     fetchAutocomplete,
     handleSubmit,
-    refreshSearch,
+    refreshSearch: safeRefreshSearch,
   }
 }
