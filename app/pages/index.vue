@@ -4,18 +4,38 @@ const {
   searchQuery,
   autocompleteResults,
   showAutocomplete,
-  selectedLocation,
   searchResults,
-  locationResult,
   searchPending,
-  locationPending,
   fetchAutocomplete,
   handleSubmit,
-  selectLocation,
+  refreshSearch,
 } = useLocationSearch()
 
-const locations = computed(() => selectedLocation.value ? locationResult.value : searchResults.value)
+const selectedLocation = ref(null)
+
+const { data: locationResult, pending: locationPending, refresh: refreshLocation } = useFetch(
+  () => `/api/locations/${selectedLocation.value?.uuid}`,
+  {
+    transform: enrichLocationWithHours,
+    immediate: false,
+  },
+)
+
+const locations = computed(() => selectedLocation.value ? locationResult.value ? [locationResult.value] : [] : searchResults.value)
 const pending = computed(() => selectedLocation.value ? locationPending.value : searchPending.value)
+
+function selectLocation(location: any) {
+  selectedLocation.value = location
+  showAutocomplete.value = false
+
+  if (location) {
+    searchQuery.value = location.name
+    refreshLocation()
+  }
+  else {
+    refreshSearch()
+  }
+}
 
 const { locale, locales } = useI18n()
 const router = useRouter()

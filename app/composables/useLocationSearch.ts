@@ -7,15 +7,6 @@ export function useLocationSearch() {
   const searchQuery = ref('')
   const autocompleteResults = ref<LocationResponse[]>([])
   const showAutocomplete = ref(false)
-  const selectedLocation = ref<LocationResponse | null>(null)
-
-  const transformWithHours = (data: any) => {
-    const locations = Array.isArray(data) ? data : data ? [data] : []
-    return locations.map(location => ({
-      ...location,
-      hoursStatus: getOpeningHoursStatus(location.openingHours, location.timezone),
-    }))
-  }
 
   const { data: searchResults, pending: searchPending, refresh: refreshSearch } = useFetch('/api/search', {
     query: {
@@ -23,12 +14,7 @@ export function useLocationSearch() {
       openNow: computed(() => filters.value.includes('open_now') ? 'true' : undefined),
       categories: computed(() => selectedCategories.value.length ? selectedCategories.value.join(',') : undefined),
     },
-    transform: transformWithHours,
-    immediate: false,
-  })
-
-  const { data: locationResult, pending: locationPending, refresh: refreshLocation } = useFetch(() => `/api/locations/${selectedLocation.value?.uuid}`, {
-    transform: transformWithHours,
+    transform: enrichLocationsWithHours,
     immediate: false,
   })
 
@@ -78,35 +64,17 @@ export function useLocationSearch() {
       return
 
     showAutocomplete.value = false
-    selectedLocation.value = null
-
     await refreshSearch()
-  }
-
-  function selectLocation(location: LocationResponse | null) {
-    selectedLocation.value = location
-    showAutocomplete.value = false
-
-    if (location) {
-      searchQuery.value = location.name
-      refreshLocation()
-    }
-    else {
-      refreshSearch()
-    }
   }
 
   return {
     searchQuery,
     autocompleteResults,
     showAutocomplete,
-    selectedLocation,
     searchResults,
-    locationResult,
     searchPending,
-    locationPending,
     fetchAutocomplete,
     handleSubmit,
-    selectLocation,
+    refreshSearch,
   }
 }
