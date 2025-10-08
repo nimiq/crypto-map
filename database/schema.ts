@@ -17,6 +17,7 @@ export const categories = pgTable('categories', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   icon: text('icon').notNull(),
+  embedding: vector({ dimensions: 1536 }),
   createdAt: timestamp('created_at').$defaultFn(() => new Date()),
 })
 
