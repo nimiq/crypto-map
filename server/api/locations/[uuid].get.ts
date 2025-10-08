@@ -1,14 +1,10 @@
 import { eq, sql } from 'drizzle-orm'
+import * as v from 'valibot'
 
 export default defineEventHandler(async (event) => {
-  const uuid = getRouterParam(event, 'uuid')
-
-  if (!uuid) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'UUID is required',
-    })
-  }
+  const { uuid } = await getValidatedRouterParams(event, v.object({
+    uuid: v.pipe(v.string(), v.uuid()),
+  }))
 
   const db = useDrizzle()
 
@@ -46,13 +42,10 @@ export default defineEventHandler(async (event) => {
     .where(eq(tables.locations.uuid, uuid))
     .groupBy(tables.locations.uuid)
     .limit(1)
+    .then(rows => rows[0])
 
-  if (!result.length) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: 'Location not found',
-    })
-  }
+  if (!result)
+    throw createError({ statusCode: 404, statusMessage: 'Location not found' })
 
-  return result[0]
+  return result
 })

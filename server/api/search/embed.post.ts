@@ -10,13 +10,8 @@ export default defineEventHandler(async (event) => {
 
   const result = v.safeParse(bodySchema, body)
 
-  if (!result.success) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Invalid request body',
-      data: result.issues,
-    })
-  }
+  if (!result.success)
+    throw createError({ statusCode: 400, statusMessage: 'Invalid request body', data: result.issues })
 
   const { q: searchQuery } = result.output
 

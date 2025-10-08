@@ -9,13 +9,8 @@ export default defineEventHandler(async (event): Promise<CategoryResponse[]> => 
 
   const result = v.safeParse(querySchema, query)
 
-  if (!result.success) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Invalid query parameters',
-      data: result.issues,
-    })
-  }
+  if (!result.success)
+    throw createError({ statusCode: 400, statusMessage: 'Invalid query parameters', data: result.issues })
 
   const db = useDrizzle()
   const { q: searchQuery } = result.output

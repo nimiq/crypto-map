@@ -30,13 +30,8 @@ export default defineEventHandler(async (event) => {
 
   const result = v.safeParse(querySchema, queryParams)
 
-  if (!result.success) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Invalid query parameters',
-      data: result.issues,
-    })
-  }
+  if (!result.success)
+    throw createError({ statusCode: 400, statusMessage: 'Invalid query parameters', data: result.issues })
 
   let lat = result.output.lat
   let lng = result.output.lng
