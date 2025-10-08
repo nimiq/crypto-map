@@ -18,5 +18,11 @@
   "empty": {
     "title": "No locations found",
     "subtitle": "Try adjusting your search or filters"
+  },
+  "hours": {
+    "open": "Open now",
+    "closingSoon": "Closing soon",
+    "closed": "Closed",
+    "unavailable": "Hours unavailable"
   }
 }

@@ -9,28 +9,26 @@ export function useLocationSearch() {
   const showAutocomplete = ref(false)
   const selectedLocation = ref<LocationResponse | null>(null)
 
-  const { data: locations, pending, refresh: refreshLocations } = useFetch(() => {
-    if (selectedLocation.value?.uuid) {
-      return `/api/locations/${selectedLocation.value.uuid}`
-    }
-    return '/api/search'
-  }, {
+  const transformWithHours = (data: any) => {
+    const locations = Array.isArray(data) ? data : data ? [data] : []
+    return locations.map(location => ({
+      ...location,
+      hoursStatus: getOpeningHoursStatus(location.openingHours, location.timezone),
+    }))
+  }
+
+  const { data: searchResults, pending: searchPending, refresh: refreshSearch } = useFetch('/api/search', {
     query: {
       q: computed(() => searchQuery.value),
       openNow: computed(() => filters.value.includes('open_now') ? 'true' : undefined),
       categories: computed(() => selectedCategories.value.length ? selectedCategories.value.join(',') : undefined),
     },
-    transform: (data) => {
-      // Single location or array of locations
-      const locations = Array.isArray(data) ? data : data ? [data] : []
-      return locations.map(location => ({
-        ...location,
-        hoursStatus: getOpeningHoursStatus(
-          location.openingHours,
-          location.timezone,
-        ),
-      }))
-    },
+    transform: transformWithHours,
+    immediate: false,
+  })
+
+  const { data: locationResult, pending: locationPending, refresh: refreshLocation } = useFetch(() => `/api/locations/${selectedLocation.value?.uuid}`, {
+    transform: transformWithHours,
     immediate: false,
   })
 
@@ -80,11 +78,9 @@ export function useLocationSearch() {
       return
 
     showAutocomplete.value = false
-
-    // User clicked their query instead of a location - semantic search
     selectedLocation.value = null
 
-    await refreshLocations()
+    await refreshSearch()
   }
 
   function selectLocation(location: LocationResponse | null) {
@@ -93,9 +89,11 @@ export function useLocationSearch() {
 
     if (location) {
       searchQuery.value = location.name
+      refreshLocation()
     }
-
-    refreshLocations()
+    else {
+      refreshSearch()
+    }
   }
 
   return {
@@ -103,8 +101,10 @@ export function useLocationSearch() {
     autocompleteResults,
     showAutocomplete,
     selectedLocation,
-    locations,
-    pending,
+    searchResults,
+    locationResult,
+    searchPending,
+    locationPending,
     fetchAutocomplete,
     handleSubmit,
     selectLocation,
