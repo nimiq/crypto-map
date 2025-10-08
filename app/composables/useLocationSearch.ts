@@ -2,7 +2,6 @@ import type { LocationResponse } from '@/shared/types'
 
 // Search logic with autocomplete and embedding precomputation
 export function useLocationSearch() {
-  const { getStatus: getOpeningHoursStatus } = useOpeningHours()
   const { selectedCategories, filters } = useSearchFilters()
 
   const searchQuery = ref('')
@@ -10,21 +9,27 @@ export function useLocationSearch() {
   const showAutocomplete = ref(false)
   const selectedLocation = ref<LocationResponse | null>(null)
 
-  const { data: locations, pending, refresh: refreshLocations } = useFetch('/api/search', {
+  const { data: locations, pending, refresh: refreshLocations } = useFetch(() => {
+    if (selectedLocation.value?.uuid) {
+      return `/api/locations/${selectedLocation.value.uuid}`
+    }
+    return '/api/search'
+  }, {
     query: {
       q: computed(() => searchQuery.value),
-      uuid: computed(() => selectedLocation.value?.uuid),
       openNow: computed(() => filters.value.includes('open_now') ? 'true' : undefined),
       categories: computed(() => selectedCategories.value.length ? selectedCategories.value.join(',') : undefined),
     },
     transform: (data) => {
-      return data?.map(location => ({
+      // Single location or array of locations
+      const locations = Array.isArray(data) ? data : data ? [data] : []
+      return locations.map(location => ({
         ...location,
         hoursStatus: getOpeningHoursStatus(
           location.openingHours,
           location.timezone,
         ),
-      })) ?? []
+      }))
     },
     immediate: false,
   })

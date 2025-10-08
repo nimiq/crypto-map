@@ -1,4 +1,3 @@
-import type { Location } from '../../shared/types'
 import { consola } from 'consola'
 import { toZonedTime } from 'date-fns-tz'
 import { count, eq, inArray, sql } from 'drizzle-orm'
@@ -22,13 +21,11 @@ const querySchema = v.object({
     v.maxValue(180, 'Longitude must be <= 180'),
   )),
   q: v.optional(v.string()),
-  uuid: v.optional(v.string()), // Specific location UUID from autocomplete
   openNow: v.optional(v.pipe(v.string(), v.transform(val => val === 'true'))),
   categories: v.optional(v.union([v.string(), v.array(v.string())])),
 })
 
-
-export default defineEventHandler(async (event): Promise<LocationResponse[]> => {
+export default defineEventHandler(async (event) => {
   const queryParams = getQuery(event)
 
   const result = v.safeParse(querySchema, queryParams)
@@ -44,41 +41,12 @@ export default defineEventHandler(async (event): Promise<LocationResponse[]> => 
   let lat = result.output.lat
   let lng = result.output.lng
   const searchQuery = result.output.q
-  const locationUuid = result.output.uuid
   const openNow = result.output.openNow ?? false
   const categoryIds = result.output.categories
     ? (Array.isArray(result.output.categories) ? result.output.categories : [result.output.categories])
     : []
 
   const db = useDrizzle()
-
-  // User selected a specific location from autocomplete
-  if (locationUuid) {
-    const location = await db
-      .select(locationSelect)
-      .from(tables.locations)
-      .leftJoin(tables.locationCategories, eq(tables.locations.uuid, tables.locationCategories.locationUuid))
-      .where(eq(tables.locations.uuid, locationUuid))
-      .groupBy(tables.locations.uuid)
-      .limit(1)
-
-    if (!location.length) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Location not found',
-      })
-    }
-
-    const allCategories = await db.select().from(tables.categories)
-    const categoryMap = new Map(allCategories.map(cat => [cat.id, { id: cat.id, name: cat.name, icon: cat.icon }]))
-
-    return location.map(loc => ({
-      ...loc,
-      categories: loc.categoryIds
-        ? loc.categoryIds.split(',').map(id => categoryMap.get(id)!).filter(Boolean)
-        : [],
-    }))
-  }
 
   // Cloudflare adds IP geolocation in production (unavailable in dev)
   if (lat === undefined || lng === undefined) {
