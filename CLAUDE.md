@@ -101,17 +101,42 @@ The app implements **hybrid search** combining two approaches:
 
 - Returns all categories from the database
 - Used to populate filter UI
-- Categories are dynamically extracted from location data
+- Returns: `Array<{id, name, icon}>`
+
+**`GET /api/locations/[uuid]`**
+
+- Fetch single location by UUID
+- Path parameter: `uuid` (validated as UUID)
+- Uses `json_agg` with `json_build_object` to aggregate categories as JSON array
+- Returns: Full location object with `categories: Array<{id, name, icon}>`
 
 **`GET /api/search`**
 
-- Query params: `q` (search query, optional), `lat`/`lng` (optional)
+- Hybrid search combining text FTS and semantic category matching
+- Query params:
+  - `q` (required): Search query string
+  - `lat`/`lng` (optional): User location for future distance sorting (currently logged only)
+  - `categories` (optional): Array of category IDs to filter by
+  - `openNow` (optional): Boolean to filter by opening hours
 - If lat/lng not provided, attempts Cloudflare IP geolocation via `locateByHost()`
-- **Location data is available but NOT used for sorting yet** - just logged to console
-- Returns 10 random locations if no search query provided
-- Filters by location name using `LIKE` when search query is provided
-- Uses PostgreSQL `STRING_AGG()` to aggregate categories
+- Returns empty array if query is empty
+- **Search flow:**
+  1. Parallel: `searchLocationsByText()` + `searchSimilarCategories()`
+  2. Fetch locations matching similar categories via `searchLocationsByCategories()`
+  3. Merge results (text first, then semantic) and deduplicate by UUID
+  4. Apply category filters if provided (all selected categories must match)
+  5. Apply opening hours filter if `openNow=true`
+- Uses PostgreSQL `STRING_AGG()` for comma-separated category IDs
 - Extracts lat/lng from PostGIS geometry using `ST_Y()` and `ST_X()`
+- Returns: `Array<SearchLocationResponse>` with `categoryIds` string and `categories` array
+
+**`GET /api/search/autocomplete`**
+
+- Fast text-only search for autocomplete dropdown
+- Query params: `q` (required, min 2 chars)
+- **Background task**: Calls `generateEmbeddingCached()` in fire-and-forget mode to precompute embedding
+- Uses `searchLocationsByText()` with PostgreSQL FTS
+- Returns: Same as search endpoint but includes `highlightedName` field with `<mark>` tags
 
 ### Styling System
 
@@ -144,8 +169,35 @@ The app uses **UnoCSS with Nimiq presets**:
 - Schema is defined in `database/schema.ts`
 - Type exports: `Location`, `Category`, `LocationCategory`
 - Connection uses individual env vars (POSTGRES_HOST, POSTGRES_PORT, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB)
-- PostgreSQL-specific: Use `sql` tagged templates for PostGIS queries
+- PostgreSQL-specific: Use `sql` tagged templates for PostGIS and pgvector queries
 - PostGIS functions: `ST_X()`, `ST_Y()`, `ST_Distance()`, `ST_Within()`, etc.
+- pgvector operators: `<=>` (cosine distance), `<->` (L2 distance), `<#>` (inner product)
+
+### Server Utilities
+
+- **`server/utils/search.ts`** - Search functions
+  - `searchLocationsByText(query)` - PostgreSQL FTS with `ts_headline` highlighting
+  - `searchSimilarCategories(query)` - Vector similarity search for categories
+  - `searchLocationsByCategories(categoryIds)` - Fetch locations by category IDs
+  - `locationSelect` - Reusable select object to avoid duplicating 20+ column definitions
+  - `SIMILARITY_THRESHOLD` constant (0.7) - Adjust for more/fewer semantic results
+
+- **`server/utils/embeddings.ts`** - OpenAI embedding generation
+  - `generateEmbeddingCached(text)` - Generate or fetch cached embedding from NuxtHub KV
+  - Model: `text-embedding-3-small` (1536 dimensions)
+  - Cache key format: `embedding:${text.trim().toLowerCase()}`
+
+- **`server/utils/open-now.ts`** - Opening hours filtering
+  - `filterOpenNow(locations)` - Filter locations by current opening hours
+  - Handles timezone conversion using location's `timezone` field
+  - Parses `openingHours` JSON string
+
+- **`server/utils/geoip.ts`** - GeoIP location service
+  - `locateByHost(ip)` - Cloudflare IP geolocation fallback
+
+- **`server/utils/drizzle.ts`** - Database utilities
+  - `useDrizzle()` - Get database instance
+  - `tables` export - All table schemas
 
 ## Key Patterns
 
@@ -154,21 +206,46 @@ The app uses **UnoCSS with Nimiq presets**:
 1. Add location data to `database/seeds/sources/dummy.sql` or create a new source SQL file
 2. Categories must be valid Google Maps types (snake_case strings) from `database/seeds/categories.sql`
 3. Use PostGIS `ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)` for location geometry
-4. Insert corresponding rows into `location_categories` junction table
-5. Restart Docker Compose to apply changes: `pnpm run db:restart`
+4. Include `timezone` (IANA identifier like "Europe/Zurich") and optionally `openingHours` (JSON string)
+5. Insert corresponding rows into `location_categories` junction table
+6. Restart Docker Compose to apply changes: `pnpm run db:restart`
+
+### Adding New Categories
+
+1. Add to `database/seeds/categories.sql` with format: `INSERT INTO categories (id, name, icon, embedding) VALUES (...)`
+2. Generate embedding using OpenAI text-embedding-3-small (1536-dim)
+3. Store embedding as vector: `'[0.123, -0.456, ...]'::vector(1536)`
+4. Category IDs use snake_case (e.g., "coffee_shop", "restaurant")
+5. Restart database to apply: `pnpm run db:restart`
+
+### Semantic Search Configuration
+
+- **Similarity threshold**: Adjust `SIMILARITY_THRESHOLD` in `server/utils/search.ts` (default: 0.7)
+  - Higher (0.8+): More precise matches, fewer results
+  - Lower (0.6-): More results, may include less relevant categories
+- **Top categories limit**: Currently returns top 5 similar categories (hardcoded in query `.limit(5)`)
+- **Embedding model**: Changing model requires regenerating all category embeddings
 
 ### Category Filtering
 
 - Categories use raw Google Maps types (e.g., "restaurant", "cafe", "lodging")
-- The old `CATEGORY_MAPPING` system was removed - now using direct Google types
 - UI displays formatted category names (underscores → spaces, title case)
 - Backend stores raw snake_case IDs
+- Filter logic: All selected categories must match (AND logic, not OR)
+
+### Opening Hours Filtering
+
+- `openNow` filter uses `server/utils/open-now.ts`
+- Requires valid `timezone` and `openingHours` fields on locations
+- Converts current time to location's timezone before checking hours
+- Locations without opening hours data are excluded when filter is active
 
 ### Geolocation
 
 - Cloudflare provides `cf-connecting-ip` header in production
 - Dev environment requires manual lat/lng query params
 - Currently location is retrieved but NOT used for distance sorting
+- Future: Use `ST_Distance()` for proximity-based sorting
 
 ## Configuration Files
 
@@ -196,7 +273,10 @@ POSTGRES_PASSWORD=your_password
 POSTGRES_DB=postgres
 
 # API Keys
-NUXT_GOOGLE_API_KEY=your_api_key
+NUXT_OPENAI_API_KEY=your_openai_api_key  # Required for semantic search embeddings
+NUXT_GOOGLE_API_KEY=your_google_api_key
 ```
 
 All variables are validated via `safeRuntimeConfig` using Valibot schema.
+
+**Note**: Without `NUXT_OPENAI_API_KEY`, semantic search will fail. Text search will still work.

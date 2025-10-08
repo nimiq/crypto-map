@@ -17,16 +17,15 @@ const variantConfig = {
 
 // Calculates opening hours status with visual indicators for UX
 export function getOpeningHoursStatus(
-  expression: string | null | undefined,
-  timezone: string | null | undefined,
+  location: { openingHours?: string | null, timezone?: string | null },
   reference: Date = new Date(),
 ): OpeningHoursStatus {
-  if (!expression || !timezone)
+  if (!location.openingHours || !location.timezone)
     return { isOpen: false, nextChange: null, variant: 'unavailable', messageKey: variantConfig.unavailable }
 
   try {
-    const localDate = toZonedTime(reference, timezone)
-    const schedule = new OpeningHours(expression.trim())
+    const localDate = toZonedTime(reference, location.timezone)
+    const schedule = new OpeningHours(location.openingHours.trim())
 
     const isOpen = schedule.getState(localDate)
     const nextChange = schedule.getNextChange(localDate) || null

@@ -1,22 +1,20 @@
-import type { LocationResponse } from '@/shared/types'
-
 // Search logic with autocomplete and embedding precomputation
 export function useLocationSearch() {
-  const { selectedCategories, filters } = useSearchFilters()
+  const { selectedCategories, openNow } = useSearchFilters()
 
   const searchQuery = ref('')
-  const autocompleteResults = ref<LocationResponse[]>([])
+  const autocompleteResults = ref<any[]>([])
   const showAutocomplete = ref(false)
 
   const { data: searchResults, pending: searchPending, refresh: refreshSearch } = useFetch('/api/search', {
     query: {
       q: computed(() => searchQuery.value),
-      openNow: computed(() => filters.value.includes('open_now') || undefined),
+      openNow: computed(() => openNow.value || undefined),
       categories: computed(() => selectedCategories.value.length ? selectedCategories.value.join(',') : undefined),
     },
-    transform: (locations) => locations.map(loc => ({
+    transform: locations => locations.map(loc => ({
       ...loc,
-      hoursStatus: getOpeningHoursStatus(loc.openingHours, loc.timezone),
+      hoursStatus: getOpeningHoursStatus(loc),
     })),
     immediate: false,
   })
@@ -27,7 +25,7 @@ export function useLocationSearch() {
     },
     immediate: false,
     onResponse({ response }) {
-      if (response.ok) {
+      if (response.ok && response._data) {
         autocompleteResults.value = response._data
         showAutocomplete.value = true
       }

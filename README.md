@@ -104,50 +104,27 @@ Hybrid search combining PostgreSQL full-text search with semantic category match
 
 ```mermaid
 flowchart TB
-    User[User Types Query] --> Debounce[300ms Debounce]
-    Debounce --> Autocomplete[GET /api/search/autocomplete]
+    User[User Types Query] --> AC[Autocomplete: PostgreSQL FTS]
+    AC --> ACResults[Results with Highlighting]
+    AC -.Background.-> Cache[Cache Embedding in KV]
 
-    Autocomplete --> BgEmbed[Background: generateEmbeddingCached]
-    Autocomplete --> TextSearch[searchLocationsByText]
+    ACResults --> Action{User Action}
 
-    BgEmbed --> CheckCache{Embedding in KV?}
-    CheckCache -->|Yes| CacheHit[Return Immediately]
-    CheckCache -->|No| Generate[Generate with OpenAI]
-    Generate --> StoreCache[Store in KV]
+    Action -->|Click Location| Single[GET /api/locations/uuid]
+    Action -->|Submit Search| Hybrid[Hybrid Search]
 
-    TextSearch --> PQFTS[PostgreSQL Full-Text Search]
-    PQFTS --> Highlight[ts_headline for match highlighting]
-    Highlight --> ACResults[Autocomplete Results with Highlighting]
+    Hybrid --> Text[Text Search: PostgreSQL FTS]
+    Hybrid --> Semantic[Semantic Search: pgvector]
 
-    ACResults --> UserAction{User Action}
-    UserAction -->|Clicks Location| DirectFetch[GET /api/locations/uuid]
-    UserAction -->|Submits Query| HybridSearch[GET /api/search]
+    Semantic --> Embed[Get Cached Embedding]
+    Embed --> Similar[Find Similar Categories]
+    Similar --> CatLocs[Get Locations by Category]
 
-    DirectFetch --> SingleLocation[Single Location with Categories]
+    Text --> Merge[Merge & Deduplicate]
+    CatLocs --> Merge
 
-    HybridSearch --> TS[searchLocationsByText]
-    HybridSearch --> SS[searchSimilarCategories]
-
-    TS --> PQFTS2[PostgreSQL FTS]
-    PQFTS2 --> TSResults[Text Results 1-10]
-
-    SS --> GetCachedEmbed[Get Embedding from KV Cache]
-    GetCachedEmbed --> VectorSearch[pgvector Cosine Similarity]
-    VectorSearch --> FindCats[Find Similar Categories threshold ≥ 0.7]
-    FindCats --> GetLocs[searchLocationsByCategories]
-    GetLocs --> SSResults[Semantic Results 1-10]
-
-    TSResults --> Merge[Merge & Deduplicate by UUID]
-    SSResults --> Merge
-    Merge --> MergedResults[Text Results First + Unique Semantic Results]
-
-    MergedResults --> CategoryFilter{User Category Filters?}
-    CategoryFilter -->|Yes| FilterCats[Filter by Selected Categories]
-    CategoryFilter -->|No| OpenFilter{Open Now Filter?}
-    FilterCats --> OpenFilter
-    OpenFilter -->|Yes| FilterOpenNow[Filter by Opening Hours + Timezone]
-    OpenFilter -->|No| FinalResults[Final Results]
-    FilterOpenNow --> FinalResults
+    Merge --> Filters[Apply Filters]
+    Filters --> Results[Final Results]
 ```
 
 **Key Points:**

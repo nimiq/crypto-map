@@ -9,10 +9,17 @@ export function useSearchFilters() {
     },
   })
 
-  const filters = computed<string[]>({
-    get: () => params.filters ? (params.filters as string).split(',') : [],
+  const openNow = computed<boolean>({
+    get: () => params.openNow === 'true',
     set: (val) => {
-      params.filters = val.length ? val.join(',') : null as any
+      params.openNow = val || null as any
+    },
+  })
+
+  const walkable = computed<boolean>({
+    get: () => params.walkable === 'true',
+    set: (val) => {
+      params.walkable = val || null as any
     },
   })
 
@@ -22,7 +29,8 @@ export function useSearchFilters() {
 
   return {
     selectedCategories,
-    filters,
+    openNow,
+    walkable,
     removeCategory,
   }
 }

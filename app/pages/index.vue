@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { selectedCategories, filters, removeCategory } = useSearchFilters()
+const { selectedCategories, openNow, walkable, removeCategory } = useSearchFilters()
 const {
   searchQuery,
   autocompleteResults,
@@ -16,9 +16,9 @@ const selectedLocation = ref(null)
 const { data: locationResult, pending: locationPending, refresh: refreshLocation } = useFetch(
   () => `/api/locations/${selectedLocation.value?.uuid}`,
   {
-    transform: (loc) => ({
+    transform: loc => ({
       ...loc,
-      hoursStatus: getOpeningHoursStatus(loc.openingHours, loc.timezone),
+      hoursStatus: getOpeningHoursStatus(loc),
     }),
     immediate: false,
   },
@@ -132,10 +132,10 @@ mark {
             {{ getCategoryById(categoryId)?.name }}
             <Icon name="i-nimiq:cross" size-16 />
           </button>
-          <ToggleGroupRoot v-model="filters" type="multiple" flex="~ wrap gap-8">
-            <ToggleGroupItem value="open_now" outline="~ neutral-400 1.5 reka-on:transparent" bg="neutral-100 hocus:neutral-200 reka-on:blue" text="14 neutral-800 hocus:neutral reka-on:white" font-medium py-4 rounded-full cursor-pointer transition-colors f-px-2xs>{{ $t('filters.openNow') }}</ToggleGroupItem>
-            <ToggleGroupItem value="walkable" outline="~ neutral-400 1.5 reka-on:reka-blue" bg="neutral-100 hocus:neutral-200" text="14 neutral-800 hocus:neutral" font-medium py-4 rounded-full cursor-pointer transition-colors f-px-2xs>{{ $t('filters.walkableDistance') }}</ToggleGroupItem>
-          </ToggleGroupRoot>
+          <div flex="~ wrap gap-8">
+            <Toggle v-model="openNow" outline="~ neutral-400 1.5 reka-on:transparent" bg="neutral-100 hocus:neutral-200 reka-on:blue" text="14 neutral-800 hocus:neutral reka-on:white" font-medium py-4 rounded-full cursor-pointer transition-colors f-px-2xs>{{ $t('filters.openNow') }}</Toggle>
+            <Toggle v-model="walkable" outline="~ neutral-400 1.5 reka-on:reka-blue" bg="neutral-100 hocus:neutral-200" text="14 neutral-800 hocus:neutral" font-medium py-4 rounded-full cursor-pointer transition-colors f-px-2xs>{{ $t('filters.walkableDistance') }}</Toggle>
+          </div>
         </div>
 
         <div v-if="pending" grid="~ cols-1 sm:cols-2 lg:cols-3 gap-24" f-mt-xl>

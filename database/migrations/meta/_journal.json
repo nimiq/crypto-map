@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1759306991259,
-      "tag": "0000_woozy_romulus",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1759310582635,
-      "tag": "0001_fine_boomer",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1759482276567,
-      "tag": "0002_opening_hours",
+      "when": 1759911782641,
+      "tag": "0000_careful_apocalypse",
       "breakpoints": true
     }
   ]

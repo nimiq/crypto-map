@@ -1,8 +1,8 @@
 CREATE TABLE "categories" (
 	"id" text PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
-	"icon" text,
-	"created_at" timestamp
+	"icon" text NOT NULL,
+	"embedding" vector(1536)
 );
 --> statement-breakpoint
 CREATE TABLE "location_categories" (
@@ -23,6 +23,8 @@ CREATE TABLE "locations" (
 	"gmaps_url" text NOT NULL,
 	"website" text,
 	"source" varchar(20) NOT NULL,
+	"timezone" text NOT NULL,
+	"opening_hours" text,
 	"updated_at" timestamp,
 	"created_at" timestamp,
 	CONSTRAINT "locations_gmaps_place_id_unique" UNIQUE("gmaps_place_id")
