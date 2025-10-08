@@ -1,5 +1,5 @@
 import process from 'node:process'
-// import { icons as nimiqIcons } from 'nimiq-icons'
+// import { icons as nimiqIcons} from 'nimiq-icons'
 import { defineNuxtConfig } from 'nuxt/config'
 import * as v from 'valibot'
 
@@ -31,11 +31,11 @@ export default defineNuxtConfig({
     databaseUrl: process.env.DATABASE_URL || '',
   },
   safeRuntimeConfig: {
-    // Optional at build time, validated at runtime when used
+    // Allow empty strings for CI builds, validate manually at runtime
     $schema: v.object({
-      googleApiKey: v.optional(v.pipe(v.string(), v.minLength(1)), ''),
-      openaiApiKey: v.optional(v.pipe(v.string(), v.minLength(1)), ''),
-      databaseUrl: v.optional(v.pipe(v.string(), v.minLength(1)), ''),
+      googleApiKey: v.string(),
+      openaiApiKey: v.string(),
+      databaseUrl: v.string(),
     }),
   },
   icon: {

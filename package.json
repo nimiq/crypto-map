@@ -32,7 +32,7 @@
     "drizzle-orm": "catalog:database",
     "nimiq-icons": "catalog:ui",
     "nuxt": "catalog:framework",
-    "nuxt-safe-runtime-config": "catalog:framework",
+    "nuxt-safe-runtime-config": "^0.0.3",
     "opening_hours": "catalog:utils",
     "pathe": "catalog:utils",
     "postgres": "catalog:database",
