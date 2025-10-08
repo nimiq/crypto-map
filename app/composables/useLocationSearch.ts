@@ -21,9 +21,10 @@ export function useLocationSearch() {
 
   const { execute: fetchAutocomplete } = useFetch('/api/search/autocomplete', {
     query: {
-      q: searchQuery,
+      q: computed(() => searchQuery.value),
     },
     immediate: false,
+    watch: false,
     onResponse({ response }) {
       if (response.ok && response._data) {
         autocompleteResults.value = response._data
@@ -31,6 +32,16 @@ export function useLocationSearch() {
       }
     },
   })
+
+  // Safe wrapper for fetchAutocomplete
+  async function safeFetchAutocomplete() {
+    if (!searchQuery.value || searchQuery.value.length < 2) {
+      showAutocomplete.value = false
+      autocompleteResults.value = []
+      return
+    }
+    await fetchAutocomplete()
+  }
 
   // Debounce prevents excessive API calls while typing
   watch(searchQuery, useDebounceFn(async (newQuery) => {
@@ -41,7 +52,7 @@ export function useLocationSearch() {
     }
 
     // Autocomplete now handles embedding precomputation internally
-    await fetchAutocomplete()
+    await safeFetchAutocomplete()
   }, 300))
 
   async function handleSubmit() {
@@ -64,7 +75,7 @@ export function useLocationSearch() {
     showAutocomplete,
     searchResults,
     searchPending,
-    fetchAutocomplete,
+    fetchAutocomplete: safeFetchAutocomplete,
     handleSubmit,
     refreshSearch: safeRefreshSearch,
   }

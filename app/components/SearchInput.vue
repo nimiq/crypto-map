@@ -19,7 +19,7 @@ function onSelectLocation(location: any) {
 <template>
   <form @submit.prevent="handleSubmit">
     <div relative>
-      <input v-model="searchQuery" type="text" :placeholder="$t('search.placeholder')" nq-input-box @focus="searchQuery.length >= 2 && fetchAutocomplete()">
+      <input v-model="searchQuery" type="text" :placeholder="$t('search.placeholder')" nq-input-box @focus="fetchAutocomplete()">
       <div v-if="showAutocomplete" position="absolute" outline="~ 1.5 neutral-200" mt-1 rounded-b-8 bg-white max-h-256 w-full shadow left-0 top-full z-50 of-auto>
         <button type="button" flex="~ items-center gap-8" text="f-sm neutral-900" bg="hover:neutral-50" font-medium py-10 outline-none w-full cursor-pointer transition-colors f-px-md @click="onSelectLocation(null)">
           <Icon name="i-tabler:search" size-18 />
