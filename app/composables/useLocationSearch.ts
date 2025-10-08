@@ -11,10 +11,13 @@ export function useLocationSearch() {
   const { data: searchResults, pending: searchPending, refresh: refreshSearch } = useFetch('/api/search', {
     query: {
       q: computed(() => searchQuery.value),
-      openNow: computed(() => filters.value.includes('open_now') ? 'true' : undefined),
+      openNow: computed(() => filters.value.includes('open_now') || undefined),
       categories: computed(() => selectedCategories.value.length ? selectedCategories.value.join(',') : undefined),
     },
-    transform: enrichLocationsWithHours,
+    transform: (locations) => locations.map(loc => ({
+      ...loc,
+      hoursStatus: getOpeningHoursStatus(loc.openingHours, loc.timezone),
+    })),
     immediate: false,
   })
 
@@ -31,20 +34,6 @@ export function useLocationSearch() {
     },
   })
 
-  // Speeds up form submission by caching embedding during typing
-  async function precomputeEmbedding(query: string) {
-    if (query.length < 2)
-      return
-
-    // Non-blocking - autocomplete doesn't wait for this
-    $fetch('/api/search/embed', {
-      method: 'POST',
-      body: { q: query },
-    }).catch(() => {
-      // Silent fail - precomputing is optional optimization
-    })
-  }
-
   // Debounce prevents excessive API calls while typing
   watch(searchQuery, useDebounceFn(async (newQuery) => {
     if (newQuery.length < 2) {
@@ -53,10 +42,8 @@ export function useLocationSearch() {
       return
     }
 
+    // Autocomplete now handles embedding precomputation internally
     await fetchAutocomplete()
-
-    // Background precompute for faster form submission
-    precomputeEmbedding(newQuery)
   }, 300))
 
   async function handleSubmit() {

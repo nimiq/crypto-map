@@ -22,6 +22,16 @@ export const locationSelect = {
   createdAt: tables.locations.createdAt,
   updatedAt: tables.locations.updatedAt,
   categoryIds: sql<string>`STRING_AGG(${tables.locationCategories.categoryId}, ',')`.as('categoryIds'),
+  categories: sql`COALESCE(
+    json_agg(
+      json_build_object(
+        'id', ${tables.categories.id},
+        'name', ${tables.categories.name},
+        'icon', ${tables.categories.icon}
+      )
+    ) FILTER (WHERE ${tables.categories.id} IS NOT NULL),
+    '[]'
+  )`.as('categories'),
 }
 
 // Enables semantic search - "coffee shop" matches "cafe" even without exact text match
@@ -30,7 +40,6 @@ export async function searchSimilarCategories(query: string): Promise<string[]> 
 
   const queryEmbedding = await generateEmbeddingCached(query)
 
-  // <=> is pgvector's cosine distance operator
   const results = await db
     .select({
       id: tables.categories.id,
@@ -49,7 +58,6 @@ export async function searchSimilarCategories(query: string): Promise<string[]> 
 export async function searchLocationsByText(query: string) {
   const db = useDrizzle()
 
-  // '&' requires all words to match (AND logic)
   const tsQuery = query.trim().split(/\s+/).join(' & ')
 
   return await db
@@ -59,6 +67,7 @@ export async function searchLocationsByText(query: string) {
     })
     .from(tables.locations)
     .leftJoin(tables.locationCategories, eq(tables.locations.uuid, tables.locationCategories.locationUuid))
+    .leftJoin(tables.categories, eq(tables.locationCategories.categoryId, tables.categories.id))
     .where(sql`
       to_tsvector('english', ${tables.locations.name} || ' ' || ${tables.locations.address})
       @@ to_tsquery('english', ${tsQuery})
@@ -78,6 +87,7 @@ export async function searchLocationsByCategories(categoryIds: string[]) {
     .select(locationSelect)
     .from(tables.locations)
     .innerJoin(tables.locationCategories, eq(tables.locations.uuid, tables.locationCategories.locationUuid))
+    .leftJoin(tables.categories, eq(tables.locationCategories.categoryId, tables.categories.id))
     .where(inArray(tables.locationCategories.categoryId, categoryIds))
     .groupBy(tables.locations.uuid)
     .limit(10)

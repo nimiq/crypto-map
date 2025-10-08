@@ -16,7 +16,10 @@ const selectedLocation = ref(null)
 const { data: locationResult, pending: locationPending, refresh: refreshLocation } = useFetch(
   () => `/api/locations/${selectedLocation.value?.uuid}`,
   {
-    transform: enrichLocationWithHours,
+    transform: (loc) => ({
+      ...loc,
+      hoursStatus: getOpeningHoursStatus(loc.openingHours, loc.timezone),
+    }),
     immediate: false,
   },
 )

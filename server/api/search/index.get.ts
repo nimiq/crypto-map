@@ -26,19 +26,10 @@ const querySchema = v.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const queryParams = getQuery(event)
+  let { lat, lng, q: searchQuery, openNow = false, categories } = await getValidatedQuery(event, data => v.parse(querySchema, data))
 
-  const result = v.safeParse(querySchema, queryParams)
-
-  if (!result.success)
-    throw createError({ statusCode: 400, statusMessage: 'Invalid query parameters', data: result.issues })
-
-  let lat = result.output.lat
-  let lng = result.output.lng
-  const searchQuery = result.output.q
-  const openNow = result.output.openNow ?? false
-  const categoryIds = result.output.categories
-    ? (Array.isArray(result.output.categories) ? result.output.categories : [result.output.categories])
+  const categoryIds = categories
+    ? (Array.isArray(categories) ? categories : [categories])
     : []
 
   const db = useDrizzle()
@@ -96,6 +87,7 @@ export default defineEventHandler(async (event) => {
       .select(locationSelect)
       .from(tables.locations)
       .leftJoin(tables.locationCategories, eq(tables.locations.uuid, tables.locationCategories.locationUuid))
+      .leftJoin(tables.categories, eq(tables.locationCategories.categoryId, tables.categories.id))
       .groupBy(tables.locations.uuid)
 
     let randomLocations
@@ -121,17 +113,7 @@ export default defineEventHandler(async (event) => {
         .limit(10)
     }
 
-    const allCategories = await db.select().from(tables.categories)
-    const categoryMap = new Map(allCategories.map(cat => [cat.id, { id: cat.id, name: cat.name, icon: cat.icon }]))
-
-    const filteredLocations = filterOpenNow(randomLocations)
-
-    return filteredLocations.map(loc => ({
-      ...loc,
-      categories: loc.categoryIds
-        ? loc.categoryIds.split(',').map(id => categoryMap.get(id)!).filter(Boolean)
-        : [],
-    }))
+    return filterOpenNow(randomLocations)
   }
 
   // Hybrid search: fast text search + smart semantic matching
@@ -167,17 +149,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const allCategories = await db.select().from(tables.categories)
-    const categoryMap = new Map(allCategories.map(cat => [cat.id, { id: cat.id, name: cat.name, icon: cat.icon }]))
-
-    const filteredResults = filterOpenNow(searchResults)
-
-    return filteredResults.map(loc => ({
-      ...loc,
-      categories: loc.categoryIds
-        ? loc.categoryIds.split(',').map(id => categoryMap.get(id)!).filter(Boolean)
-        : [],
-    }))
+    return filterOpenNow(searchResults)
   }
   catch (error) {
     throw createError(error)

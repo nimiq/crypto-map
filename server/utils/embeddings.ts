@@ -2,15 +2,10 @@ import { createOpenAI } from '@ai-sdk/openai'
 import { embed } from 'ai'
 
 const EMBEDDING_MODEL = 'text-embedding-3-small'
-const EMBEDDING_DIMENSIONS = 1536
 
 // AI SDK handles retries and error handling better than direct API calls
 export async function generateEmbedding(text: string): Promise<number[]> {
-  const config = useRuntimeConfig()
-
-  const openai = createOpenAI({
-    apiKey: config.openaiApiKey,
-  })
+  const openai = createOpenAI()
 
   const { embedding } = await embed({
     model: openai.embedding(EMBEDDING_MODEL),
