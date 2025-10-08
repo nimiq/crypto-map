@@ -41,8 +41,8 @@ export async function generateEmbeddingCached(text: string): Promise<number[]> {
   // Generate new embedding
   const embedding = await generateEmbedding(text)
 
-  // Cache for 30 days
-  await hubKV().set(cacheKey, embedding, { ttl: 60 * 60 * 24 * 30 })
+  // Cache permanently
+  await hubKV().set(cacheKey, embedding)
 
   return embedding
 }
