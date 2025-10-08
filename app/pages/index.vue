@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { selectedCategories, openNow, walkable, removeCategory } = useSearchFilters()
+const { openNow, walkable } = useSearchFilters()
 const {
   searchQuery,
   autocompleteResults,
@@ -56,26 +56,6 @@ async function changeLocale(code: string) {
 
   await router.push(path)
 }
-
-const { data: categories, refresh: refreshCategories } = useFetch('/api/categories', {
-  query: { q: searchQuery },
-  immediate: false,
-  watch: false,
-})
-
-const comboboxOpen = ref(false)
-
-// Better UX - prevents mixing search query with category filters
-watch(selectedCategories, (newVal, oldVal) => {
-  if (newVal.length > oldVal.length) {
-    searchQuery.value = ''
-    comboboxOpen.value = false
-  }
-})
-
-function getCategoryById(categoryId: string) {
-  return categories.value?.find(c => c.id === categoryId)
-}
 </script>
 
 <style scoped>
@@ -127,15 +107,8 @@ mark {
           </div>
         </form>
         <div flex="~ wrap gap-8" mt-4>
-          <button v-for="categoryId in selectedCategories" :key="categoryId" outline="~ neutral-400 1.5" bg="neutral-100 hocus:neutral-200" text="14 neutral-800 hocus:neutral" font-medium py-4 rounded-full cursor-pointer transition-colors f-px-2xs flex="~ items-center gap-6" @click="removeCategory(categoryId)">
-            <Icon :name="getCategoryById(categoryId)?.icon || ''" size-16 />
-            {{ getCategoryById(categoryId)?.name }}
-            <Icon name="i-nimiq:cross" size-16 />
-          </button>
-          <div flex="~ wrap gap-8">
-            <Toggle v-model="openNow" outline="~ neutral-400 1.5 reka-on:transparent" bg="neutral-100 hocus:neutral-200 reka-on:blue" text="14 neutral-800 hocus:neutral reka-on:white" font-medium py-4 rounded-full cursor-pointer transition-colors f-px-2xs>{{ $t('filters.openNow') }}</Toggle>
-            <Toggle v-model="walkable" outline="~ neutral-400 1.5 reka-on:reka-blue" bg="neutral-100 hocus:neutral-200" text="14 neutral-800 hocus:neutral" font-medium py-4 rounded-full cursor-pointer transition-colors f-px-2xs>{{ $t('filters.walkableDistance') }}</Toggle>
-          </div>
+          <Toggle v-model="openNow" outline="~ neutral-400 1.5 reka-on:transparent" bg="neutral-100 hocus:neutral-200 reka-on:blue" text="14 neutral-800 hocus:neutral reka-on:white" font-medium py-4 rounded-full cursor-pointer transition-colors f-px-2xs>{{ $t('filters.openNow') }}</Toggle>
+          <Toggle v-model="walkable" outline="~ neutral-400 1.5 reka-on:reka-blue" bg="neutral-100 hocus:neutral-200" text="14 neutral-800 hocus:neutral" font-medium py-4 rounded-full cursor-pointer transition-colors f-px-2xs>{{ $t('filters.walkableDistance') }}</Toggle>
         </div>
 
         <div v-if="pending" grid="~ cols-1 sm:cols-2 lg:cols-3 gap-24" f-mt-xl>
