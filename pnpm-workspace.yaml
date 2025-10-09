@@ -1,5 +1,8 @@
 catalog:
   dotenv: ^17.2.3
+  motion-v: ^1.7.2
+  vue-sonner: ^2.0.9
+
 catalogs:
   database:
     drizzle-kit: latest

@@ -26,5 +26,10 @@
     "closingSoon": "Closing soon",
     "closed": "Closed",
     "unavailable": "Hours unavailable"
+  },
+  "carousels": {
+    "openNow": "Open Now",
+    "popular": "Popular",
+    "recentlyViewed": "Recently Viewed"
   }
 }

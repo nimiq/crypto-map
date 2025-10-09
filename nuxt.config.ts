@@ -9,6 +9,7 @@ export default defineNuxtConfig({
     '@nuxthub/core',
     '@unocss/nuxt',
     '@vueuse/nuxt',
+    'motion-v/nuxt',
     'nuxt-safe-runtime-config',
     '@nuxt/eslint',
     '@nuxt/fonts',

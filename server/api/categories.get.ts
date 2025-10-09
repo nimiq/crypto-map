@@ -1,0 +1,22 @@
+import { desc, sql } from 'drizzle-orm'
+
+export default defineEventHandler(async () => {
+  const db = useDrizzle()
+
+  // Get categories that have locations, sorted by location count
+  const categories = await db
+    .select({
+      id: tables.categories.id,
+      name: tables.categories.name,
+      icon: tables.categories.icon,
+      locationCount: sql<number>`count(${tables.locationCategories.locationUuid})::int`,
+    })
+    .from(tables.categories)
+    .leftJoin(tables.locationCategories, sql`${tables.categories.id} = ${tables.locationCategories.categoryId}`)
+    .groupBy(tables.categories.id, tables.categories.name, tables.categories.icon)
+    .having(sql`count(${tables.locationCategories.locationUuid}) > 0`)
+    .orderBy(desc(sql`count(${tables.locationCategories.locationUuid})`))
+    .limit(20)
+
+  return categories
+})

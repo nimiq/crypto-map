@@ -30,6 +30,7 @@
     "consola": "catalog:utils",
     "date-fns-tz": "catalog:utils",
     "drizzle-orm": "catalog:database",
+    "motion-v": "catalog:",
     "nimiq-flags": "catalog:ui",
     "nimiq-icons": "catalog:ui",
     "nuxt": "catalog:framework",
@@ -38,7 +39,8 @@
     "pathe": "catalog:utils",
     "postgres": "catalog:database",
     "reka-ui": "catalog:ui",
-    "valibot": "catalog:utils"
+    "valibot": "catalog:utils",
+    "vue-sonner": "catalog:"
   },
   "devDependencies": {
     "@antfu/eslint-config": "catalog:dev",
