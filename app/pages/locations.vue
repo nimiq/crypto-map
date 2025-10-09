@@ -139,7 +139,7 @@ function copyToClipboard(text: string, message: string) {
                   </div>
                 </td>
                 <td px-8 py-8 whitespace-nowrap>
-                  <Icon v-if="getSourceIcon(location.source)" :name="getSourceIcon(location.source)!" size-24 grayscale="~ group-hocus:0" transition-all />
+                  <Icon v-if="getSourceIcon(location.source)" :name="getSourceIcon(location.source)!" size-16 op-50 grayscale="~ group-hocus:0" transition-all />
                   <span v-else bg-blue-100 text-blue-800 font-medium px-6 py-2 rounded-4 text-f-xs>{{ location.source }}</span>
                 </td>
                 <td text="10px" font-mono px-8 py-8 whitespace-nowrap>
