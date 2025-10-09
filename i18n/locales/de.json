@@ -26,5 +26,10 @@
     "closingSoon": "Schließt bald",
     "closed": "Geschlossen",
     "unavailable": "Öffnungszeiten nicht verfügbar"
+  },
+  "carousels": {
+    "openNow": "Jetzt geöffnet",
+    "popular": "Beliebt",
+    "recentlyViewed": "Kürzlich angesehen"
   }
 }

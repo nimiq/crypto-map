@@ -1,6 +1,6 @@
 catalog:
-  '@vueuse/motion': ^3.0.3
   dotenv: ^17.2.3
+  motion-v: ^1.7.2
 
 catalogs:
   database:
