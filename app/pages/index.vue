@@ -67,9 +67,7 @@ const showCarousels = computed(() => !isSearchOpen.value && !selectedItem.value)
 <template>
   <div bg-neutral-100 min-h-screen relative>
     <NuxtImg src="/assets/lugano.svg" alt="Lugano" mx-auto op-3 h-auto w-full pointer-events-none items-end bottom-0 left-0 right-0 absolute z-0 />
-    <DevOnly>
-      <LanguageSelector />
-    </DevOnly>
+    <LanguageSelector />
     <div relative z-1 f-px-md f-py-md>
       <div flex="~ items-center justify-between" f-mb-md>
         <h1 text="neutral-900 f-lg" font-bold>

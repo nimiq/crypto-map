@@ -18,12 +18,10 @@ async function changeLocale(code: string) {
 </script>
 
 <template>
-  <div right-16 top-16 fixed z-50>
+  <div bottom-16 right-16 fixed z-50>
     <SelectRoot :model-value="locale" @update:model-value="changeLocale">
-      <SelectTrigger outline="~ 1.5 neutral-300" flex="~ items-center gap-8" shadow-sm font-medium py-8 rounded-8 bg-white cursor-pointer text-f-sm f-px-md>
-        <SelectValue placeholder="Language" />
-        <span text="neutral-500 f-xs" ml--4>(dev)</span>
-        <Icon name="i-tabler:chevron-down" />
+      <SelectTrigger flex="~ items-center justify-center" bg="white/95 hover:white" rounded-full size-40 transition-colors shadow-sm backdrop-blur-sm cursor-pointer outline="~ 1.5 neutral-200">
+        <Icon name="i-tabler:world" text-neutral-900 size-20 />
       </SelectTrigger>
       <SelectContent position="popper" outline="~ 1.5 neutral-200" rounded-8 bg-white max-h-256 shadow z-50 of-auto>
         <SelectViewport f-p-xs>
