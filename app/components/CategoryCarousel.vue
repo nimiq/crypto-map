@@ -7,7 +7,8 @@ const emit = defineEmits<{
   select: [{ kind: 'location', uuid: string, name: string }]
 }>()
 
-const { data: locations } = useFetch(`/api/locations/by-category?categoryId=${props.categoryId}&limit=10`)
+const { data } = useFetch(`/api/locations?categoryId=${props.categoryId}&limit=10`)
+const locations = computed(() => data.value?.locations || [])
 
 function selectLocation(location: any) {
   emit('select', { kind: 'location', uuid: location.uuid, name: location.name })

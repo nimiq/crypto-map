@@ -4,7 +4,7 @@ import { toast, Toaster } from 'vue-sonner'
 const page = ref(1)
 const limit = ref(50)
 
-const { data, pending } = useFetch('/api/locations/all', {
+const { data, pending } = useFetch('/api/locations', {
   query: { page, limit },
 })
 
@@ -130,10 +130,10 @@ function copyToClipboard(text: string, message: string) {
                 <td px-8 py-8>
                   <div flex="~ items-center gap-6">
                     <div flex="~ col" text="10px" class="font-mono">
-                      <span>{{ location.lat.toFixed(6) }}</span>
-                      <span>{{ location.lng.toFixed(6) }}</span>
+                      <span>{{ location.latitude.toFixed(6) }}</span>
+                      <span>{{ location.longitude.toFixed(6) }}</span>
                     </div>
-                    <button type="button" text-neutral-500 bg-transparent cursor-pointer transition-colors hover:text-neutral-900 @click="copyToClipboard(`${location.lat}, ${location.lng}`, 'Coordinates copied')">
+                    <button type="button" text-neutral-500 bg-transparent cursor-pointer transition-colors hover:text-neutral-900 @click="copyToClipboard(`${location.latitude}, ${location.longitude}`, 'Coordinates copied')">
                       <Icon name="i-nimiq:copy" size-12 />
                     </button>
                   </div>

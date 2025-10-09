@@ -50,13 +50,16 @@ const isSearchOpen = ref(false)
 
 // Fetch categories and carousel data
 const { data: categories } = useFetch('/api/categories')
-const { data: openNowLocations } = useFetch('/api/locations/by-status?status=open&limit=10')
-const { data: popularLocations } = useFetch('/api/locations/by-status?status=popular&limit=10')
+const { data: openNowData } = useFetch('/api/locations?status=open&limit=10')
+const openNowLocations = computed(() => openNowData.value?.locations || [])
+const { data: popularData } = useFetch('/api/locations?status=popular&limit=10')
+const popularLocations = computed(() => popularData.value?.locations || [])
 const recentlyViewedUuids = computed(() => recentlyViewed.value.slice(0, 10).join(','))
-const { data: recentlyViewedLocations } = useFetch(() => `/api/locations/by-uuids?uuids=${recentlyViewedUuids.value}`, {
+const { data: recentlyViewedData } = useFetch(() => `/api/locations?uuids=${recentlyViewedUuids.value}`, {
   watch: [recentlyViewed],
   immediate: !!recentlyViewed.value.length,
 })
+const recentlyViewedLocations = computed(() => recentlyViewedData.value?.locations || [])
 
 const filteredRecentlyViewed = computed(() => (recentlyViewedLocations.value || []).filter((loc): loc is NonNullable<typeof loc> => loc !== null && loc !== undefined))
 
