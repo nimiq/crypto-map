@@ -21,7 +21,7 @@ const photoUrl = computed(() => {
       <h3 text="f-sm neutral-900" font-bold m-0 line-clamp-1>{{ location.name }}</h3>
       <div v-if="location.categories && location.categories.length > 0" flex="~ items-center gap-4">
         <Icon :name="location.categories[0].icon" text-neutral-600 size-14 />
-        <span text="f-xs neutral-700" line-clamp-1>{{ location.categories[0].name }}</span>
+        <span text="f-xs neutral-700" line-clamp-1>{{ $te(`categories.${location.categories[0].id}`) ? $t(`categories.${location.categories[0].id}`) : location.categories[0].name }}</span>
       </div>
     </div>
   </a>

@@ -37,7 +37,7 @@ const photoUrl = computed(() => {
       <div flex="~ wrap gap-6">
         <span v-for="cat in location.categories.slice(0, 3)" :key="cat.id" text="f-xs neutral-800" flex="~ items-center gap-4" font-medium px-8 py-4 rounded-full bg-neutral-100>
           <Icon :name="cat.icon" size-12 />
-          {{ cat.name }}
+          {{ $te(`categories.${cat.id}`) ? $t(`categories.${cat.id}`) : cat.name }}
         </span>
         <span v-if="location.categories.length > 3" text="f-xs neutral-700" font-medium px-8 py-4>+{{ location.categories.length - 3 }} more</span>
       </div>
