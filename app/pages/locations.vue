@@ -88,9 +88,9 @@ function copyToClipboard(text: string, message: string) {
               <tr v-for="location in locations" :key="location.uuid" bg="white hover:neutral-50" border-b="1 neutral-200" group transition-colors>
                 <td px-8 py-8 relative>
                   <div v-if="location.photo" relative @mouseenter="hoveredPhoto = `/images/location/${location.uuid}`" @mouseleave="hoveredPhoto = null">
-                    <NuxtImg provider="none" :src="`/images/location/${location.uuid}`" :alt="location.name" rounded-4 h-32 w-32 object-cover />
+                    <img :src="`/images/location/${location.uuid}`" :alt="location.name" class="rounded-4 h-32 w-32 object-cover" />
                     <div v-if="hoveredPhoto === `/images/location/${location.uuid}`" p-8 rounded-8 bg-white shadow-lg fixed z-50 border="1 neutral-200" style="pointer-events: none; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-                      <NuxtImg provider="none" :src="`/images/location/${location.uuid}`" :alt="location.name" rounded-4 max-h-400 max-w-400 />
+                      <img :src="`/images/location/${location.uuid}`" :alt="location.name" class="rounded-4 max-h-400 max-w-400" />
                       <p text="f-xs neutral-600" font-mono mb-0 mt-4 break-all>
                         /images/location/{{ location.uuid }}
                       </p>
