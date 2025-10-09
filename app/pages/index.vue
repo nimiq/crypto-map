@@ -37,6 +37,8 @@ const locations = computed(() => {
   return searchResults.value || []
 })
 const pending = computed(() => selectedItem.value?.kind === 'location' ? locationPending.value : searchPending.value)
+
+const isSearchOpen = ref(false)
 </script>
 
 <template>
@@ -46,13 +48,20 @@ const pending = computed(() => selectedItem.value?.kind === 'location' ? locatio
       <LanguageSelector />
     </DevOnly>
     <div relative z-1 f-px-md f-py-md>
-      <h1 text="neutral-900 f-xl" font-bold f-mb-2xs>
-        {{ $t('hero.title') }}
-      </h1>
-      <p text="neutral-600 f-sm" f-mb-md>
-        {{ $t('hero.subtitle') }}
-      </p>
-      <Search v-model="selectedItem" />
+      <div flex="~ items-center justify-between" f-mb-md>
+        <h1 text="neutral-900 f-lg" font-bold>
+          {{ $t('hero.title') }}
+        </h1>
+        <button type="button" flex="~ items-center justify-center" bg="neutral-200 hover:neutral-300" rounded-full size-40 transition-colors @click="isSearchOpen = !isSearchOpen">
+          <Icon :name="isSearchOpen ? 'i-tabler:x' : 'i-tabler:search'" text-neutral-900 size-20 />
+        </button>
+      </div>
+      <div v-if="isSearchOpen" v-motion :initial="{ opacity: 0, height: 0 }" :enter="{ opacity: 1, height: 'auto', transition: { duration: 300 } }" :leave="{ opacity: 0, height: 0, transition: { duration: 300 } }">
+        <p text="neutral-600 f-sm" f-mb-md>
+          {{ $t('hero.subtitle') }}
+        </p>
+        <Search v-model="selectedItem" />
+      </div>
 
       <div v-if="pending" grid="~ cols-1 gap-12" f-mt-md>
         <LocationCardSkeleton v-for="i in 3" :key="`skeleton-${i}`" />
