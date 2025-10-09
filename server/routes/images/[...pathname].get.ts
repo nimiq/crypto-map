@@ -41,25 +41,12 @@ export default eventHandler(async (event) => {
 
   if (pathname.startsWith('location/')) {
     const uuid = pathname.replace('location/', '')
+    const blob = hubBlob()
 
-    // Try to initialize blob storage, fallback to direct serving if unavailable
-    let blob: ReturnType<typeof hubBlob> | null = null
-    let blobAvailable = false
-    try {
-      blob = hubBlob()
-      blobAvailable = true
-    }
-    catch {
-      console.warn('[image-proxy] R2 blob binding unavailable, serving images without caching')
-    }
-
-    // Check if image exists in cache when blob is available
-    let existingImage = null
-    if (blobAvailable && blob) {
-      existingImage = await blob.head(pathname).catch(() => null)
-      if (existingImage)
-        return blob.serve(event, pathname)
-    }
+    // Check if image exists in cache
+    const existingImage = await blob.head(pathname).catch(() => null)
+    if (existingImage)
+      return blob.serve(event, pathname)
 
     // Fetch image from database and external sources
     const db = useDrizzle()
@@ -100,12 +87,10 @@ export default eventHandler(async (event) => {
     if (!imageBuffer)
       throw createError({ statusCode: 404, message: 'No image available for this location' })
 
-    // Cache in background when blob is available (fire-and-forget)
-    if (blobAvailable && blob) {
-      blob.put(pathname, imageBuffer, { contentType }).catch((error) => {
-        console.error(`[image-proxy] Failed to cache image for ${uuid}:`, error)
-      })
-    }
+    // Cache in background (fire-and-forget)
+    blob.put(pathname, imageBuffer, { contentType }).catch((error) => {
+      console.error(`[image-proxy] Failed to cache image for ${uuid}:`, error)
+    })
 
     // Serve image directly
     setHeader(event, 'Content-Type', contentType)
