@@ -60,7 +60,9 @@ const variantClasses = {
       <TooltipPortal>
         <TooltipContent border="1 neutral-200" px-12 py-8 rounded-8 bg-white max-w-400 shadow-lg z-50>
           <div text="f-xs neutral-700" font-mono>
-            <div v-for="(line, index) in formattedHours" :key="index">{{ line }}</div>
+            <div v-for="(line, index) in formattedHours" :key="index">
+              {{ line }}
+            </div>
           </div>
           <TooltipArrow bg-white />
         </TooltipContent>
