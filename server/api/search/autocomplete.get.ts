@@ -8,7 +8,12 @@ export default defineEventHandler(async (event) => {
   const { q: searchQuery } = await getValidatedQuery(event, data => v.parse(querySchema, data))
 
   // Precompute embedding in background (non-blocking)
-  generateEmbeddingCached(searchQuery).catch(() => {})
+  // waitUntil ensures the task completes even after response is sent
+  event.waitUntil(
+    generateEmbeddingCached(searchQuery).catch((error) => {
+      console.error('[autocomplete] Failed to cache embedding:', error)
+    }),
+  )
 
   // Only text search - semantic search is too slow for autocomplete
   return await searchLocationsByText(searchQuery)
