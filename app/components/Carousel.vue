@@ -52,17 +52,8 @@ onUnmounted(() => {
         </button>
       </div>
     </div>
-    <div ref="scrollContainer" class="carousel-container" flex="~" pb-8 gap-12 overflow-x-auto snap-x snap-mandatory style="scrollbar-width: none; -webkit-overflow-scrolling: touch;">
+    <div ref="scrollContainer"  translate-x="[calc(-1*var(--f-px))]" w-screen snap="x mandatory" class="carousel-container" flex="~" pb-8 gap-12 of-x-auto children:snap-align-start scroll-px-24 hide-scrollbar style="scrollbar-width: none; -webkit-overflow-scrolling: touch;">
       <slot />
     </div>
   </div>
 </template>
-
-<style scoped>
-.carousel-container::-webkit-scrollbar {
-  display: none;
-}
-.carousel-container > * {
-  scroll-snap-align: start;
-}
-</style>
