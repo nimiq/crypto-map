@@ -52,12 +52,12 @@ export default defineEventHandler(async (event) => {
   // Text results prioritized - they appear first in the list
   const combinedMap = new Map<string, SearchLocationResponse>()
 
-  for (const loc of textResults) {
+  for (const loc of textResults || []) {
     combinedMap.set(loc.uuid, loc)
   }
 
   // Category results added only if not already matched by text search
-  for (const loc of categoryResults) {
+  for (const loc of categoryResults || []) {
     if (!combinedMap.has(loc.uuid))
       combinedMap.set(loc.uuid, loc)
   }
