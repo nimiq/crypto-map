@@ -22,6 +22,9 @@ catalogs:
     motion-v:
       specifier: ^1.7.2
       version: 1.7.2
+    vue-sonner:
+      specifier: ^2.0.9
+      version: 2.0.9
   dev:
     '@antfu/eslint-config':
       specifier: ^5.4.1
@@ -204,7 +207,7 @@ importers:
         specifier: catalog:utils
         version: 1.1.0(typescript@5.9.3)
       vue-sonner:
-        specifier: ^2.0.9
+        specifier: 'catalog:'
         version: 2.0.9(@nuxt/kit@4.1.2(magicast@0.3.5))(@nuxt/schema@4.1.2)(nuxt@4.1.2(@parcel/watcher@2.5.1)(@types/node@24.6.2)(@vue/compiler-sfc@3.5.22)(db0@0.3.4(drizzle-orm@0.44.6(@cloudflare/workers-types@4.20251003.0)(@opentelemetry/api@1.9.0)(postgres@3.4.7)))(drizzle-orm@0.44.6(@cloudflare/workers-types@4.20251003.0)(@opentelemetry/api@1.9.0)(postgres@3.4.7))(eslint@9.37.0(jiti@2.6.1))(ioredis@5.8.0)(magicast@0.3.5)(optionator@0.9.4)(rollup@4.52.4)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(vite@7.1.9(@types/node@24.6.2)(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1))(yaml@2.8.1))
     devDependencies:
       '@antfu/eslint-config':

@@ -42,8 +42,16 @@ export default defineNuxtConfig({
     }),
   },
   icon: {
+    serverBundle: 'local',
     collections: ['tabler'],
-    customCollections: [nimiqIcons, nimiqFlags],
+    customCollections: [
+      nimiqIcons,
+      nimiqFlags,
+      {
+        prefix: 'providers',
+        dir: './public/providers',
+      },
+    ],
   },
   i18n: {
     defaultLocale: 'en',

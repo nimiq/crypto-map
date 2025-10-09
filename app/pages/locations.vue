@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import OpeningHours from 'opening_hours'
-import { toast } from 'vue-sonner'
+import { toast, Toaster } from 'vue-sonner'
 
 const page = ref(1)
 const limit = ref(50)
@@ -14,46 +13,14 @@ const pagination = computed(() => data.value?.pagination)
 
 const hoveredPhoto = ref<string | null>(null)
 
-const { copy } = useClipboard({
-  legacy: true,
-  copiedDuring: 1500,
-})
+const { copy } = useClipboard()
 
-function formatUuid(uuid: string) {
-  return `${uuid.slice(0, 8)}...${uuid.slice(-8)}`
-}
-
-function formatOpeningHours(hours: string | null) {
-  if (!hours)
-    return 'N/A'
-  try {
-    const oh = new OpeningHours(hours.trim())
-    const prettified = oh.prettifyValue()
-    return prettified
+function getSourceIcon(source: string) {
+  const icons: Record<string, string> = {
+    naka: 'i-providers:naka',
+    bluecode: 'i-providers:bluecode',
   }
-  catch {
-    return hours
-  }
-}
-
-function getVisibleCategories(categories: Array<{ id: string, name: string, icon: string }>) {
-  const MAX_CHARS = 12
-  const visible = []
-
-  for (const cat of categories) {
-    if (cat.name.length <= MAX_CHARS) {
-      visible.push(cat)
-    }
-    else if (visible.length === 0) {
-      visible.push(cat)
-      break
-    }
-    else {
-      break
-    }
-  }
-
-  return visible
+  return icons[source.toLowerCase()] || null
 }
 
 function copyToClipboard(text: string, message: string) {
@@ -64,7 +31,9 @@ function copyToClipboard(text: string, message: string) {
 
 <template>
   <div>
-    <Toaster position="top-right" />
+    <Teleport to="body">
+      <Toaster />
+    </Teleport>
     <TooltipProvider>
       <div p-0 bg-neutral-50 min-h-screen>
         <div border-b="1 neutral-200" shadow-sm px-16 py-12 bg-white>
@@ -92,7 +61,7 @@ function copyToClipboard(text: string, message: string) {
                 <th border-b="1 neutral-200" text-neutral-700 font-semibold px-8 py-8 whitespace-nowrap>
                   Location
                 </th>
-                <th border-b="1 neutral-200" text-neutral-700 font-semibold px-8 py-8 whitespace-nowrap>
+                <th border-b="1 neutral-200" text-neutral-700 font-semibold px-8 py-8 max-w-200 whitespace-nowrap>
                   Categories
                 </th>
                 <th border-b="1 neutral-200" text-neutral-700 font-semibold px-8 py-8 whitespace-nowrap>
@@ -111,15 +80,12 @@ function copyToClipboard(text: string, message: string) {
                   Hours
                 </th>
                 <th border-b="1 neutral-200" text-neutral-700 font-semibold px-8 py-8 whitespace-nowrap>
-                  UUID
-                </th>
-                <th border-b="1 neutral-200" text-neutral-700 font-semibold px-8 py-8 whitespace-nowrap>
-                  Actions
+                  IDs
                 </th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="location in locations" :key="location.uuid" bg="white hover:neutral-50" border-b="1 neutral-200" transition-colors>
+              <tr v-for="location in locations" :key="location.uuid" bg="white hover:neutral-50" border-b="1 neutral-200" transition-colors group>
                 <td px-8 py-8 relative>
                   <div v-if="location.photo" relative @mouseenter="hoveredPhoto = `/images/location/${location.uuid}`" @mouseleave="hoveredPhoto = null">
                     <NuxtImg :src="`/images/location/${location.uuid}`" :alt="location.name" rounded-4 h-32 w-32 object-cover />
@@ -134,104 +100,64 @@ function copyToClipboard(text: string, message: string) {
                 </td>
                 <td px-8 py-8 max-w-300>
                   <div flex="~ col">
-                    <span font-medium>{{ location.name }}</span>
-                    <span text="neutral-600 f-2xs" mt-2>{{ location.address }}</span>
+                    <div flex="~ items-center gap-6">
+                      <span font-medium>{{ location.name }}</span>
+                      <a :href="location.gmapsUrl" target="_blank" rel="noopener noreferrer" flex="~ items-center" text-neutral-500 transition-colors hover:text-neutral-900>
+                        <Icon name="i-tabler:map-pin" size-14 />
+                      </a>
+                      <a v-if="location.website" :href="location.website" target="_blank" rel="noopener noreferrer" flex="~ items-center" text-neutral-500 transition-colors hover:text-neutral-900>
+                        <Icon name="i-tabler:external-link" size-14 />
+                      </a>
+                    </div>
+                    <span text="neutral-800 f-2xs" mt-2>{{ location.address }}</span>
                   </div>
                 </td>
-                <td px-8 py-8>
-                  <div flex="~ wrap gap-4">
-                    <span v-for="cat in getVisibleCategories(location.categories)" :key="cat.id" flex="~ items-center gap-4" px-6 py-2 rounded-4 bg-neutral-100 whitespace-nowrap text-f-xs>
-                      <Icon :name="cat.icon" size-12 />
+                <td px-8 py-8 max-w-200>
+                  <div flex="~ wrap gap-2">
+                    <span v-for="cat in location.categories" :key="cat.id" flex="~ items-center gap-2" px-4 py-1 rounded-3 bg-neutral-100 whitespace-nowrap text="10px">
+                      <Icon :name="cat.icon" size-10 />
                       {{ cat.name }}
                     </span>
-                    <PopoverRoot v-if="location.categories.length > getVisibleCategories(location.categories).length">
-                      <PopoverTrigger as-child>
-                        <span text="neutral-500 f-xs" bg="hover:neutral-100" px-6 py-2 rounded-4 cursor-pointer transition-colors>+{{ location.categories.length - getVisibleCategories(location.categories).length }}</span>
-                      </PopoverTrigger>
-                      <PopoverPortal>
-                        <PopoverContent border="1 neutral-200" p-8 rounded-8 bg-white max-w-300 shadow-lg z-50>
-                          <div flex="~ col gap-4">
-                            <span v-for="cat in location.categories" :key="cat.id" flex="~ items-center gap-4" px-6 py-2 rounded-4 bg-neutral-100 whitespace-nowrap text-f-xs>
-                              <Icon :name="cat.icon" size-12 />
-                              {{ cat.name }}
-                            </span>
-                          </div>
-                          <PopoverArrow bg-white />
-                        </PopoverContent>
-                      </PopoverPortal>
-                    </PopoverRoot>
                   </div>
                 </td>
                 <td px-8 py-8 whitespace-nowrap>
                   <span v-if="location.rating" flex="~ items-center gap-4" font-semibold>
-                    <Icon name="i-nimiq:star" text-gold size-12 />
+                    <Icon name="i-nimiq:star" size-12 text="neutral-500 group-hocus:gold" transition-colors />
                     {{ location.rating }}
                   </span>
                   <span v-else text-neutral-400>-</span>
                 </td>
-                <td font-mono px-8 py-8 text-f-xs>
-                  <div flex="~ col">
-                    <span>{{ location.lat.toFixed(6) }}</span>
-                    <span>{{ location.lng.toFixed(6) }}</span>
+                <td px-8 py-8>
+                  <div flex="~ items-center gap-6">
+                    <div flex="~ col" text="10px" class="font-mono">
+                      <span>{{ location.lat.toFixed(6) }}</span>
+                      <span>{{ location.lng.toFixed(6) }}</span>
+                    </div>
+                    <button type="button" text-neutral-500 bg-transparent cursor-pointer transition-colors hover:text-neutral-900 @click="copyToClipboard(`${location.lat}, ${location.lng}`, 'Coordinates copied')">
+                      <Icon name="i-nimiq:copy" size-12 />
+                    </button>
                   </div>
                 </td>
                 <td px-8 py-8 whitespace-nowrap>
-                  <span bg-blue-100 text-blue-800 font-medium px-6 py-2 rounded-4 text-f-xs>{{ location.source }}</span>
+                  <Icon v-if="getSourceIcon(location.source)" :name="getSourceIcon(location.source)!" size-24 grayscale="~ group-hocus:0" transition-all />
+                  <span v-else bg-blue-100 text-blue-800 font-medium px-6 py-2 rounded-4 text-f-xs>{{ location.source }}</span>
                 </td>
                 <td text="10px" font-mono px-8 py-8 whitespace-nowrap>
                   {{ location.timezone }}
                 </td>
                 <td px-8 py-8>
-                  <TooltipRoot v-if="location.openingHours" :delay-duration="0">
-                    <TooltipTrigger as-child>
-                      <span text-neutral-600 cursor-help border-b="1 dotted neutral-400">Available</span>
-                    </TooltipTrigger>
-                    <TooltipPortal>
-                      <TooltipContent border="1 neutral-200" px-12 py-8 rounded-8 bg-white max-w-400 shadow-lg z-50>
-                        <pre text="f-xs neutral-700" font-mono m-0 whitespace-pre-wrap>{{ formatOpeningHours(location.openingHours) }}</pre>
-                        <TooltipArrow bg-white />
-                      </TooltipContent>
-                    </TooltipPortal>
-                  </TooltipRoot>
+                  <OpeningHoursStatus v-if="location.openingHours && location.timezone" :opening-hours="location.openingHours" :timezone="location.timezone" />
                   <span v-else text-neutral-400>N/A</span>
                 </td>
                 <td px-8 py-8>
-                  <button type="button" text="f-xs neutral-500 hover:neutral-900" bg="transparent hover:neutral-100" font-mono px-6 py-2 rounded-4 cursor-pointer whitespace-nowrap transition-colors @click="copyToClipboard(location.uuid, 'UUID copied to clipboard')">
-                    {{ formatUuid(location.uuid) }}
-                  </button>
-                </td>
-                <td px-8 py-8>
-                  <DropdownMenuRoot>
-                    <DropdownMenuTrigger flex="~ items-center justify-center" bg="transparent hover:neutral-100" rounded-4 size-24 cursor-pointer transition-colors>
-                      <Icon name="i-tabler:dots-vertical" text-neutral-600 size-16 />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent border="1 neutral-200" p-4 rounded-8 bg-white min-w-160 shadow-lg z-50>
-                      <DropdownMenuItem as-child>
-                        <a :href="location.gmapsUrl" target="_blank" rel="noopener noreferrer" flex="~ items-center gap-8" un-text="f-sm neutral-800 hover:neutral-900" bg="hover:neutral-50" px-8 py-6 outline-none rounded-4 no-underline cursor-pointer transition-colors>
-                          <Icon name="i-tabler:map-pin" size-16 />
-                          Open in Maps
-                        </a>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem v-if="location.website" as-child>
-                        <a :href="location.website" target="_blank" rel="noopener noreferrer" flex="~ items-center gap-8" un-text="f-sm neutral-800 hover:neutral-900" bg="hover:neutral-50" px-8 py-6 outline-none rounded-4 no-underline cursor-pointer transition-colors>
-                          <Icon name="i-tabler:external-link" size-16 />
-                          Visit Website
-                        </a>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem as-child>
-                        <button type="button" flex="~ items-center gap-8" text="f-sm neutral-800 hover:neutral-900" bg="hover:neutral-50" px-8 py-6 outline-none rounded-4 w-full cursor-pointer transition-colors @click="() => copyToClipboard(location.uuid, 'UUID copied to clipboard')">
-                          <Icon name="i-tabler:copy" size-16 />
-                          Copy UUID
-                        </button>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem as-child>
-                        <button type="button" flex="~ items-center gap-8" text="f-sm neutral-800 hover:neutral-900" bg="hover:neutral-50" px-8 py-6 outline-none rounded-4 w-full cursor-pointer transition-colors @click="() => copyToClipboard(`${location.lat}, ${location.lng}`, 'Coordinates copied to clipboard')">
-                          <Icon name="i-tabler:location" size-16 />
-                          Copy Coords
-                        </button>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenuRoot>
+                  <div flex="~ col gap-2 items-start">
+                    <button type="button" text="f-2xs neutral-600 hover:neutral-900 left" bg="transparent hover:neutral-100" px-6 py-2 rounded-4 cursor-pointer whitespace-nowrap transition-colors class="font-mono" @click="copyToClipboard(location.uuid, 'UUID copied')">
+                      {{ location.uuid }}
+                    </button>
+                    <button type="button" text="f-2xs neutral-600 hover:neutral-900 left" bg="transparent hover:neutral-100" px-6 py-2 rounded-4 cursor-pointer whitespace-nowrap transition-colors class="font-mono" @click="copyToClipboard(location.gmapsPlaceId, 'Place ID copied')">
+                      {{ location.gmapsPlaceId }}
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -252,7 +178,7 @@ function copyToClipboard(text: string, message: string) {
               </PaginationPrev>
               <template v-for="(item, index) in items" :key="index">
                 <PaginationListItem v-if="item.type === 'page'" :value="item.value" as-child>
-                  <button type="button" :class="[item.value === pagination.page ? 'bg-blue-500 text-white' : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-900']" flex="~ items-center justify-center" font-medium rounded-6 size-32 cursor-pointer transition-colors text-f-sm>
+                  <button type="button" :class="[item.value === pagination.page ? 'bg-blue text-white' : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-900']" flex="~ items-center justify-center" font-medium rounded-6 size-32 cursor-pointer transition-colors text-f-sm>
                     {{ item.value }}
                   </button>
                 </PaginationListItem>
