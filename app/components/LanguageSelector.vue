@@ -20,7 +20,7 @@ async function changeLocale(code: string) {
 <template>
   <div bottom-16 right-16 fixed z-50>
     <SelectRoot :model-value="locale" @update:model-value="changeLocale">
-      <SelectTrigger flex="~ items-center justify-center" bg="white/95 hover:white" rounded-full size-40 transition-colors shadow-sm backdrop-blur-sm cursor-pointer outline="~ 1.5 neutral-200">
+      <SelectTrigger flex="~ items-center justify-center" bg="white/95 hover:white" shadow-sm rounded-full size-40 cursor-pointer transition-colors backdrop-blur-sm outline="~ 1.5 neutral-200">
         <Icon name="i-tabler:world" text-neutral-900 size-20 />
       </SelectTrigger>
       <SelectContent position="popper" outline="~ 1.5 neutral-200" rounded-8 bg-white max-h-256 shadow z-50 of-auto>
