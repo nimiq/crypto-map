@@ -168,7 +168,7 @@ The app uses **UnoCSS with Nimiq presets**:
 - Import schema as `tables` from `server/utils/drizzle.ts`
 - Schema is defined in `database/schema.ts`
 - Type exports: `Location`, `Category`, `LocationCategory`
-- Connection uses individual env vars (POSTGRES_HOST, POSTGRES_PORT, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB)
+- Connection uses `DATABASE_URL` from runtime config (Supabase PostgreSQL connection string)
 - PostgreSQL-specific: Use `sql` tagged templates for PostGIS and pgvector queries
 - PostGIS functions: `ST_X()`, `ST_Y()`, `ST_Distance()`, `ST_Within()`, etc.
 - pgvector operators: `<=>` (cosine distance), `<->` (L2 distance), `<#>` (inner product)
@@ -265,18 +265,14 @@ The app uses **UnoCSS with Nimiq presets**:
 Required in `.env` (project root):
 
 ```env
-# PostgreSQL Configuration
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=your_password
-POSTGRES_DB=postgres
+# PostgreSQL Configuration (Supabase Remote - Pooler)
+DATABASE_URL=postgresql://postgres.xxxxx:password@aws-1-eu-central-1.pooler.supabase.com:6543/postgres
 
 # API Keys
-NUXT_OPENAI_API_KEY=your_openai_api_key  # Required for semantic search embeddings
-NUXT_GOOGLE_API_KEY=your_google_api_key
+GOOGLE_API_KEY=your_google_api_key
+OPENAI_API_KEY=your_openai_api_key  # Required for semantic search embeddings
 ```
 
-All variables are validated via `safeRuntimeConfig` using Valibot schema.
+All variables are validated via `safeRuntimeConfig` using Valibot schema with `minLength(1)` to ensure non-empty values.
 
-**Note**: Without `NUXT_OPENAI_API_KEY`, semantic search will fail. Text search will still work.
+**Note**: Without `OPENAI_API_KEY`, semantic search will fail. Text search will still work.

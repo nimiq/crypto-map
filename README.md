@@ -322,7 +322,7 @@ Create a `.env` file in the project root:
 DATABASE_URL=postgresql://postgres.[project-ref]:[password]@aws-1-eu-central-1.pooler.supabase.com:6543/postgres
 
 # API Keys
-NUXT_GOOGLE_API_KEY=your_google_api_key
+GOOGLE_API_KEY=your_google_api_key
 
 # OpenAI (for generating embeddings)
 OPENAI_API_KEY=your_openai_api_key

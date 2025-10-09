@@ -28,16 +28,15 @@ export default defineNuxtConfig({
     },
   },
   runtimeConfig: {
-    googleApiKey: process.env.NUXT_GOOGLE_API_KEY || '',
+    googleApiKey: process.env.GOOGLE_API_KEY || '',
     openaiApiKey: process.env.OPENAI_API_KEY || '',
     databaseUrl: process.env.DATABASE_URL || '',
   },
   safeRuntimeConfig: {
-    // Allow empty strings for CI builds, validate manually at runtime
     $schema: v.object({
-      googleApiKey: v.string(),
-      openaiApiKey: v.string(),
-      databaseUrl: v.string(),
+      googleApiKey: v.pipe(v.string(), v.minLength(1, 'GOOGLE_API_KEY is required')),
+      openaiApiKey: v.pipe(v.string(), v.minLength(1, 'OPENAI_API_KEY is required')),
+      databaseUrl: v.pipe(v.string(), v.minLength(1, 'DATABASE_URL is required')),
     }),
   },
   icon: {
