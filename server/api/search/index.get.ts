@@ -35,10 +35,20 @@ export default defineEventHandler(async (event) => {
   if (lat !== undefined && lng !== undefined)
     consola.info(`User location: ${lat}, ${lng}`, { tag: 'geolocation' })
 
+  // Build search options with origin and distance filter
+  const searchOptions: import('../../../shared/types').SearchLocationOptions = {}
+  if (lat !== undefined && lng !== undefined) {
+    searchOptions.origin = { lat, lng }
+    // Apply 1.5km walkable distance filter when walkable flag is true
+    if (walkable) {
+      searchOptions.maxDistanceMeters = 1500
+    }
+  }
+
   // Hybrid search: fast text search + smart semantic matching
   const [textResults, categoryResults] = await Promise.all([
-    searchLocationsByText(searchQuery),
-    searchLocationsBySimilarCategories(searchQuery),
+    searchLocationsByText(searchQuery, searchOptions),
+    searchLocationsBySimilarCategories(searchQuery, searchOptions),
   ])
 
   // Text results prioritized - they appear first in the list
@@ -56,9 +66,12 @@ export default defineEventHandler(async (event) => {
 
   let searchResults = Array.from(combinedMap.values())
 
-  // Apply walkable distance filter if requested and user location is available
-  if (walkable && lat !== undefined && lng !== undefined)
-    searchResults = filterByWalkableDistance(searchResults, lat, lng)
+  // Sort by distance if origin is provided and walkable is true
+  if (walkable && searchOptions.origin) {
+    searchResults.sort((a, b) => (a.distanceMeters ?? Infinity) - (b.distanceMeters ?? Infinity))
+    // Limit to 10 results to match the DB limit
+    searchResults = searchResults.slice(0, 10)
+  }
 
   return openNow ? filterOpenNow(searchResults) : searchResults
 })

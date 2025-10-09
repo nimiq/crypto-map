@@ -19,9 +19,16 @@ defineProps<{
         <span class="font-semibold px-8 py-4 rounded-full whitespace-nowrap text-f-xs" :class="[location.hoursStatus.variant === 'open' && 'bg-green-400 text-green-1100 outline-1.5 outline-green-400', location.hoursStatus.variant === 'closing-soon' && 'bg-orange-400 text-orange-1100 outline-1.5 outline-orange-400', location.hoursStatus.variant === 'closed' && 'bg-neutral-200 text-neutral-800', location.hoursStatus.variant === 'unavailable' && 'bg-neutral-200 text-neutral-700']">{{ $t(location.hoursStatus.messageKey) }}</span>
         <span v-if="location.hoursStatus.nextChange" text="f-xs neutral-800" whitespace-nowrap>{{ location.hoursStatus.isOpen ? 'Closes' : 'Opens' }} at <NuxtTime :datetime="location.hoursStatus.nextChange" hour="numeric" minute="2-digit" /></span>
       </div>
-      <div flex="~ items-start gap-8">
-        <Icon name="i-tabler:map-pin" text-neutral-700 mt-2 flex-shrink-0 size-16 />
-        <p text="neutral-800 f-sm" m-0 flex-1 line-clamp-2>{{ location.address }}</p>
+      <div flex="~ col gap-6">
+        <div flex="~ items-start gap-8">
+          <Icon name="i-tabler:map-pin" text-neutral-700 mt-2 flex-shrink-0 size-16 />
+          <p text="neutral-800 f-sm" m-0 flex-1 line-clamp-2>{{ location.address }}</p>
+        </div>
+        <div v-if="location.distanceMeters !== undefined" flex="~ items-center gap-8" ml-24>
+          <span text="neutral-600 f-xs" font-medium>
+            {{ location.distanceMeters < 1000 ? `${Math.round(location.distanceMeters)} m` : `${(location.distanceMeters / 1000).toFixed(1)} km` }} away
+          </span>
+        </div>
       </div>
       <div flex="~ wrap gap-6">
         <span v-for="cat in location.categories.slice(0, 3)" :key="cat.id" text="f-xs neutral-800" flex="~ items-center gap-4" font-medium px-8 py-4 rounded-full bg-neutral-100>
