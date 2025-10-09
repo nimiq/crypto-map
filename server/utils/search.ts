@@ -39,32 +39,33 @@ export async function searchLocationsBySimilarCategories(
   query: string,
   options: SearchLocationOptions = {},
 ): Promise<LocationResponse[]> {
-  const db = useDrizzle()
-  const queryEmbedding = await generateEmbeddingCached(query)
-  const { origin, maxDistanceMeters } = options
+  try {
+    const db = useDrizzle()
+    const queryEmbedding = await generateEmbeddingCached(query)
+    const { origin, maxDistanceMeters } = options
 
-  // Build distance calculation and filter clauses
-  const distanceSelect = origin
-    ? sql`, ST_Distance(
+    // Build distance calculation and filter clauses
+    const distanceSelect = origin
+      ? sql`, ST_Distance(
         ${tables.locations.location}::geography,
         ST_SetSRID(ST_MakePoint(${origin.lng}, ${origin.lat}), 4326)::geography
       ) as "distanceMeters"`
-    : sql``
+      : sql``
 
-  const distanceFilter = origin && maxDistanceMeters
-    ? sql`AND ST_DWithin(
+    const distanceFilter = origin && maxDistanceMeters
+      ? sql`AND ST_DWithin(
         ${tables.locations.location}::geography,
         ST_SetSRID(ST_MakePoint(${origin.lng}, ${origin.lat}), 4326)::geography,
         ${maxDistanceMeters}
       )`
-    : sql``
+      : sql``
 
-  const orderByClause = origin
-    ? sql`ORDER BY "distanceMeters"`
-    : sql``
+    const orderByClause = origin
+      ? sql`ORDER BY "distanceMeters"`
+      : sql``
 
-  // Single query using CTE to find similar categories and join to locations
-  const result = await db.execute(sql`
+    // Single query using CTE to find similar categories and join to locations
+    const result = await db.execute(sql`
     WITH similar_categories AS (
       SELECT ${tables.categories.id}
       FROM ${tables.categories}
@@ -115,7 +116,14 @@ export async function searchLocationsBySimilarCategories(
     LIMIT 10
   `)
 
-  return (result as any).rows as LocationResponse[]
+    return (result as any).rows as LocationResponse[]
+  }
+  catch (error) {
+    // If semantic search fails (e.g., missing OpenAI key), fall back to empty results
+    // Text search will still work independently
+    console.error('Semantic search failed:', error)
+    return []
+  }
 }
 
 // PostgreSQL's built-in FTS is faster than vector search for exact/prefix matches
@@ -129,7 +137,7 @@ export async function searchLocationsByText(
   const db = useDrizzle()
   const selectFields: Record<string, any> = {
     ...locationSelect,
-    highlightedName: sql<string>`ts_headline('english', ${tables.locations.name}, to_tsquery('english', ${tsQuery}), 'StartSel=<mark>, StopSel=</mark>')`.as('highlightedName'),
+    highlightedName: sql<string>`ts_headline('simple', ${tables.locations.name}, to_tsquery('simple', ${tsQuery}), 'StartSel=<mark>, StopSel=</mark>')`.as('highlightedName'),
   }
 
   // Add distance calculation if origin is provided
@@ -143,8 +151,8 @@ export async function searchLocationsByText(
   }
 
   const whereConditions = [
-    sql`to_tsvector('english', ${tables.locations.name} || ' ' || ${tables.locations.address})
-        @@ to_tsquery('english', ${tsQuery})`,
+    sql`to_tsvector('simple', ${tables.locations.name} || ' ' || ${tables.locations.address})
+        @@ to_tsquery('simple', ${tsQuery})`,
   ]
 
   // Add geospatial filter if origin and maxDistanceMeters are provided
