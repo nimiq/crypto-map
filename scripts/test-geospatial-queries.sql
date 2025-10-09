@@ -57,12 +57,16 @@ LIMIT 10;
 -- 2. Test semantic search with geospatial filter
 -- This should also show the location_spatial_idx GIST index being used
 EXPLAIN ANALYZE
-WITH similar_categories AS (
-  SELECT id
-  FROM categories
-  WHERE embedding IS NOT NULL
-    AND 1 - (embedding <=> '[0.1, 0.2, 0.3, ...]'::vector) >= 0.7
-  ORDER BY 1 - (embedding <=> '[0.1, 0.2, 0.3, ...]'::vector) DESC
+WITH query_embedding AS (
+  -- Use the 'cafe' category embedding as our test query
+  SELECT embedding FROM categories WHERE id = 'cafe' LIMIT 1
+),
+similar_categories AS (
+  SELECT c.id
+  FROM categories c, query_embedding qe
+  WHERE c.embedding IS NOT NULL
+    AND 1 - (c.embedding <=> qe.embedding) >= 0.7
+  ORDER BY 1 - (c.embedding <=> qe.embedding) DESC
   LIMIT 5
 )
 SELECT l.uuid,
