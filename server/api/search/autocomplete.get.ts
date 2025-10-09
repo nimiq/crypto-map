@@ -1,3 +1,4 @@
+import { consola } from 'consola'
 import * as v from 'valibot'
 
 const querySchema = v.object({
@@ -11,7 +12,7 @@ export default defineCachedEventHandler(async (event) => {
   // waitUntil ensures the task completes even after response is sent
   event.waitUntil(
     generateEmbeddingCached(searchQuery).catch((error) => {
-      console.error('[autocomplete] Failed to cache embedding:', error)
+      consola.error('Failed to cache embedding:', error, { tag: 'autocomplete' })
     }),
   )
 

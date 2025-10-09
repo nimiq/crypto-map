@@ -1,3 +1,5 @@
+import { consola } from 'consola'
+
 async function fetchPhotoFromGoogle(placeId: string): Promise<{ data: ArrayBuffer | null, contentType: string | null, error: string | null }> {
   try {
     const config = useRuntimeConfig()
@@ -50,13 +52,13 @@ export default eventHandler(async (event) => {
 
     // Fetch image from database and external sources
     const db = useDrizzle()
-    const results = await db
+    const location = await db
       .select({ photo: tables.locations.photo, gmapsPlaceId: tables.locations.gmapsPlaceId })
       .from(tables.locations)
       .where(eq(tables.locations.uuid, uuid))
       .limit(1)
+      .then(res => res?.at(0))
 
-    const location = results[0]
     if (!location)
       throw createError({ statusCode: 404, message: `Location ${uuid} not found` })
 
@@ -88,9 +90,12 @@ export default eventHandler(async (event) => {
       throw createError({ statusCode: 404, message: 'No image available for this location' })
 
     // Cache in background (fire-and-forget)
-    blob.put(pathname, imageBuffer, { contentType }).catch((error) => {
-      console.error(`[image-proxy] Failed to cache image for ${uuid}:`, error)
-    })
+    // waitUntil ensures the task completes even after response is sent
+    event.waitUntil(
+      blob.put(pathname, imageBuffer, { contentType }).catch((error) => {
+        consola.error(`Failed to cache image for ${uuid}:`, error, { tag: 'image-proxy' })
+      }),
+    )
 
     // Serve image directly
     setHeader(event, 'Content-Type', contentType)
