@@ -1,5 +1,5 @@
-import type { LocationResponse, SearchLocationResponse } from '../../shared/types'
-import { eq, sql } from 'drizzle-orm'
+import type { LocationResponse, SearchLocationOptions, SearchLocationResponse } from '../../shared/types'
+import { and, eq, sql } from 'drizzle-orm'
 import { generateEmbeddingCached } from './embeddings'
 
 // Lower threshold means more results, higher means more precise matches
@@ -35,9 +35,33 @@ const locationSelect = {
 }
 
 // Combined semantic search: finds similar categories and their locations in a single query
-export async function searchLocationsBySimilarCategories(query: string): Promise<LocationResponse[]> {
+export async function searchLocationsBySimilarCategories(
+  query: string,
+  options: SearchLocationOptions = {},
+): Promise<LocationResponse[]> {
   const db = useDrizzle()
   const queryEmbedding = await generateEmbeddingCached(query)
+  const { origin, maxDistanceMeters } = options
+
+  // Build distance calculation and filter clauses
+  const distanceSelect = origin
+    ? sql`, ST_Distance(
+        ${tables.locations.location}::geography,
+        ST_SetSRID(ST_MakePoint(${origin.lng}, ${origin.lat}), 4326)::geography
+      ) as "distanceMeters"`
+    : sql``
+
+  const distanceFilter = origin && maxDistanceMeters
+    ? sql`AND ST_DWithin(
+        ${tables.locations.location}::geography,
+        ST_SetSRID(ST_MakePoint(${origin.lng}, ${origin.lat}), 4326)::geography,
+        ${maxDistanceMeters}
+      )`
+    : sql``
+
+  const orderByClause = origin
+    ? sql`ORDER BY "distanceMeters"`
+    : sql``
 
   // Single query using CTE to find similar categories and join to locations
   const result = await db.execute(sql`
@@ -76,6 +100,7 @@ export async function searchLocationsBySimilarCategories(query: string): Promise
         ) FILTER (WHERE ${tables.categories.id} IS NOT NULL),
         '[]'
       ) as categories
+      ${distanceSelect}
     FROM ${tables.locations}
     INNER JOIN ${tables.locationCategories}
       ON ${tables.locations.uuid} = ${tables.locationCategories.locationUuid}
@@ -83,7 +108,10 @@ export async function searchLocationsBySimilarCategories(query: string): Promise
       ON ${tables.locationCategories.categoryId} = similar_categories.id
     LEFT JOIN ${tables.categories}
       ON ${tables.locationCategories.categoryId} = ${tables.categories.id}
+    WHERE 1=1
+      ${distanceFilter}
     GROUP BY ${tables.locations.uuid}
+    ${orderByClause}
     LIMIT 10
   `)
 
@@ -91,44 +119,57 @@ export async function searchLocationsBySimilarCategories(query: string): Promise
 }
 
 // PostgreSQL's built-in FTS is faster than vector search for exact/prefix matches
-export async function searchLocationsByText(query: string): Promise<SearchLocationResponse[]> {
+export async function searchLocationsByText(
+  query: string,
+  options: SearchLocationOptions = {},
+): Promise<SearchLocationResponse[]> {
   const tsQuery = query.trim().split(/\s+/).join(' & ')
+  const { origin, maxDistanceMeters } = options
 
-  return await useDrizzle()
-    .select({
-      ...locationSelect,
-      highlightedName: sql<string>`ts_headline('english', ${tables.locations.name}, to_tsquery('english', ${tsQuery}), 'StartSel=<mark>, StopSel=</mark>')`.as('highlightedName'),
-    })
+  const db = useDrizzle()
+  const selectFields: Record<string, any> = {
+    ...locationSelect,
+    highlightedName: sql<string>`ts_headline('english', ${tables.locations.name}, to_tsquery('english', ${tsQuery}), 'StartSel=<mark>, StopSel=</mark>')`.as('highlightedName'),
+  }
+
+  // Add distance calculation if origin is provided
+  if (origin) {
+    selectFields.distanceMeters = sql<number>`
+      ST_Distance(
+        ${tables.locations.location}::geography,
+        ST_SetSRID(ST_MakePoint(${origin.lng}, ${origin.lat}), 4326)::geography
+      )
+    `.as('distanceMeters')
+  }
+
+  const whereConditions = [
+    sql`to_tsvector('english', ${tables.locations.name} || ' ' || ${tables.locations.address})
+        @@ to_tsquery('english', ${tsQuery})`,
+  ]
+
+  // Add geospatial filter if origin and maxDistanceMeters are provided
+  if (origin && maxDistanceMeters) {
+    whereConditions.push(
+      sql`ST_DWithin(
+        ${tables.locations.location}::geography,
+        ST_SetSRID(ST_MakePoint(${origin.lng}, ${origin.lat}), 4326)::geography,
+        ${maxDistanceMeters}
+      )`,
+    )
+  }
+
+  const baseQuery = db
+    .select(selectFields)
     .from(tables.locations)
     .leftJoin(tables.locationCategories, eq(tables.locations.uuid, tables.locationCategories.locationUuid))
     .leftJoin(tables.categories, eq(tables.locationCategories.categoryId, tables.categories.id))
-    .where(sql`
-      to_tsvector('english', ${tables.locations.name} || ' ' || ${tables.locations.address})
-      @@ to_tsquery('english', ${tsQuery})
-    `)
+    .where(and(...whereConditions))
     .groupBy(tables.locations.uuid)
-    .limit(10)
-}
 
-// Filter locations by walkable distance (1500m) from user location using PostGIS
-export function filterByWalkableDistance<T extends { latitude: number, longitude: number }>(
-  locations: T[],
-  userLat: number,
-  userLng: number,
-): T[] {
-  const MAX_WALKABLE_DISTANCE_METERS = 1500
+  // Order by distance if origin is provided, otherwise no explicit ordering
+  const queryBuilder = origin
+    ? baseQuery.orderBy(selectFields.distanceMeters)
+    : baseQuery
 
-  return locations.filter((loc) => {
-    // Haversine formula for distance calculation (approximate but fast)
-    const R = 6371000 // Earth radius in meters
-    const dLat = (loc.latitude - userLat) * Math.PI / 180
-    const dLng = (loc.longitude - userLng) * Math.PI / 180
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
-      + Math.cos(userLat * Math.PI / 180) * Math.cos(loc.latitude * Math.PI / 180)
-      * Math.sin(dLng / 2) * Math.sin(dLng / 2)
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-    const distance = R * c
-
-    return distance <= MAX_WALKABLE_DISTANCE_METERS
-  })
+  return await queryBuilder.limit(10) as SearchLocationResponse[]
 }
