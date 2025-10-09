@@ -2,7 +2,8 @@
 const props = defineProps<{ location: any }>()
 
 const photoUrl = computed(() => {
-  if (!props.location.photo && !props.location.gmapsPlaceId) return null
+  if (!props.location.photo && !props.location.gmapsPlaceId)
+    return null
   return `/images/location/${props.location.uuid}`
 })
 </script>

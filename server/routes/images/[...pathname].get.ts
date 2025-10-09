@@ -3,7 +3,8 @@ async function fetchPhotoFromGoogle(placeId: string): Promise<{ data: ArrayBuffe
     const config = useRuntimeConfig()
     const apiKey = config.googleApiKey
 
-    if (!apiKey) return { data: null, contentType: null, error: 'Google API key not configured' }
+    if (!apiKey)
+      return { data: null, contentType: null, error: 'Google API key not configured' }
 
     const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=photos&key=${apiKey}`
     const detailsResponse = await fetch(detailsUrl)
@@ -13,14 +14,16 @@ async function fetchPhotoFromGoogle(placeId: string): Promise<{ data: ArrayBuffe
       return { data: null, contentType: null, error: `Failed to fetch place details: ${detailsData.status}` }
 
     const photos = detailsData.result?.photos
-    if (!photos || photos.length === 0) return { data: null, contentType: null, error: 'No photos found for this place' }
+    if (!photos || photos.length === 0)
+      return { data: null, contentType: null, error: 'No photos found for this place' }
 
     const photoReference = photos[0].photo_reference
 
     const photoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${photoReference}&key=${apiKey}`
     const photoResponse = await fetch(photoUrl)
 
-    if (!photoResponse.ok) return { data: null, contentType: null, error: 'Failed to fetch photo' }
+    if (!photoResponse.ok)
+      return { data: null, contentType: null, error: 'Failed to fetch photo' }
 
     const arrayBuffer = await photoResponse.arrayBuffer()
     const contentType = photoResponse.headers.get('content-type') || 'image/jpeg'
@@ -33,7 +36,8 @@ async function fetchPhotoFromGoogle(placeId: string): Promise<{ data: ArrayBuffe
 
 export default eventHandler(async (event) => {
   const { pathname } = getRouterParams(event)
-  if (!pathname) throw createError({ statusCode: 400, message: 'Invalid pathname' })
+  if (!pathname)
+    throw createError({ statusCode: 400, message: 'Invalid pathname' })
 
   if (pathname.startsWith('location/')) {
     const uuid = pathname.replace('location/', '')
@@ -50,7 +54,8 @@ export default eventHandler(async (event) => {
         .limit(1)
 
       const location = results[0]
-      if (!location) throw createError({ statusCode: 404, message: `Location ${uuid} not found` })
+      if (!location)
+        throw createError({ statusCode: 404, message: `Location ${uuid} not found` })
 
       let imageBuffer: ArrayBuffer | null = null
       let contentType = 'image/jpeg'
@@ -76,7 +81,8 @@ export default eventHandler(async (event) => {
         }
       }
 
-      if (!imageBuffer) throw createError({ statusCode: 404, message: 'No image available for this location' })
+      if (!imageBuffer)
+        throw createError({ statusCode: 404, message: 'No image available for this location' })
 
       await blob.put(pathname, imageBuffer, { contentType })
     }
