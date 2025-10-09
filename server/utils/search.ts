@@ -1,5 +1,5 @@
 import type { LocationResponse, SearchLocationResponse } from '../../shared/types'
-import { eq, inArray, sql } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { generateEmbeddingCached } from './embeddings'
 
 // Lower threshold means more results, higher means more precise matches
@@ -53,6 +53,62 @@ export async function searchSimilarCategories(query: string): Promise<string[]> 
   return results.map(r => r.id)
 }
 
+// Combined semantic search: finds similar categories and their locations in a single query
+export async function searchLocationsBySimilarCategories(query: string): Promise<LocationResponse[]> {
+  const db = useDrizzle()
+  const queryEmbedding = await generateEmbeddingCached(query)
+
+  // Single query using CTE to find similar categories and join to locations
+  const results = await db.execute<LocationResponse>(sql`
+    WITH similar_categories AS (
+      SELECT ${tables.categories.id}
+      FROM ${tables.categories}
+      WHERE ${tables.categories.embedding} IS NOT NULL
+        AND 1 - (${tables.categories.embedding} <=> ${JSON.stringify(queryEmbedding)}::vector) >= ${SIMILARITY_THRESHOLD}
+      ORDER BY 1 - (${tables.categories.embedding} <=> ${JSON.stringify(queryEmbedding)}::vector) DESC
+      LIMIT 5
+    )
+    SELECT
+      ${tables.locations.uuid},
+      ${tables.locations.name},
+      ${tables.locations.address},
+      ST_Y(${tables.locations.location}) as latitude,
+      ST_X(${tables.locations.location}) as longitude,
+      ${tables.locations.rating},
+      ${tables.locations.photo},
+      ${tables.locations.gmapsPlaceId} as "gmapsPlaceId",
+      ${tables.locations.gmapsUrl} as "gmapsUrl",
+      ${tables.locations.website},
+      ${tables.locations.source},
+      ${tables.locations.timezone},
+      ${tables.locations.openingHours} as "openingHours",
+      ${tables.locations.createdAt} as "createdAt",
+      ${tables.locations.updatedAt} as "updatedAt",
+      STRING_AGG(${tables.locationCategories.categoryId}, ',') as "categoryIds",
+      COALESCE(
+        json_agg(
+          json_build_object(
+            'id', ${tables.categories.id},
+            'name', ${tables.categories.name},
+            'icon', ${tables.categories.icon}
+          )
+        ) FILTER (WHERE ${tables.categories.id} IS NOT NULL),
+        '[]'
+      ) as categories
+    FROM ${tables.locations}
+    INNER JOIN ${tables.locationCategories}
+      ON ${tables.locations.uuid} = ${tables.locationCategories.locationUuid}
+    INNER JOIN similar_categories
+      ON ${tables.locationCategories.categoryId} = similar_categories.id
+    LEFT JOIN ${tables.categories}
+      ON ${tables.locationCategories.categoryId} = ${tables.categories.id}
+    GROUP BY ${tables.locations.uuid}
+    LIMIT 10
+  `)
+
+  return results as LocationResponse[]
+}
+
 // PostgreSQL's built-in FTS is faster than vector search for exact/prefix matches
 export async function searchLocationsByText(query: string): Promise<SearchLocationResponse[]> {
   const tsQuery = query.trim().split(/\s+/).join(' & ')
@@ -69,21 +125,6 @@ export async function searchLocationsByText(query: string): Promise<SearchLocati
       to_tsvector('english', ${tables.locations.name} || ' ' || ${tables.locations.address})
       @@ to_tsquery('english', ${tsQuery})
     `)
-    .groupBy(tables.locations.uuid)
-    .limit(10)
-}
-
-// Used in hybrid search to find locations matching semantically similar categories
-export async function searchLocationsByCategories(categoryIds: string[]): Promise<LocationResponse[]> {
-  if (categoryIds.length === 0)
-    return []
-
-  return await useDrizzle()
-    .select(locationSelect)
-    .from(tables.locations)
-    .innerJoin(tables.locationCategories, eq(tables.locations.uuid, tables.locationCategories.locationUuid))
-    .leftJoin(tables.categories, eq(tables.locationCategories.categoryId, tables.categories.id))
-    .where(inArray(tables.locationCategories.categoryId, categoryIds))
     .groupBy(tables.locations.uuid)
     .limit(10)
 }

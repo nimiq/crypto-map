@@ -36,11 +36,10 @@ export default defineEventHandler(async (event) => {
     consola.info(`User location: ${lat}, ${lng}`, { tag: 'geolocation' })
 
   // Hybrid search: fast text search + smart semantic matching
-  const [textResults, similarCategories] = await Promise.all([
+  const [textResults, categoryResults] = await Promise.all([
     searchLocationsByText(searchQuery),
-    searchSimilarCategories(searchQuery),
+    searchLocationsBySimilarCategories(searchQuery),
   ])
-  const categoryResults = await searchLocationsByCategories(similarCategories)
 
   // Text results prioritized - they appear first in the list
   const combinedMap = new Map<string, SearchLocationResponse>()
