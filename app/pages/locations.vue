@@ -102,12 +102,12 @@ function copyToClipboard(text: string, message: string) {
                   <div flex="~ col">
                     <div flex="~ items-center gap-6">
                       <span font-medium>{{ location.name }}</span>
-                      <a :href="location.gmapsUrl" target="_blank" rel="noopener noreferrer" flex="~ items-center" text-neutral-600 transition-colors hover:text-neutral-900>
+                      <NuxtLink :to="location.gmapsUrl" target="_blank" flex="~ items-center" text-neutral-600 transition-colors hover:text-neutral-900>
                         <Icon name="i-tabler:map-pin" size-14 />
-                      </a>
-                      <a v-if="location.website" :href="location.website" target="_blank" rel="noopener noreferrer" flex="~ items-center" text-neutral-600 transition-colors hover:text-neutral-900>
+                      </NuxtLink>
+                      <NuxtLink v-if="location.website" :to="location.website" target="_blank" flex="~ items-center" text-neutral-600 transition-colors hover:text-neutral-900>
                         <Icon name="i-tabler:external-link" size-14 />
-                      </a>
+                      </NuxtLink>
                     </div>
                     <span text="neutral-800 f-2xs" mt-2>{{ location.address }}</span>
                   </div>

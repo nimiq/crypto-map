@@ -15,5 +15,5 @@ function selectLocation(location: any) {
 </script>
 
 <template>
-  <LocationCardCompact v-for="location in locations" :key="location.uuid" :location="location" @click="selectLocation(location)" />
+  <LocationCard v-for="location in locations" :key="location.uuid" :location="location" @click="selectLocation(location)" />
 </template>

@@ -90,12 +90,12 @@ const showCarousels = computed(() => !isSearchOpen.value && !selectedItem.value)
       <div v-if="showCarousels" f-mt-md>
         <!-- Open Now Carousel -->
         <Carousel v-if="openNowLocations && openNowLocations.length > 0" :title="$t('carousels.openNow')" icon="i-tabler:clock">
-          <LocationCardCompact v-for="location in openNowLocations" :key="location.uuid" :location="location" @click="selectedItem = { kind: 'location', uuid: location.uuid, name: location.name }" />
+          <LocationCard v-for="location in openNowLocations" :key="location.uuid" :location="location" @click="selectedItem = { kind: 'location', uuid: location.uuid, name: location.name }" />
         </Carousel>
 
         <!-- Popular Locations Carousel -->
         <Carousel v-if="popularLocations && popularLocations.length > 0" :title="$t('carousels.popular')" icon="i-tabler:star">
-          <LocationCardCompact v-for="location in popularLocations" :key="location.uuid" :location="location" @click="selectedItem = { kind: 'location', uuid: location.uuid, name: location.name }" />
+          <LocationCard v-for="location in popularLocations" :key="location.uuid" :location="location" @click="selectedItem = { kind: 'location', uuid: location.uuid, name: location.name }" />
         </Carousel>
 
         <!-- Category-based Carousels (top 5 categories) -->
@@ -107,7 +107,7 @@ const showCarousels = computed(() => !isSearchOpen.value && !selectedItem.value)
 
         <!-- Recently Viewed Carousel -->
         <Carousel v-if="filteredRecentlyViewed && filteredRecentlyViewed.length > 0" :title="$t('carousels.recentlyViewed')" icon="i-tabler:history">
-          <LocationCardCompact v-for="location in filteredRecentlyViewed" :key="location.uuid" :location="location" @click="selectedItem = { kind: 'location', uuid: location.uuid, name: location.name }" />
+          <LocationCard v-for="location in filteredRecentlyViewed" :key="location.uuid" :location="location" @click="selectedItem = { kind: 'location', uuid: location.uuid, name: location.name }" />
         </Carousel>
       </div>
 
