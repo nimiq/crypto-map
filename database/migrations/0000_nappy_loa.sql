@@ -32,6 +32,7 @@ CREATE TABLE "locations" (
 --> statement-breakpoint
 ALTER TABLE "location_categories" ADD CONSTRAINT "location_categories_location_uuid_locations_uuid_fk" FOREIGN KEY ("location_uuid") REFERENCES "public"."locations"("uuid") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "location_categories" ADD CONSTRAINT "location_categories_category_id_categories_id_fk" FOREIGN KEY ("category_id") REFERENCES "public"."categories"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "categories_embedding_idx" ON "categories" USING hnsw ("embedding") WITH (m=16,ef_construction=64);--> statement-breakpoint
 CREATE INDEX "location_idx" ON "location_categories" USING btree ("location_uuid");--> statement-breakpoint
 CREATE INDEX "category_idx" ON "location_categories" USING btree ("category_id");--> statement-breakpoint
 CREATE INDEX "location_spatial_idx" ON "locations" USING gist ("location");

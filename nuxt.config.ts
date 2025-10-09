@@ -21,6 +21,7 @@ export default defineNuxtConfig({
     database: true,
     blob: true,
     kv: true,
+    cache: true,
   },
   eslint: {
     config: {

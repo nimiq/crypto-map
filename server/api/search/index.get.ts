@@ -21,7 +21,7 @@ const querySchema = v.object({
   walkable: v.optional(v.pipe(v.string(), v.transform(val => val === 'true'))),
 })
 
-export default defineEventHandler(async (event) => {
+export default defineCachedEventHandler(async (event) => {
   const { q: searchQuery, openNow = false, walkable = false, lat: qLat, lng: qLng } = await getValidatedQuery(event, data => v.parse(querySchema, data))
   if (!searchQuery || searchQuery.trim().length === 0)
     return []
@@ -72,4 +72,11 @@ export default defineEventHandler(async (event) => {
   }
 
   return openNow ? filterOpenNow(searchResults) : searchResults
+}, {
+  maxAge: 60 * 60 * 24, // Cache for 1 day
+  getKey: (event) => {
+    const query = getQuery(event)
+    return `search:${query.q}:${query.lat || ''}:${query.lng || ''}:${query.openNow || ''}:${query.walkable || ''}`
+  },
+  swr: true, // Stale-while-revalidate
 })

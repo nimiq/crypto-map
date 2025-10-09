@@ -18,7 +18,9 @@ export const categories = pgTable('categories', {
   name: text('name').notNull(),
   icon: text('icon').notNull(),
   embedding: vector({ dimensions: 1536 }),
-})
+}, table => [
+  index('categories_embedding_idx').using('hnsw', table.embedding).with({ m: 16, ef_construction: 64 }),
+])
 
 export type Category = typeof categories.$inferSelect
 
