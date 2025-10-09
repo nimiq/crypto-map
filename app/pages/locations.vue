@@ -139,7 +139,7 @@ function copyToClipboard(text: string, message: string) {
                   </div>
                 </td>
                 <td px-8 py-8 whitespace-nowrap>
-                  <Icon v-if="getSourceIcon(location.source)" :name="getSourceIcon(location.source)!" size-16 op-50 grayscale="~ group-hocus:0" transition-all />
+                  <Icon v-if="getSourceIcon(location.source)" :name="getSourceIcon(location.source)!" size-16 op="50 group-hocus:100" grayscale="~ group-hocus:0" transition-all />
                   <span v-else bg-blue-100 text-blue-800 font-medium px-6 py-2 rounded-4 text-f-xs>{{ location.source }}</span>
                 </td>
                 <td text="10px" font-mono px-8 py-8 whitespace-nowrap>
@@ -151,10 +151,10 @@ function copyToClipboard(text: string, message: string) {
                 </td>
                 <td px-8 py-8>
                   <div flex="~ col gap-2 items-start">
-                    <button type="button" text="f-2xs neutral-600 hover:neutral-900 left" bg="transparent hover:neutral-100" px-6 py-2 rounded-4 cursor-pointer whitespace-nowrap transition-colors class="font-mono" @click="copyToClipboard(location.uuid, 'UUID copied')">
+                    <button type="button" text="f-2xs neutral-600 hover:neutral-900 left" bg="neutral-50 hover:neutral-100" px-6 py-2 rounded-4 cursor-pointer whitespace-nowrap transition-colors class="font-mono" @click="copyToClipboard(location.uuid, 'UUID copied')">
                       {{ location.uuid }}
                     </button>
-                    <button type="button" text="f-2xs neutral-600 hover:neutral-900 left" bg="transparent hover:neutral-100" px-6 py-2 rounded-4 cursor-pointer whitespace-nowrap transition-colors class="font-mono" @click="copyToClipboard(location.gmapsPlaceId, 'Place ID copied')">
+                    <button type="button" text="f-2xs neutral-600 hover:neutral-900 left" bg="neutral-50 hover:neutral-100" px-6 py-2 rounded-4 cursor-pointer whitespace-nowrap transition-colors class="font-mono" @click="copyToClipboard(location.gmapsPlaceId, 'Place ID copied')">
                       {{ location.gmapsPlaceId }}
                     </button>
                   </div>
