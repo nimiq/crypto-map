@@ -91,6 +91,11 @@ const showCarousels = computed(() => !isSearchOpen.value && !selectedItem.value)
 
       <!-- Carousels View (when search is closed) -->
       <div v-if="showCarousels" f-mt-md>
+        <!-- Recently Viewed Carousel -->
+        <Carousel v-if="filteredRecentlyViewed && filteredRecentlyViewed.length > 0" :title="$t('carousels.recentlyViewed')" icon="i-tabler:history">
+          <LocationCard v-for="location in filteredRecentlyViewed" :key="location.uuid" :location="location" @click="selectedItem = { kind: 'location', uuid: location.uuid, name: location.name }" />
+        </Carousel>
+
         <!-- Open Now Carousel -->
         <Carousel v-if="openNowLocations && openNowLocations.length > 0" :title="$t('carousels.openNow')" icon="i-tabler:clock">
           <LocationCard v-for="location in openNowLocations" :key="location.uuid" :location="location" @click="selectedItem = { kind: 'location', uuid: location.uuid, name: location.name }" />
@@ -107,11 +112,6 @@ const showCarousels = computed(() => !isSearchOpen.value && !selectedItem.value)
             <CategoryCarousel :category-id="category.id" @select="selectedItem = $event" />
           </Carousel>
         </template>
-
-        <!-- Recently Viewed Carousel -->
-        <Carousel v-if="filteredRecentlyViewed && filteredRecentlyViewed.length > 0" :title="$t('carousels.recentlyViewed')" icon="i-tabler:history">
-          <LocationCard v-for="location in filteredRecentlyViewed" :key="location.uuid" :location="location" @click="selectedItem = { kind: 'location', uuid: location.uuid, name: location.name }" />
-        </Carousel>
       </div>
 
       <!-- Search Results View -->
