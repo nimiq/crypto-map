@@ -42,52 +42,75 @@ export default eventHandler(async (event) => {
   if (pathname.startsWith('location/')) {
     const uuid = pathname.replace('location/', '')
 
-    const blob = hubBlob()
-    const existingImage = await blob.head(pathname).catch(() => null)
-
-    if (!existingImage) {
-      const db = useDrizzle()
-      const results = await db
-        .select({ photo: tables.locations.photo, gmapsPlaceId: tables.locations.gmapsPlaceId })
-        .from(tables.locations)
-        .where(eq(tables.locations.uuid, uuid))
-        .limit(1)
-
-      const location = results[0]
-      if (!location)
-        throw createError({ statusCode: 404, message: `Location ${uuid} not found` })
-
-      let imageBuffer: ArrayBuffer | null = null
-      let contentType = 'image/jpeg'
-
-      if (location.photo) {
-        try {
-          const response = await fetch(location.photo)
-          if (response.ok) {
-            imageBuffer = await response.arrayBuffer()
-            contentType = response.headers.get('content-type') || 'image/jpeg'
-          }
-        }
-        catch {
-          // Fallback to Google Maps if external URL fails
-        }
-      }
-
-      if (!imageBuffer && location.gmapsPlaceId) {
-        const { data, contentType: gmapsContentType, error } = await fetchPhotoFromGoogle(location.gmapsPlaceId)
-        if (!error && data) {
-          imageBuffer = data
-          contentType = gmapsContentType || 'image/jpeg'
-        }
-      }
-
-      if (!imageBuffer)
-        throw createError({ statusCode: 404, message: 'No image available for this location' })
-
-      await blob.put(pathname, imageBuffer, { contentType })
+    // Try to initialize blob storage, fallback to direct serving if unavailable
+    let blob: ReturnType<typeof hubBlob> | null = null
+    let blobAvailable = false
+    try {
+      blob = hubBlob()
+      blobAvailable = true
+    }
+    catch {
+      console.warn('[image-proxy] R2 blob binding unavailable, serving images without caching')
     }
 
-    return blob.serve(event, pathname)
+    // Check if image exists in cache when blob is available
+    let existingImage = null
+    if (blobAvailable && blob) {
+      existingImage = await blob.head(pathname).catch(() => null)
+      if (existingImage)
+        return blob.serve(event, pathname)
+    }
+
+    // Fetch image from database and external sources
+    const db = useDrizzle()
+    const results = await db
+      .select({ photo: tables.locations.photo, gmapsPlaceId: tables.locations.gmapsPlaceId })
+      .from(tables.locations)
+      .where(eq(tables.locations.uuid, uuid))
+      .limit(1)
+
+    const location = results[0]
+    if (!location)
+      throw createError({ statusCode: 404, message: `Location ${uuid} not found` })
+
+    let imageBuffer: ArrayBuffer | null = null
+    let contentType = 'image/jpeg'
+
+    if (location.photo) {
+      try {
+        const response = await fetch(location.photo)
+        if (response.ok) {
+          imageBuffer = await response.arrayBuffer()
+          contentType = response.headers.get('content-type') || 'image/jpeg'
+        }
+      }
+      catch {
+        // Fallback to Google Maps if external URL fails
+      }
+    }
+
+    if (!imageBuffer && location.gmapsPlaceId) {
+      const { data, contentType: gmapsContentType, error } = await fetchPhotoFromGoogle(location.gmapsPlaceId)
+      if (!error && data) {
+        imageBuffer = data
+        contentType = gmapsContentType || 'image/jpeg'
+      }
+    }
+
+    if (!imageBuffer)
+      throw createError({ statusCode: 404, message: 'No image available for this location' })
+
+    // Cache in background when blob is available (fire-and-forget)
+    if (blobAvailable && blob) {
+      blob.put(pathname, imageBuffer, { contentType }).catch((error) => {
+        console.error(`[image-proxy] Failed to cache image for ${uuid}:`, error)
+      })
+    }
+
+    // Serve image directly
+    setHeader(event, 'Content-Type', contentType)
+    setHeader(event, 'Cache-Control', 'public, max-age=31536000, immutable')
+    return imageBuffer
   }
 
   throw createError({ statusCode: 404, message: 'Image not found' })
