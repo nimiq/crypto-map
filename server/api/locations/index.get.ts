@@ -6,7 +6,7 @@ const querySchema = v.object({
   limit: v.optional(v.pipe(v.string(), v.transform(Number), v.number()), '50'),
   categoryId: v.optional(v.string()),
   status: v.optional(v.picklist(['open', 'popular'])),
-  uuids: v.optional(v.string()),
+  uuids: v.optional(v.pipe(v.string(), v.transform(s => s.split(',').filter(Boolean)))),
 })
 
 export default defineEventHandler(async (event) => {
@@ -48,12 +48,9 @@ export default defineEventHandler(async (event) => {
       `,
     })
     .from(tables.locations)
-    .$dynamic()
-
-  // Add joins
-  query = query
     .leftJoin(tables.locationCategories, eq(tables.locations.uuid, tables.locationCategories.locationUuid))
     .leftJoin(tables.categories, eq(tables.locationCategories.categoryId, tables.categories.id))
+    .$dynamic()
 
   // Add WHERE conditions
   const whereConditions = []
@@ -66,34 +63,27 @@ export default defineEventHandler(async (event) => {
     )`)
   }
 
-  if (status === 'open') {
+  if (status === 'open')
     whereConditions.push(isNotNull(tables.locations.openingHours))
-  }
-  else if (status === 'popular') {
+  else if (status === 'popular')
     whereConditions.push(isNotNull(tables.locations.rating))
-  }
+  
 
-  if (uuids) {
-    const uuidArray = uuids.split(',').filter(Boolean)
-    if (uuidArray.length > 0) {
-      whereConditions.push(inArray(tables.locations.uuid, uuidArray))
-    }
-  }
+  if (uuids && uuids.length > 0)
+    whereConditions.push(inArray(tables.locations.uuid, uuids))
 
-  if (whereConditions.length > 0) {
+  if (whereConditions.length > 0)
     query = query.where(sql.join(whereConditions, sql` AND `))
-  }
+
 
   // Group by location
   query = query.groupBy(tables.locations.uuid)
 
   // Add ORDER BY
-  if (categoryId || status) {
+  if (categoryId || status)
     query = query.orderBy(sql`${tables.locations.rating} DESC NULLS LAST`)
-  }
-  else {
+  else
     query = query.orderBy(tables.locations.name)
-  }
 
   // Execute queries in parallel
   const [locations, totalCount] = await Promise.all([
@@ -103,15 +93,13 @@ export default defineEventHandler(async (event) => {
 
   // Apply runtime filters
   let filteredLocations = locations
-  if (status === 'open') {
+  if (status === 'open')
     filteredLocations = filterOpenNow(locations as any)
-  }
 
   // Preserve order for uuids query
-  if (uuids) {
-    const uuidArray = uuids.split(',').filter(Boolean)
+  if (uuids && uuids.length > 0) {
     const locationsMap = new Map(filteredLocations.map(loc => [loc.uuid, loc]))
-    filteredLocations = uuidArray.map(uuid => locationsMap.get(uuid)).filter(Boolean) as typeof locations
+    filteredLocations = uuids.map(uuid => locationsMap.get(uuid)).filter(Boolean) as typeof locations
   }
 
   return {
