@@ -34,32 +34,13 @@ const locationSelect = {
   )`.as('categories'),
 }
 
-// Enables semantic search - "coffee shop" matches "cafe" even without exact text match
-export async function searchSimilarCategories(query: string): Promise<string[]> {
-  const db = useDrizzle()
-
-  const queryEmbedding = await generateEmbeddingCached(query)
-
-  const results = await db
-    .select({
-      id: tables.categories.id,
-      similarity: sql<number>`1 - (${tables.categories.embedding} <=> ${JSON.stringify(queryEmbedding)}::vector)`.as('similarity'),
-    })
-    .from(tables.categories)
-    .where(sql`${tables.categories.embedding} IS NOT NULL AND 1 - (${tables.categories.embedding} <=> ${JSON.stringify(queryEmbedding)}::vector) >= ${SIMILARITY_THRESHOLD}`)
-    .orderBy(sql`similarity DESC`)
-    .limit(5)
-
-  return results.map(r => r.id)
-}
-
 // Combined semantic search: finds similar categories and their locations in a single query
 export async function searchLocationsBySimilarCategories(query: string): Promise<LocationResponse[]> {
   const db = useDrizzle()
   const queryEmbedding = await generateEmbeddingCached(query)
 
   // Single query using CTE to find similar categories and join to locations
-  const results = await db.execute<LocationResponse>(sql`
+  const result = await db.execute(sql`
     WITH similar_categories AS (
       SELECT ${tables.categories.id}
       FROM ${tables.categories}
@@ -106,7 +87,7 @@ export async function searchLocationsBySimilarCategories(query: string): Promise
     LIMIT 10
   `)
 
-  return results as LocationResponse[]
+  return (result as any).rows as LocationResponse[]
 }
 
 // PostgreSQL's built-in FTS is faster than vector search for exact/prefix matches
