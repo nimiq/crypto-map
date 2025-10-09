@@ -1,0 +1,36 @@
+{
+  "hero": {
+    "title": "Gaste suas criptomoedas em Lugano",
+    "subtitle": "Descubra lugares que aceitam pagamentos com criptomoedas"
+  },
+  "search": {
+    "placeholder": "Pesquisar locais ou adicionar filtros de categoria...",
+    "noCategoriesFound": "Nenhuma categoria encontrada"
+  },
+  "filters": {
+    "openNow": "Aberto agora",
+    "walkableDistance": "Distância a pé (WIP)"
+  },
+  "location": {
+    "viewOnMaps": "Ver no Maps",
+    "visitWebsite": "Visitar site"
+  },
+  "empty": {
+    "title": "Gaste suas criptomoedas",
+    "subtitle": "Em Lugano, você pode encontrar mais de {count} lojas que aceitam criptomoedas",
+    "noResults": "Nenhum local encontrado",
+    "noResultsSubtitle": "Tente ajustar sua pesquisa ou filtros"
+  },
+  "hours": {
+    "open": "Aberto agora",
+    "closingSoon": "Fecha em breve",
+    "closed": "Fechado",
+    "unavailable": "Horários indisponíveis"
+  },
+  "carousels": {
+    "openNow": "Aberto agora",
+    "popular": "Popular",
+    "recentlyViewed": "Vistos recentemente"
+  },
+  "categories": {"amusement_center": "Centro de Entretenimento", "amusement_park": "Parque de Diversões", "apartment_complex": "Complexo de Apartamentos", "art_gallery": "Galeria de Arte", "atm": "ATM", "bagel_shop": "Loja de Bagels", "bakery": "Padaria", "bank": "Banco", "banquet_hall": "Salão de Banquetes", "bar": "Bar", "barber_shop": "Barbearia", "beautician": "Esteticista", "beauty_salon": "Salão de Beleza", "body_art_service": "Serviço de Arte Corporal", "book_store": "Livraria", "buffet_restaurant": "Restaurante Buffet", "cafe": "Café", "cafeteria": "Cafeteria", "catering_service": "Serviço de Catering", "cell_phone_store": "Loja de Telemóveis", "clothing_store": "Loja de Roupa", "coffee_shop": "Cafeteria", "confectionery": "Confeitaria", "consultant": "Consultor", "cultural_center": "Centro Cultural", "deli": "Delicatessen", "department_store": "Loja de Departamentos", "dessert_shop": "Loja de Sobremesas", "doctor": "Médico", "donut_shop": "Loja de Donuts", "drugstore": "Farmácia", "event_venue": "Espaço para Eventos", "extended_stay_hotel": "Hotel de Longa Estadia", "farm": "Fazenda", "fitness_center": "Centro de Fitness", "food_delivery": "Entrega de Comida", "food_store": "Loja de Alimentos", "foot_care": "Cuidado de Pés", "gift_shop": "Loja de Presentes", "government_office": "Repartição Pública", "grocery_store": "Mercearia", "guest_house": "Casa de Hóspedes", "gym": "Ginásio", "hair_care": "Cuidado Capilar", "hair_salon": "Cabeleireiro", "home_goods_store": "Loja de Artigos para o Lar", "hotel": "Hotel", "ice_cream_shop": "Gelataria", "italian_restaurant": "Restaurante Italiano", "jewelry_store": "Joalharia", "lodging": "Alojamento", "makeup_artist": "Maquilhador", "massage": "Massagem", "meal_takeaway": "Comida para Levar", "museum": "Museu", "nail_salon": "Salão de Unhas", "naka": "NAKA", "park": "Parque", "pharmacy": "Farmácia", "physiotherapist": "Fisioterapeuta", "pizza_restaurant": "Pizzaria", "post_office": "Estação de Correios", "pub": "Pub", "resort_hotel": "Hotel Resort", "restaurant": "Restaurante", "sandwich_shop": "Loja de Sanduíches", "seafood_restaurant": "Restaurante de Frutos do Mar", "shoe_store": "Sapataria", "shopping_mall": "Centro Comercial", "spa": "Spa", "sporting_goods_store": "Loja de Artigos Desportivos", "sports_activity_location": "Local de Atividade Desportiva", "sports_club": "Clube Desportivo", "sports_coaching": "Treino Desportivo", "sports_complex": "Complexo Desportivo", "store": "Loja", "supermarket": "Supermercado", "swimming_pool": "Piscina", "tourist_attraction": "Atração Turística", "water_park": "Parque Aquático", "wedding_venue": "Local para Casamentos", "wellness_center": "Centro de Bem-Estar", "wholesaler": "Grossista", "wine_bar": "Bar de Vinhos"}
+}

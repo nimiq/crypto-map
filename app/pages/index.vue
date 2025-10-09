@@ -100,7 +100,7 @@ const showCarousels = computed(() => !isSearchOpen.value && !selectedItem.value)
 
         <!-- Category-based Carousels (top 5 categories) -->
         <template v-if="categories && categories.length > 0">
-          <Carousel v-for="category in categories.slice(0, 5)" :key="category.id" :title="category.name" :icon="category.icon">
+          <Carousel v-for="category in categories.slice(0, 5)" :key="category.id" :title="$te(`categories.${category.id}`) ? $t(`categories.${category.id}`) : category.name" :icon="category.icon">
             <CategoryCarousel :category-id="category.id" @select="selectedItem = $event" />
           </Carousel>
         </template>
