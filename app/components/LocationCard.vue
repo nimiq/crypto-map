@@ -1,13 +1,16 @@
 <script setup lang="ts">
-defineProps<{
-  location: any
-}>()
+const props = defineProps<{ location: any }>()
+
+const photoUrl = computed(() => {
+  if (!props.location.photo && !props.location.gmapsPlaceId) return null
+  return `/images/location/${props.location.uuid}`
+})
 </script>
 
 <template>
   <a :href="location.gmapsUrl" :aria-label="`View ${location.name} on Google Maps`" target="_blank" rel="noopener noreferrer" outline="~ 1 neutral-200" flex="~ col" group p-0 rounded-12 bg-white no-underline h-full block overflow-hidden nq-hoverable>
     <div aspect="16/9" bg-neutral-200 flex-shrink-0 relative overflow-hidden>
-      <NuxtImg v-if="location.photo" :src="location.photo" :alt="`Photo of ${location.name}`" h-full w-full transition-transform duration-300 object-cover group-hover:scale-105 />
+      <NuxtImg v-if="photoUrl" :src="photoUrl" :alt="`Photo of ${location.name}`" loading="lazy" h-full w-full transition-transform duration-300 object-cover group-hover:scale-105 />
       <div v-if="location.rating" flex="~ items-center gap-4" bg="white/95" text="neutral-900 f-sm" shadow-sm font-semibold px-8 py-4 rounded-full right-8 top-8 absolute backdrop-blur-sm outline="1.5 offset--1.5 neutral/10">
         <Icon name="i-nimiq:star" text-gold size-16 />
         <span>{{ location.rating }}</span>

@@ -1,4 +1,3 @@
-import type { LocationResponse } from '../../shared/types'
 import { toZonedTime } from 'date-fns-tz'
 import OpeningHours from 'opening_hours'
 

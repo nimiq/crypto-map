@@ -1,7 +1,3 @@
-import type { LocationResponse, SearchLocationOptions, SearchLocationResponse } from '../../shared/types'
-import { and, eq, sql } from 'drizzle-orm'
-import { generateEmbeddingCached } from './embeddings'
-
 // Lower threshold means more results, higher means more precise matches
 const SIMILARITY_THRESHOLD = 0.7
 

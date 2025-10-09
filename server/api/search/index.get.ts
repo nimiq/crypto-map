@@ -1,7 +1,5 @@
-import type { SearchLocationResponse } from '../../../shared/types'
 import { consola } from 'consola'
 import * as v from 'valibot'
-import { filterOpenNow } from '~~/server/utils/open-now'
 
 const querySchema = v.object({
   lat: v.optional(v.pipe(
@@ -36,7 +34,7 @@ export default defineEventHandler(async (event) => {
     consola.info(`User location: ${lat}, ${lng}`, { tag: 'geolocation' })
 
   // Build search options with origin and distance filter
-  const searchOptions: import('../../../shared/types').SearchLocationOptions = {}
+  const searchOptions: SearchLocationOptions = {}
   if (lat !== undefined && lng !== undefined) {
     searchOptions.origin = { lat, lng }
     // Apply 1.5km walkable distance filter when walkable flag is true
