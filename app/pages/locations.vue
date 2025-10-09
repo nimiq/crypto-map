@@ -102,10 +102,10 @@ function copyToClipboard(text: string, message: string) {
                   <div flex="~ col">
                     <div flex="~ items-center gap-6">
                       <span font-medium>{{ location.name }}</span>
-                      <a :href="location.gmapsUrl" target="_blank" rel="noopener noreferrer" flex="~ items-center" text-neutral-500 transition-colors hover:text-neutral-900>
+                      <a :href="location.gmapsUrl" target="_blank" rel="noopener noreferrer" flex="~ items-center" text-neutral-600 transition-colors hover:text-neutral-900>
                         <Icon name="i-tabler:map-pin" size-14 />
                       </a>
-                      <a v-if="location.website" :href="location.website" target="_blank" rel="noopener noreferrer" flex="~ items-center" text-neutral-500 transition-colors hover:text-neutral-900>
+                      <a v-if="location.website" :href="location.website" target="_blank" rel="noopener noreferrer" flex="~ items-center" text-neutral-600 transition-colors hover:text-neutral-900>
                         <Icon name="i-tabler:external-link" size-14 />
                       </a>
                     </div>
