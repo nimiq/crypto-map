@@ -1,4 +1,3 @@
-import { eq, sql } from 'drizzle-orm'
 import * as v from 'valibot'
 
 const querySchema = v.object({

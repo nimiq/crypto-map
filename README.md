@@ -14,6 +14,7 @@ A Nuxt 4 application for discovering locations that accept cryptocurrency paymen
 - 🎨 UnoCSS with Nimiq design system (attributify mode)
 - 🧩 Accessible UI with Reka UI components
 - 🚀 Deployed on NuxtHub/Cloudflare
+- 🖼️ Image proxying through NuxtHub Blob cache
 
 ## Tech Stack
 
@@ -53,6 +54,15 @@ pnpm run dev
 The app will be available at `http://localhost:3000`
 
 **Note:** Make sure your `DATABASE_URL` in `.env` points to a valid Supabase PostgreSQL instance with PostGIS and pgvector extensions enabled.
+
+## Image Proxying
+
+Location photos are automatically cached using NuxtHub Blob storage to reduce Google Maps API costs:
+
+- Frontend renders images via `/images/location/{uuid}`
+- First request fetches from Google Maps API or external URL (auto-detects content type)
+- Image is cached in NuxtHub Blob storage with correct MIME type
+- Subsequent requests serve from cache
 
 ## Project Structure
 
