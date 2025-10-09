@@ -39,7 +39,7 @@ onUnmounted(() => {
 <template>
   <div f-mb-xl>
     <div flex="~ items-center justify-between" f-mb-md>
-      <h2 text="neutral-900 f-md" font-bold flex="~ items-center gap-8" m-0>
+      <h2 flex="~ items-center gap-8" m-0 nq-label>
         <Icon v-if="icon" :name="icon" size-20 />
         {{ title }}
       </h2>
