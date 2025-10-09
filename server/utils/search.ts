@@ -112,7 +112,7 @@ export async function searchLocationsBySimilarCategories(
     LIMIT 10
   `)
 
-    return (result as any).rows as LocationResponse[]
+    return ((result as any).rows || []) as LocationResponse[]
   }
   catch (error) {
     // If semantic search fails (e.g., missing OpenAI key), fall back to empty results
