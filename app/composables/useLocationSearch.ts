@@ -1,7 +1,7 @@
 // Search logic with autocomplete and embedding precomputation
 export function useLocationSearch() {
   const { openNow, walkable } = useSearchFilters()
-  const { latitude, longitude } = useGeolocation()
+  const { coords } = useGeolocation({ immediate: true, enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 })
 
   const searchQuery = useState('searchQuery', () => '')
   const debouncedSearchQuery = refDebounced(searchQuery, 300, { maxWait: 1000 })
@@ -11,8 +11,8 @@ export function useLocationSearch() {
       q: searchQuery.value,
       openNow: openNow.value || undefined,
       walkable: walkable.value || undefined,
-      lat: latitude.value || undefined,
-      lng: longitude.value || undefined,
+      lat: coords.value.latitude || undefined,
+      lng: coords.value.longitude || undefined,
     })),
     transform: locations => locations.map(loc => ({
       ...loc,
