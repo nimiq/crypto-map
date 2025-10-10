@@ -43,6 +43,9 @@ export default defineNuxtConfig({
   },
   icon: {
     serverBundle: 'local',
+    clientBundle: {
+      sizeLimitKb: 2048,
+    },
     collections: ['tabler'],
     customCollections: [
       nimiqIcons,
