@@ -1,6 +1,6 @@
 import { desc, sql } from 'drizzle-orm'
 
-export default defineEventHandler(async () => {
+export default defineCachedEventHandler(async (event) => {
   const db = useDrizzle()
 
   // Get categories that have locations, sorted by location count
@@ -18,5 +18,10 @@ export default defineEventHandler(async () => {
     .orderBy(desc(sql`count(${tables.locationCategories.locationUuid})`))
     .limit(20)
 
+  setResponseHeader(event, 'Cache-Control', 'public, max-age=3600, stale-while-revalidate=43200')
+
   return categories
+}, {
+  maxAge: 60 * 60 * 12,
+  swr: true,
 })

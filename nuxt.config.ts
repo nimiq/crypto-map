@@ -67,5 +67,9 @@ export default defineNuxtConfig({
     ],
     langDir: 'locales',
   },
+  routeRules: {
+    '/api/categories': { cache: { maxAge: 3600, swr: true, staleMaxAge: 43200 } },
+    '/api/locations/**': { cache: { maxAge: 900, swr: true, staleMaxAge: 900 } },
+  },
   compatibilityDate: '2025-10-01',
 })
