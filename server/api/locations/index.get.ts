@@ -67,14 +67,12 @@ export default defineEventHandler(async (event) => {
     whereConditions.push(isNotNull(tables.locations.openingHours))
   else if (status === 'popular')
     whereConditions.push(isNotNull(tables.locations.rating))
-  
 
   if (uuids && uuids.length > 0)
     whereConditions.push(inArray(tables.locations.uuid, uuids))
 
   if (whereConditions.length > 0)
     query = query.where(sql.join(whereConditions, sql` AND `))
-
 
   // Group by location
   query = query.groupBy(tables.locations.uuid)
