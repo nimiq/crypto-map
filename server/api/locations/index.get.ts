@@ -83,10 +83,12 @@ export default defineEventHandler(async (event) => {
   else
     query = query.orderBy(tables.locations.name)
 
-  // Execute queries in parallel
+  // Execute query (skip count for carousel/uuid queries as it's not needed and can timeout)
+  const skipCount = Boolean(status || uuids)
+
   const [locations, totalCount] = await Promise.all([
     query.limit(limit).offset(offset),
-    db.select({ count: sql<number>`count(*)::int` }).from(tables.locations).then(r => r[0]?.count || 0),
+    skipCount ? Promise.resolve(0) : db.select({ count: sql<number>`count(*)::int` }).from(tables.locations).then(r => r[0]?.count || 0),
   ])
 
   // Apply runtime filters
@@ -102,11 +104,13 @@ export default defineEventHandler(async (event) => {
 
   return {
     locations: filteredLocations,
-    pagination: {
-      page,
-      limit,
-      total: totalCount,
-      totalPages: Math.ceil(totalCount / limit),
-    },
+    pagination: skipCount
+      ? undefined
+      : {
+          page,
+          limit,
+          total: totalCount,
+          totalPages: Math.ceil(totalCount / limit),
+        },
   }
 })

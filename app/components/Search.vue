@@ -9,45 +9,64 @@ const { searchQuery, autocompleteResults } = useLocationSearch()
 
 const inputRef = useTemplateRef<{ $el: HTMLInputElement }>('searchInput')
 
-watch(selectedItem, () => {
+watch(selectedItem, (value) => {
+  if (value?.kind === 'query') {
+    searchQuery.value = value.query
+  }
+  else if (value?.kind === 'location') {
+    searchQuery.value = value.name
+  }
   inputRef.value?.$el?.blur()
 })
+
+function clearSearch() {
+  searchQuery.value = ''
+  openNow.value = false
+  walkable.value = false
+}
+
+function focusInput() {
+  nextTick(() => {
+    inputRef.value?.$el?.focus()
+  })
+}
+
+defineExpose({ focusInput })
 </script>
 
 <template>
-  <form>
+  <form w-full>
     <ComboboxRoot v-model="selectedItem" :display-value="selectedItem">
-      <ComboboxAnchor>
-        <ComboboxInput ref="searchInput" v-model="searchQuery" :placeholder="$t('search.placeholder')" nq-input-box name="query" />
+      <ComboboxAnchor relative>
+        <Icon name="i-tabler:search" size-20 absolute left-12 top="1/2" style="transform: translateY(-50%); color: var(--colors-neutral-900)" pointer-events-none z-10 />
+        <ComboboxInput ref="searchInput" v-model="searchQuery" :placeholder="$t('search.placeholder')" name="query" pl-40 pr-32 py-8 w-full bg-transparent outline-none border-none text-f-sm style="color: var(--colors-neutral-900)" />
+        <button v-if="searchQuery?.trim().length > 0" type="button" flex="~ items-center justify-center" size-20 absolute right-12 top="1/2" transition-colors z-10 style="transform: translateY(-50%); color: var(--colors-neutral-900)" hocus:style="color: var(--colors-neutral-600)" @click="clearSearch">
+          <Icon name="i-tabler:x" size-20 />
+        </button>
       </ComboboxAnchor>
       <ComboboxPortal>
-        <ComboboxContent position="popper" side="bottom" :side-offset="4" w="$reka-combobox-trigger-width" outline="~ 1.5 neutral-200" rounded-b-8 bg-white max-h-256 shadow z-50 of-auto>
+        <ComboboxContent position="popper" side="bottom" :side-offset="4" w="$reka-combobox-trigger-width" rounded-b-8 max-h-256 shadow z-50 of-auto style="outline: 1.5px solid var(--colors-neutral-200); background: var(--colors-white)">
           <ComboboxViewport>
-            <ComboboxItem :key="searchQuery" :value="{ kind: 'query', query: searchQuery }" flex="~ items-center gap-8" text="f-sm neutral-900" font-medium py-10 outline-none w-full cursor-pointer transition-colors f-px-md hocus:bg-neutral-50>
+            <ComboboxItem :key="searchQuery" :value="{ kind: 'query', query: searchQuery }" flex="~ items-center gap-8" text-f-sm font-medium py-10 outline-none w-full cursor-pointer transition-colors f-px-md style="color: var(--colors-neutral-900)" hocus:style="background: var(--colors-neutral-50)">
               <Icon name="i-tabler:search" size-18 />
               {{ searchQuery }}
             </ComboboxItem>
-            <ComboboxItem v-for="location in autocompleteResults" :key="location.uuid" :value="{ kind: 'location', uuid: location.uuid, name: location.name }" flex="~ col gap-2" text="f-sm neutral-800" bg="hover:neutral-50" py-10 text-left outline-none w-full cursor-pointer transition-colors items-start f-px-md>
+            <ComboboxItem v-for="location in autocompleteResults" :key="location.uuid" :value="{ kind: 'location', uuid: location.uuid, name: location.name }" flex="~ col gap-2" text-f-sm py-10 text-left outline-none w-full cursor-pointer transition-colors items-start f-px-md style="color: var(--colors-neutral-800)" hocus:style="background: var(--colors-neutral-50)">
               <span font-medium v-html="location.highlightedName || location.name" />
-              <span text="f-xs neutral-600">{{ location.address }}</span>
+              <span text-f-xs style="color: var(--colors-neutral-600)">{{ location.address }}</span>
             </ComboboxItem>
           </ComboboxViewport>
         </ComboboxContent>
       </ComboboxPortal>
     </ComboboxRoot>
-    <div flex="~ wrap gap-8" mt-4>
-      <Toggle v-model="openNow" outline="~ neutral-400 1.5 reka-on:transparent" bg="neutral-100 hocus:neutral-200 reka-on:blue" text="14 neutral-800 hocus:neutral reka-on:white" font-medium py-4 rounded-full cursor-pointer transition-colors f-px-2xs>
-        {{ $t('filters.openNow') }}
-      </Toggle>
-      <Toggle v-model="walkable" outline="~ neutral-400 1.5 reka-on:reka-blue" bg="neutral-100 hocus:neutral-200" text="14 neutral-800 hocus:neutral" font-medium py-4 rounded-full cursor-pointer transition-colors f-px-2xs>
-        {{ $t('filters.walkableDistance') }}
-      </Toggle>
-    </div>
   </form>
 </template>
 
 <style>
 mark {
-  --uno: 'bg-blue-400 font-semibold px-2 rounded-2';
+  background: var(--colors-blue-400);
+  font-weight: 600;
+  padding: 0 2px;
+  border-radius: 2px;
 }
 </style>
