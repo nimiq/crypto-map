@@ -4,7 +4,7 @@ const querySchema = v.object({
   uuid: v.pipe(v.string(), v.uuid()),
 })
 
-export default defineEventHandler(async (event) => {
+export default defineCachedEventHandler(async (event) => {
   const { uuid } = await getValidatedRouterParams(event, data => v.parse(querySchema, data))
 
   const db = useDrizzle()
@@ -48,5 +48,11 @@ export default defineEventHandler(async (event) => {
   if (!result)
     throw createError({ statusCode: 404, statusMessage: 'Location not found' })
 
+  setResponseHeader(event, 'Cache-Control', 'public, max-age=900, stale-while-revalidate=900')
+
   return result
+}, {
+  maxAge: 60 * 15,
+  swr: true,
+  getKey: event => getRouterParam(event, 'uuid') || '',
 })

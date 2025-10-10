@@ -353,6 +353,34 @@ OPENAI_API_KEY="sk-..." pnpm run db:generate-category-embeddings
 - Embeddings stored directly in `database/scripts/categories.json` as arrays
 - Each category object includes an `embeddings` field with 1536 float values
 
+## Performance
+
+### Endpoint Caching Strategy
+
+The application uses a multi-layer caching strategy to optimize response times and reduce database load:
+
+| Endpoint | Server Cache | SWR | CDN/Browser Cache | Strategy |
+|----------|-------------|-----|------------------|----------|
+| `/api/categories` | 12h | ✓ | 1h (SWR: 12h) | Low variance, recalculated counts cached server-side |
+| `/api/locations/[uuid]` | 15min | ✓ | 15min (SWR: 15min) | Frequently accessed single locations |
+| `/api/locations/stats` | 24h | ✓ | - | Summary stats for widgets |
+| `/api/search` | 24h | ✓ | - | Heavy queries keyed by query+flags |
+| `/api/search/autocomplete` | 7d | ✓ | - | Text search + warm embedding cache |
+| `/api/locations` | None | - | - | High variance (filters, open/closed state) |
+
+**Implementation:**
+
+- **Server Cache**: Nitro's `defineCachedEventHandler` with configurable TTL and SWR
+- **HTTP Headers**: `Cache-Control` headers set via `setResponseHeader` for CDN/browser
+- **Route Rules**: Defined in `nuxt.config.ts` for Cloudflare/NuxtHub compatibility
+- **Embedding Cache**: NuxtHub KV with permanent storage (no TTL) for OpenAI embeddings
+
+**Notes:**
+
+- Endpoints with dynamic filters (`/api/locations`) remain uncached to avoid stale results
+- 404 responses bypass cache to avoid caching missing resources
+- SWR (Stale-While-Revalidate) ensures users get instant responses while cache refreshes in background
+
 ## Learn More
 
 - [Nuxt Documentation](https://nuxt.com/docs)
