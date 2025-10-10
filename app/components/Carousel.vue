@@ -52,7 +52,7 @@ onUnmounted(() => {
         </button>
       </div>
     </div>
-    <div ref="scrollContainer"  translate-x="[calc(-1*var(--f-px))]" w-screen snap="x mandatory" class="carousel-container" flex="~" pb-8 gap-12 of-x-auto children:snap-align-start scroll-px-24 hide-scrollbar style="scrollbar-width: none; -webkit-overflow-scrolling: touch;">
+    <div ref="scrollContainer" translate-x="[calc(-1*var(--f-px))]" snap="x mandatory" class="carousel-container" flex="~" children:snap-align-start hide-scrollbar pb-8 gap-12 w-screen of-x-auto scroll-px-24 style="scrollbar-width: none; -webkit-overflow-scrolling: touch;">
       <slot />
     </div>
   </div>
