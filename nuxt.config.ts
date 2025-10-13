@@ -19,10 +19,16 @@ export default defineNuxtConfig({
     '@nuxtjs/i18n',
   ],
   hub: {
-    database: true,
     blob: true,
     kv: true,
     cache: true,
+    ...(process.env.HYPERDRIVE_ID && {
+      bindings: {
+        hyperdrive: {
+          POSTGRES: process.env.HYPERDRIVE_ID,
+        },
+      },
+    }),
   },
   eslint: {
     config: {
@@ -33,12 +39,14 @@ export default defineNuxtConfig({
     googleApiKey: process.env.GOOGLE_API_KEY || '',
     openaiApiKey: process.env.OPENAI_API_KEY || '',
     databaseUrl: process.env.DATABASE_URL || '',
+    hyperdriveId: process.env.HYPERDRIVE_ID || '',
   },
   safeRuntimeConfig: {
     $schema: v.object({
       googleApiKey: v.pipe(v.string(), v.minLength(1, 'GOOGLE_API_KEY is required')),
       openaiApiKey: v.pipe(v.string(), v.minLength(1, 'OPENAI_API_KEY is required')),
       databaseUrl: v.pipe(v.string(), v.minLength(1, 'DATABASE_URL is required')),
+      hyperdriveId: v.optional(v.string()),
     }),
   },
   icon: {
