@@ -22,6 +22,9 @@ catalogs:
     motion-v:
       specifier: ^1.7.2
       version: 1.7.2
+    unocss:
+      specifier: ^66.5.3
+      version: 66.5.3
     vue-sonner:
       specifier: ^2.0.9
       version: 2.0.9
@@ -262,7 +265,7 @@ importers:
         specifier: catalog:dev
         version: 5.9.3
       unocss:
-        specifier: ^66.5.3
+        specifier: 'catalog:'
         version: 66.5.3(@unocss/webpack@66.5.3(webpack@5.102.0(esbuild@0.25.10)))(postcss@8.5.6)(vite@7.1.9(@types/node@24.7.2)(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1))
       unocss-preset-onmax:
         specifier: catalog:ui
@@ -6924,7 +6927,7 @@ snapshots:
     dependencies:
       '@babel/code-frame': 7.27.1
       '@babel/generator': 7.28.3
-      '@babel/parser': 7.27.7
+      '@babel/parser': 7.28.4
       '@babel/template': 7.27.2
       '@babel/types': 7.28.4
       debug: 4.4.3
