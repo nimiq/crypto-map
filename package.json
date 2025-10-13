@@ -61,7 +61,7 @@
     "playwright-core": "catalog:test",
     "tsx": "catalog:dev",
     "typescript": "catalog:dev",
-    "unocss": "^66.5.3",
+    "unocss": "catalog:",
     "unocss-preset-onmax": "catalog:ui",
     "vitest": "catalog:test",
     "wrangler": "catalog:dev"

@@ -1,6 +1,7 @@
 catalog:
   dotenv: ^17.2.3
   motion-v: ^1.7.2
+  unocss: ^66.5.3
   vue-sonner: ^2.0.9
 
 catalogs:
