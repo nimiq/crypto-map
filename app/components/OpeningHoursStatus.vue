@@ -42,9 +42,9 @@ const formattedHours = computed(() => {
 })
 
 const variantClasses = {
-  success: 'bg-neutral-100 text-neutral-800',
-  warning: 'bg-orange-200 text-orange-800',
-  neutral: 'bg-neutral-100 text-neutral-800',
+  success: 'bg-neutral-400 text-neutral-800 outline-neutral-600',
+  warning: 'bg-orange-400 text-orange-1100 outline-orange-600',
+  neutral: 'bg-red-400 text-red-1100 outline-red-600',
 }
 </script>
 

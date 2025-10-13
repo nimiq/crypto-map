@@ -32,6 +32,24 @@
     "popular": "Popular",
     "recentlyViewed": "Vistos recentemente"
   },
+  "contextual": {
+    "startYourDay": "Comece seu dia",
+    "morningWorkout": "Treino matinal",
+    "morningCoffee": "Café da manhã",
+    "selfCare": "Cuidados pessoais",
+    "lunchSpots": "Lugares para almoço",
+    "quickBite": "Lanche rápido",
+    "afternoonBreak": "Pausa da tarde",
+    "relaxation": "Relaxamento",
+    "afterWork": "Depois do trabalho",
+    "eveningWorkout": "Treino noturno",
+    "dinnerTime": "Hora do jantar",
+    "drinks": "Bebidas",
+    "nightlife": "Vida noturna",
+    "lateNight": "Aberto até tarde",
+    "openNow": "Aberto agora",
+    "emergency": "Serviços de emergência"
+  },
   "categories": {
     "car_dealer": "Concessionária de automóveis",
     "car_rental": "Aluguel de carros",

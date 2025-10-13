@@ -1,7 +1,7 @@
 import { toZonedTime } from 'date-fns-tz'
 import OpeningHours from 'opening_hours'
 
-export function filterOpenNow<T extends LocationResponse>(locations: T[]): T[] {
+export function filterOpenNow<T extends { openingHours: string | null, timezone: string }>(locations: T[]): T[] {
   const referenceTime = new Date()
 
   return locations.filter(({ openingHours, timezone }) => {

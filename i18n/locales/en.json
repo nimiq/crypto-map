@@ -32,6 +32,24 @@
     "popular": "Popular",
     "recentlyViewed": "Recently Viewed"
   },
+  "contextual": {
+    "startYourDay": "Start Your Day",
+    "morningWorkout": "Morning Workout",
+    "morningCoffee": "Morning Coffee",
+    "selfCare": "Self Care",
+    "lunchSpots": "Lunch Spots",
+    "quickBite": "Quick Bite",
+    "afternoonBreak": "Afternoon Break",
+    "relaxation": "Relaxation",
+    "afterWork": "After Work",
+    "eveningWorkout": "Evening Workout",
+    "dinnerTime": "Dinner Time",
+    "drinks": "Drinks",
+    "nightlife": "Nightlife",
+    "lateNight": "Late Night Eats",
+    "openNow": "Open Now",
+    "emergency": "Emergency Services"
+  },
   "categories": {
     "car_dealer": "Car Dealer",
     "car_rental": "Car Rental",
@@ -302,7 +320,7 @@
     "ice_skating_rink": "Ice Skating Rink",
     "playground": "Playground",
     "ski_resort": "Ski Resort",
-    "sports_activity_location": "Sports Activity Location",
+    "sports_activity_location": "Sports",
     "sports_club": "Sports Club",
     "sports_coaching": "Sports Coaching",
     "sports_complex": "Sports Complex",
