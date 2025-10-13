@@ -19,6 +19,7 @@ export default defineNuxtConfig({
     '@nuxtjs/i18n',
   ],
   hub: {
+    database: false,
     blob: true,
     kv: true,
     cache: true,
