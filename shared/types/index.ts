@@ -24,4 +24,5 @@ export type LocationResponse = Omit<Location, 'location'> & {
 
 export type SearchLocationResponse = LocationResponse & {
   highlightedName?: string
+  icon?: string
 }

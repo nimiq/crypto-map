@@ -134,6 +134,7 @@ export async function searchLocationsByText(
   const selectFields: Record<string, any> = {
     ...locationSelect,
     highlightedName: sql<string>`ts_headline('simple', ${tables.locations.name}, to_tsquery('simple', ${tsQuery}), 'StartSel=<mark>, StopSel=</mark>')`.as('highlightedName'),
+    icon: sql<string>`(array_agg(${tables.categories.icon}) FILTER (WHERE ${tables.categories.icon} IS NOT NULL))[1]`.as('icon'),
   }
 
   // Add distance calculation if origin is provided

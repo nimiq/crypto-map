@@ -51,7 +51,7 @@ export function getContextualCategories(date: Date = new Date()): TimeContext {
   if (hour >= 15 && hour < 17) {
     return {
       primary: { title: 'contextual.afternoonBreak', icon: 'i-tabler:ice-cream-2', categories: ['cafe', 'coffee_shop', 'ice_cream_shop', 'dessert_shop'] },
-      secondary: { title: 'contextual.relaxation', icon: 'i-tabler:spa', categories: ['beauty_salon', 'nail_salon', 'spa', 'massage'] },
+      secondary: { title: 'contextual.relaxation', icon: 'i-tabler:massage', categories: ['beauty_salon', 'nail_salon', 'spa', 'massage'] },
     }
   }
 

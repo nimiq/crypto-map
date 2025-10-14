@@ -2,7 +2,7 @@
   "name": "pay-app",
   "type": "module",
   "private": true,
-  "packageManager": "pnpm@10.18.0",
+  "packageManager": "pnpm@10.18.2",
   "scripts": {
     "dev": "nuxt dev",
     "dev:remote": "nuxt dev --remote",
@@ -31,7 +31,7 @@
     "consola": "catalog:utils",
     "date-fns-tz": "catalog:utils",
     "drizzle-orm": "catalog:database",
-    "motion-v": "catalog:",
+    "motion-v": "catalog:ui",
     "nimiq-flags": "catalog:ui",
     "nimiq-icons": "catalog:ui",
     "nuxt": "catalog:framework",
@@ -41,7 +41,7 @@
     "postgres": "catalog:database",
     "reka-ui": "catalog:ui",
     "valibot": "catalog:utils",
-    "vue-sonner": "catalog:"
+    "vue-sonner": "catalog:ui"
   },
   "devDependencies": {
     "@antfu/eslint-config": "catalog:dev",
@@ -50,9 +50,8 @@
     "@nuxt/test-utils": "catalog:test",
     "@unocss/eslint-plugin": "catalog:dev",
     "@unocss/nuxt": "catalog:ui",
-    "@unocss/preset-attributify": "catalog:ui",
     "@vue/test-utils": "catalog:test",
-    "dotenv": "catalog:",
+    "dotenv": "catalog:dev",
     "drizzle-kit": "catalog:database",
     "eslint": "catalog:dev",
     "eslint-plugin-format": "catalog:dev",
@@ -61,7 +60,7 @@
     "playwright-core": "catalog:test",
     "tsx": "catalog:dev",
     "typescript": "catalog:dev",
-    "unocss": "catalog:",
+    "unocss": "catalog:ui",
     "unocss-preset-onmax": "catalog:ui",
     "vitest": "catalog:test",
     "wrangler": "catalog:dev"

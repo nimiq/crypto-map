@@ -88,9 +88,9 @@ function copyToClipboard(text: string, message: string) {
               <tr v-for="location in locations" :key="location.uuid" bg="white hover:neutral-50" border-b="1 neutral-200" group transition-colors>
                 <td px-8 py-8 relative>
                   <div v-if="location.photo" relative @mouseenter="hoveredPhoto = `/images/location/${location.uuid}`" @mouseleave="hoveredPhoto = null">
-                    <img :src="`/images/location/${location.uuid}`" :alt="location.name" class="rounded-4 h-32 w-32 object-cover">
+                    <img :src="`/images/location/${location.uuid}`" :alt="location.name" rounded-4 h-32 w-32 object-cover>
                     <div v-if="hoveredPhoto === `/images/location/${location.uuid}`" p-8 rounded-8 bg-white shadow-lg fixed z-50 border="1 neutral-200" style="pointer-events: none; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-                      <img :src="`/images/location/${location.uuid}`" :alt="location.name" class="rounded-4 max-h-400 max-w-400">
+                      <img :src="`/images/location/${location.uuid}`" :alt="location.name" rounded-4 max-h-400 max-w-400>
                       <p text="f-xs neutral-600" font-mono mb-0 mt-4 break-all>
                         /images/location/{{ location.uuid }}
                       </p>
@@ -129,7 +129,7 @@ function copyToClipboard(text: string, message: string) {
                 </td>
                 <td px-8 py-8>
                   <div flex="~ items-center gap-6">
-                    <div flex="~ col" text="10px" class="font-mono">
+                    <div flex="~ col" text="10px" font-mono>
                       <span>{{ location.latitude.toFixed(6) }}</span>
                       <span>{{ location.longitude.toFixed(6) }}</span>
                     </div>
@@ -151,10 +151,10 @@ function copyToClipboard(text: string, message: string) {
                 </td>
                 <td px-8 py-8>
                   <div flex="~ col gap-2 items-start">
-                    <button type="button" text="f-2xs neutral-600 hover:neutral-900 left" bg="neutral-50 hover:neutral-100" px-6 py-2 rounded-4 cursor-pointer whitespace-nowrap transition-colors class="font-mono" @click="copyToClipboard(location.uuid, 'UUID copied')">
+                    <button type="button" text="f-2xs neutral-600 hover:neutral-900 left" bg="neutral-50 hover:neutral-100" px-6 py-2 rounded-4 cursor-pointer whitespace-nowrap transition-colors font-mono @click="copyToClipboard(location.uuid, 'UUID copied')">
                       {{ location.uuid }}
                     </button>
-                    <button type="button" text="f-2xs neutral-600 hover:neutral-900 left" bg="neutral-50 hover:neutral-100" px-6 py-2 rounded-4 cursor-pointer whitespace-nowrap transition-colors class="font-mono" @click="copyToClipboard(location.gmapsPlaceId, 'Place ID copied')">
+                    <button type="button" text="f-2xs neutral-600 hover:neutral-900 left" bg="neutral-50 hover:neutral-100" px-6 py-2 rounded-4 cursor-pointer whitespace-nowrap transition-colors font-mono @click="copyToClipboard(location.gmapsPlaceId, 'Place ID copied')">
                       {{ location.gmapsPlaceId }}
                     </button>
                   </div>

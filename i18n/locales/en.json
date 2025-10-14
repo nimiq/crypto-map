@@ -5,11 +5,13 @@
   },
   "search": {
     "placeholder": "Search locations or add category filters...",
-    "noCategoriesFound": "No categories found"
+    "noCategoriesFound": "No categories found",
+    "startTyping": "Start typing to search locations"
   },
   "filters": {
     "openNow": "Open now",
-    "walkableDistance": "Walkable distance (WIP)"
+    "walkableDistance": "Walkable distance (WIP)",
+    "restaurants": "Restaurants"
   },
   "location": {
     "viewOnMaps": "View on Maps",

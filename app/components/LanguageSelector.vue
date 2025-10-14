@@ -15,6 +15,15 @@ async function changeLocale(code: string) {
 
   await router.push(path)
 }
+
+const flags = {
+
+  en: 'i-nimiq-flags:gb-hexagon',
+  de: 'i-nimiq-flags:de-hexagon',
+  es: 'i-nimiq-flags:es-hexagon',
+  pt: 'i-nimiq-flags:pt-hexagon',
+  fr: 'i-nimiq-flags:fr-hexagon',
+} as const
 </script>
 
 <template>
@@ -25,7 +34,8 @@ async function changeLocale(code: string) {
       </SelectTrigger>
       <SelectContent position="popper" outline="~ 1.5 neutral-200" rounded-8 bg-white max-h-256 shadow z-50 of-auto>
         <SelectViewport f-p-xs>
-          <SelectItem v-for="availableLocale in availableLocales" :key="availableLocale.code" :value="availableLocale.code" flex="~ items-center gap-8" text="f-sm neutral-800 data-[highlighted]:neutral-900" bg="data-[highlighted]:neutral-50" py-10 outline-none rounded-6 cursor-pointer transition-colors f-px-md>
+          <SelectItem v-for="availableLocale in availableLocales" :key="availableLocale.code" :value="availableLocale.code" flex="~ items-center gap-8" text="f-sm neutral-800 data-[highlighted]:neutral-900" bg="data-[highlighted]:neutral-50" f-p-2xs outline-none rounded-6 cursor-pointer transition-colors>
+            <Icon :name="flags[availableLocale.code as keyof typeof flags]" size-20 />
             {{ availableLocale.name }}
           </SelectItem>
         </SelectViewport>
