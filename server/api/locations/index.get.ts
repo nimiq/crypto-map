@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
     .select({
       uuid: tables.locations.uuid,
       name: tables.locations.name,
-      address: tables.locations.address,
+      address: sql<string>`${tables.locations.street} || ', ' || ${tables.locations.postalCode} || ' ' || ${tables.locations.city} || ', ' || ${tables.locations.country}`,
       rating: tables.locations.rating,
       photo: tables.locations.photo,
       gmapsPlaceId: tables.locations.gmapsPlaceId,

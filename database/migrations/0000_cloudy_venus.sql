@@ -8,14 +8,18 @@ CREATE TABLE "categories" (
 CREATE TABLE "location_categories" (
 	"location_uuid" text NOT NULL,
 	"category_id" text NOT NULL,
-	"created_at" timestamp,
+	"created_at" timestamp DEFAULT NOW(),
 	CONSTRAINT "location_categories_location_uuid_category_id_pk" PRIMARY KEY("location_uuid","category_id")
 );
 --> statement-breakpoint
 CREATE TABLE "locations" (
-	"uuid" text PRIMARY KEY NOT NULL,
+	"uuid" text PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" text NOT NULL,
-	"address" text NOT NULL,
+	"street" text NOT NULL,
+	"city" text NOT NULL,
+	"postal_code" text NOT NULL,
+	"region" text,
+	"country" text NOT NULL,
 	"location" geometry(point) NOT NULL,
 	"rating" double precision,
 	"photo" text,
@@ -25,14 +29,14 @@ CREATE TABLE "locations" (
 	"source" varchar(20) NOT NULL,
 	"timezone" text NOT NULL,
 	"opening_hours" text,
-	"updated_at" timestamp,
-	"created_at" timestamp,
+	"updated_at" timestamp DEFAULT NOW(),
+	"created_at" timestamp DEFAULT NOW(),
 	CONSTRAINT "locations_gmaps_place_id_unique" UNIQUE("gmaps_place_id")
 );
 --> statement-breakpoint
 ALTER TABLE "location_categories" ADD CONSTRAINT "location_categories_location_uuid_locations_uuid_fk" FOREIGN KEY ("location_uuid") REFERENCES "public"."locations"("uuid") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "location_categories" ADD CONSTRAINT "location_categories_category_id_categories_id_fk" FOREIGN KEY ("category_id") REFERENCES "public"."categories"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-CREATE INDEX "categories_embedding_idx" ON "categories" USING hnsw ("embedding" vector_cosine_ops) WITH (m=16,ef_construction=64);--> statement-breakpoint
+CREATE INDEX "categories_embedding_idx" ON "categories" USING hnsw (embedding vector_cosine_ops) WITH (m=16,ef_construction=64);--> statement-breakpoint
 CREATE INDEX "location_idx" ON "location_categories" USING btree ("location_uuid");--> statement-breakpoint
 CREATE INDEX "category_idx" ON "location_categories" USING btree ("category_id");--> statement-breakpoint
 CREATE INDEX "location_spatial_idx" ON "locations" USING gist ("location");

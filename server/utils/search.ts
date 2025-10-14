@@ -4,7 +4,7 @@ const SIMILARITY_THRESHOLD = 0.7
 const locationSelect = {
   uuid: tables.locations.uuid,
   name: tables.locations.name,
-  address: tables.locations.address,
+  address: sql<string>`${tables.locations.street} || ', ' || ${tables.locations.postalCode} || ' ' || ${tables.locations.city} || ', ' || ${tables.locations.country}`.as('address'),
   latitude: sql<number>`ST_Y(${tables.locations.location})`.as('latitude'),
   longitude: sql<number>`ST_X(${tables.locations.location})`.as('longitude'),
   rating: tables.locations.rating,
@@ -73,7 +73,7 @@ export async function searchLocationsBySimilarCategories(
     SELECT
       ${tables.locations.uuid},
       ${tables.locations.name},
-      ${tables.locations.address},
+      ${tables.locations.street} || ', ' || ${tables.locations.postalCode} || ' ' || ${tables.locations.city} || ', ' || ${tables.locations.country} as address,
       ST_Y(${tables.locations.location}) as latitude,
       ST_X(${tables.locations.location}) as longitude,
       ${tables.locations.rating},
@@ -148,7 +148,7 @@ export async function searchLocationsByText(
   }
 
   const whereConditions = [
-    sql`to_tsvector('simple', ${tables.locations.name} || ' ' || ${tables.locations.address})
+    sql`to_tsvector('simple', ${tables.locations.name} || ' ' || ${tables.locations.street} || ' ' || ${tables.locations.city} || ' ' || ${tables.locations.country})
         @@ to_tsquery('simple', ${tsQuery})`,
   ]
 

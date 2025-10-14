@@ -13,7 +13,7 @@ export default defineCachedEventHandler(async (event) => {
     .select({
       uuid: tables.locations.uuid,
       name: tables.locations.name,
-      address: tables.locations.address,
+      address: sql<string>`${tables.locations.street} || ', ' || ${tables.locations.postalCode} || ' ' || ${tables.locations.city} || ', ' || ${tables.locations.country}`,
       latitude: sql<number>`ST_Y(${tables.locations.location})`,
       longitude: sql<number>`ST_X(${tables.locations.location})`,
       rating: tables.locations.rating,

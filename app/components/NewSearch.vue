@@ -67,7 +67,7 @@ function handleClose() {
         <span text-neutral-800 v-html="value.kind === 'location' ? (displayValue || value.name) : (displayValue || value.query)" />
         <span text-neutral-600 text-f-xs>{{ subline }}</span>
       </div>
-      <span v-html="value.kind === 'location' ? (displayValue || value.name) : (displayValue || value.query)" text-neutral-800 />
+      <span v-else v-html="value.kind === 'location' ? (displayValue || value.name) : (displayValue || value.query)" text-neutral-800 />
     </ComboboxItem>
   </DefineComboboxItemTemplate>
 
@@ -88,7 +88,7 @@ function handleClose() {
     </ComboboxAnchor>
 
     <ComboboxPortal>
-      <ComboboxContent position="popper" :side-offset="8" align="start" bg-white z-50 flex="~ col" size-full>
+      <ComboboxContent position="popper" :side-offset="8" align="start" bg-neutral-0 z-50 flex="~ col" size-full>
         <ComboboxViewport flex="~ col" h-full of-auto>
           <!-- <ComboboxEmpty>
             Search for places to visit, eat, shop &amp; more.

@@ -14,7 +14,8 @@ export interface SearchLocationOptions {
   maxDistanceMeters?: number
 }
 
-export type LocationResponse = Omit<Location, 'location'> & {
+export type LocationResponse = Omit<Location, 'location' | 'street' | 'city' | 'postalCode' | 'region' | 'country'> & {
+  address: string
   latitude: number
   longitude: number
   categoryIds: string
