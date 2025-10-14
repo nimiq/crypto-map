@@ -37,16 +37,16 @@ const secondaryInfo = computed(() => {
 </script>
 
 <template>
-  <NuxtLink :to="location.gmapsUrl" :aria-label="`View ${location.name} on Google Maps`" target="_blank" outline="~ 1 neutral-200" flex="~ col" group rounded-8 no-underline flex-shrink-0 of-hidden>
+  <NuxtLink :to="location.gmapsUrl" :aria-label="`View ${location.name} on Google Maps`" target="_blank" flex="~ col" group rounded-8 no-underline flex-shrink-0 of-hidden w-140>
     <div aspect="4/3" bg-neutral-200 relative overflow-hidden>
-      <img v-if="photoUrl" :src="photoUrl" :alt="`Photo of ${location.name}`" loading="lazy" class="rounded-4 size-full object-cover" outline="1.5 offset--1.5 neutral-0/20">
+      <img v-if="photoUrl" :src="photoUrl" :alt="`Photo of ${location.name}`" loading="lazy" rounded-4 size-full object-cover outline="1.5 offset--1.5 neutral-0/20">
     </div>
     <div flex="~ col gap-4" p-4>
       <h3 text="f-sm neutral-900" font-semibold m-0 line-clamp-2>
         {{ location.name }}
       </h3>
       <div v-if="location.categories?.[0] || secondaryInfo" flex="~ items-center gap-4" text="f-xs" lh-none>
-        <span v-if="location.categories?.[0]" text-neutral-700>{{ location.categories[0].name }}</span>
+        <span v-if="location.categories?.[0]" text-neutral-700>{{ t(`categories.${location.categories[0].id}`) }}</span>
         <span v-if="location.categories?.[0] && secondaryInfo" text-neutral-700>•</span>
         <span v-if="secondaryInfo" :class="secondaryInfo.color" whitespace-nowrap>{{ secondaryInfo.text }}</span>
       </div>
