@@ -18,6 +18,11 @@ export default defineNuxtConfig({
     '@nuxt/image',
     '@nuxtjs/i18n',
   ],
+  nitro: {
+    experimental: {
+      wasm: true,
+    },
+  },
   hub: {
     database: false,
     blob: true,
@@ -80,6 +85,7 @@ export default defineNuxtConfig({
     '/api/categories': { cache: { maxAge: 3600, swr: true, staleMaxAge: 43200 } },
     '/api/locations': { cache: false },
     '/api/locations/*': { cache: { maxAge: 900, swr: true, staleMaxAge: 900 } },
+    '/api/image': { cache: { maxAge: 31536000, swr: true } },
   },
   compatibilityDate: '2025-10-01',
 })

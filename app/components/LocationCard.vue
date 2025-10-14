@@ -5,7 +5,8 @@ const { t } = useI18n()
 const photoUrl = computed(() => {
   if (!props.location.photo && !props.location.gmapsPlaceId)
     return null
-  return `/images/location/${props.location.uuid}`
+
+  return `/api/image?uuid=${props.location.uuid}`
 })
 
 const secondaryInfo = computed(() => {
