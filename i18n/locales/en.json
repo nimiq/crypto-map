@@ -15,7 +15,15 @@
   },
   "location": {
     "viewOnMaps": "View on Maps",
-    "visitWebsite": "Visit website"
+    "visitWebsite": "Visit website",
+    "categories": "Categories",
+    "openingHours": "Opening Hours"
+  },
+  "locations": {
+    "noResults": {
+      "title": "No locations found",
+      "description": "Try adjusting your search or filters"
+    }
   },
   "empty": {
     "title": "Spend your crypto",
@@ -27,7 +35,19 @@
     "open": "Open now",
     "closingSoon": "Closing soon",
     "closed": "Closed",
-    "unavailable": "Hours unavailable"
+    "unavailable": "Hours unavailable",
+    "opensAt": "Opens {day} at {time}",
+    "closingSoonOpensAt": "Closing soon, opens {day} at {time}",
+    "tomorrow": "tomorrow"
+  },
+  "days": {
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday"
   },
   "carousels": {
     "openNow": "Open Now",

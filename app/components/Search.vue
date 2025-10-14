@@ -3,7 +3,7 @@ import type { ComboboxInput } from 'reka-ui'
 import type { RouteLocationRaw } from 'vue-router'
 
 type SearchItem
-  = | { kind: 'location', uuid: string, name: string, gmapsUrl?: string }
+  = | { kind: 'location', uuid: string, name: string }
     | { kind: 'query', query: string }
 
 // Use shared search query state directly to ensure it's writable
@@ -25,9 +25,9 @@ const [DefineComboboxItemTemplate, Item] = createReusableTemplate<{
 
 function getItemLink(item: SearchItem): RouteLocationRaw | string {
   if (item.kind === 'query') {
-    return { path: '/locations', query: { query: item.query } }
+    return { path: '/', query: { query: item.query } }
   }
-  return item.gmapsUrl || `/locations?query=${item.name}`
+  return `/${item.uuid}`
 }
 
 function handleClose() {
@@ -90,8 +90,8 @@ function handleClose() {
             <template v-else>
               <Item :key="searchQuery" color="red" :item="{ kind: 'query', query: searchQuery }" :display-value="`<mark>${searchQuery}</mark> near you`" icon="i-tabler:search" />
               <ComboboxSeparator v-if="autocompleteResults && autocompleteResults.length > 0" border="t-1 neutral-400" w="[calc(100%-60px+var(--f-p))]" ml-60 />
-              <template v-for="({ uuid, name, address, icon, gmapsUrl }, i) in autocompleteResults" :key="uuid">
-                <Item :item="{ kind: 'location', uuid, name, gmapsUrl }" :icon="icon || 'i-tabler:map-pin'" :subline="address" />
+              <template v-for="({ uuid, name, address, icon }, i) in autocompleteResults" :key="uuid">
+                <Item :item="{ kind: 'location', uuid, name }" :icon="icon || 'i-tabler:map-pin'" :subline="address" />
                 <ComboboxSeparator v-if="i < autocompleteResults!.length - 1" border="t-1 neutral-400" w="[calc(100%-60px+var(--f-p))]" ml-60 />
               </template>
             </template>

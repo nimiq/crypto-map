@@ -18,6 +18,9 @@ export default defineNuxtConfig({
     '@nuxt/image',
     '@nuxtjs/i18n',
   ],
+  experimental: {
+    viewTransition: true,
+  },
   hub: {
     database: false,
     blob: true,

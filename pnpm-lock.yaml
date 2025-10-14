@@ -163,6 +163,9 @@ importers:
       '@vueuse/nuxt':
         specifier: catalog:framework
         version: 13.9.0(magicast@0.3.5)(nuxt@4.1.3(@parcel/watcher@2.5.1)(@types/node@24.7.2)(@vue/compiler-sfc@3.5.22)(db0@0.3.4(drizzle-orm@0.44.6(@opentelemetry/api@1.9.0)(postgres@3.4.7)))(drizzle-orm@0.44.6(@opentelemetry/api@1.9.0)(postgres@3.4.7))(eslint@9.37.0(jiti@2.6.1))(ioredis@5.8.0)(magicast@0.3.5)(optionator@0.9.4)(rollup@4.52.4)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(vite@7.1.9(@types/node@24.7.2)(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1))(yaml@2.8.1))(vue@3.5.22(typescript@5.9.3))
+      '@vueuse/router':
+        specifier: ^13.9.0
+        version: 13.9.0(vue-router@4.5.1(vue@3.5.22(typescript@5.9.3)))(vue@3.5.22(typescript@5.9.3))
       ai:
         specifier: catalog:utils
         version: 5.0.70(zod@3.25.76)
@@ -2898,6 +2901,12 @@ packages:
     peerDependencies:
       nuxt: ^3.0.0 || ^4.0.0-0
       vue: ^3.5.0
+
+  '@vueuse/router@13.9.0':
+    resolution: {integrity: sha512-7AYay8Pv/0fC4D0eygbIyZuLyVs+9D7dsnO5D8aqat9qcOz91v/XFWR667WE1+p+OkU0ib+FjQUdnTVBNoIw8g==}
+    peerDependencies:
+      vue: ^3.5.0
+      vue-router: ^4.0.0
 
   '@vueuse/shared@12.8.2':
     resolution: {integrity: sha512-dznP38YzxZoNloI0qpEfpkms8knDtaoQ6Y/sfS0L7Yki4zh40LFHEhur0odJC6xTHG5dxWVPiUWBXn+wCG2s5w==}
@@ -9624,6 +9633,12 @@ snapshots:
       vue: 3.5.22(typescript@5.9.3)
     transitivePeerDependencies:
       - magicast
+
+  '@vueuse/router@13.9.0(vue-router@4.5.1(vue@3.5.22(typescript@5.9.3)))(vue@3.5.22(typescript@5.9.3))':
+    dependencies:
+      '@vueuse/shared': 13.9.0(vue@3.5.22(typescript@5.9.3))
+      vue: 3.5.22(typescript@5.9.3)
+      vue-router: 4.5.1(vue@3.5.22(typescript@5.9.3))
 
   '@vueuse/shared@12.8.2(typescript@5.9.3)':
     dependencies:

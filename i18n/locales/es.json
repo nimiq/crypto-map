@@ -13,7 +13,15 @@
   },
   "location": {
     "viewOnMaps": "Ver en Maps",
-    "visitWebsite": "Visitar sitio web"
+    "visitWebsite": "Visitar sitio web",
+    "categories": "Categorías",
+    "openingHours": "Horario de apertura"
+  },
+  "locations": {
+    "noResults": {
+      "title": "No se encontraron ubicaciones",
+      "description": "Intenta ajustar tu búsqueda o filtros"
+    }
   },
   "empty": {
     "title": "Gasta tus criptomonedas",
@@ -25,7 +33,19 @@
     "open": "Abierto ahora",
     "closingSoon": "Cierra pronto",
     "closed": "Cerrado",
-    "unavailable": "Horario no disponible"
+    "unavailable": "Horario no disponible",
+    "opensAt": "Abre {day} a las {time}",
+    "closingSoonOpensAt": "Cierra pronto, abre {day} a las {time}",
+    "tomorrow": "mañana"
+  },
+  "days": {
+    "monday": "Lunes",
+    "tuesday": "Martes",
+    "wednesday": "Miércoles",
+    "thursday": "Jueves",
+    "friday": "Viernes",
+    "saturday": "Sábado",
+    "sunday": "Domingo"
   },
   "carousels": {
     "openNow": "Abierto ahora",

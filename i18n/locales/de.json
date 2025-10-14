@@ -13,7 +13,15 @@
   },
   "location": {
     "viewOnMaps": "Auf Maps ansehen",
-    "visitWebsite": "Website besuchen"
+    "visitWebsite": "Website besuchen",
+    "categories": "Kategorien",
+    "openingHours": "Öffnungszeiten"
+  },
+  "locations": {
+    "noResults": {
+      "title": "Keine Standorte gefunden",
+      "description": "Versuche, deine Suche oder Filter anzupassen"
+    }
   },
   "empty": {
     "title": "Gib deine Krypto aus",
@@ -25,7 +33,19 @@
     "open": "Jetzt geöffnet",
     "closingSoon": "Schließt bald",
     "closed": "Geschlossen",
-    "unavailable": "Öffnungszeiten nicht verfügbar"
+    "unavailable": "Öffnungszeiten nicht verfügbar",
+    "opensAt": "Öffnet {day} um {time}",
+    "closingSoonOpensAt": "Schließt bald, öffnet {day} um {time}",
+    "tomorrow": "morgen"
+  },
+  "days": {
+    "monday": "Montag",
+    "tuesday": "Dienstag",
+    "wednesday": "Mittwoch",
+    "thursday": "Donnerstag",
+    "friday": "Freitag",
+    "saturday": "Samstag",
+    "sunday": "Sonntag"
   },
   "carousels": {
     "openNow": "Jetzt geöffnet",

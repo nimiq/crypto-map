@@ -27,6 +27,7 @@
     "@nuxthub/core": "catalog:framework",
     "@nuxtjs/i18n": "catalog:framework",
     "@vueuse/nuxt": "catalog:framework",
+    "@vueuse/router": "^13.9.0",
     "ai": "catalog:utils",
     "consola": "catalog:utils",
     "date-fns-tz": "catalog:utils",
