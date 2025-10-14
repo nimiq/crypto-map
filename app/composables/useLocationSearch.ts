@@ -1,49 +1,44 @@
-// Search logic with autocomplete and embedding precomputation
-export function useLocationSearch() {
+interface UseLocationSearchOptions {
+  query?: MaybeRefOrGetter<string>
+  categories?: MaybeRefOrGetter<string[] | undefined>
+  immediate?: boolean
+  watch?: boolean
+}
+
+// Main location search with filters and geolocation
+export function useLocationSearch(options: UseLocationSearchOptions = {}) {
+  const { query: customQuery, categories: customCategories, immediate = false, watch = false } = options
+
   const { openNow, walkable } = useSearchFilters()
   const { coords } = useGeolocation({ immediate: true, enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 })
+  const sharedQuery = useState('searchQuery', () => '')
 
-  const searchQuery = useState('searchQuery', () => '')
-  const debouncedSearchQuery = refDebounced(searchQuery, 300, { maxWait: 1000 })
+  // Use custom query if provided, otherwise use shared state
+  const searchQuery = customQuery !== undefined ? computed(() => toValue(customQuery)) : sharedQuery
 
-  const { data: searchResults, pending: searchPending, refresh: refreshSearch } = useFetch('/api/search', {
-    query: computed(() => ({
-      q: searchQuery.value,
-      openNow: openNow.value || undefined,
-      walkable: walkable.value || undefined,
-      lat: coords.value.latitude || undefined,
-      lng: coords.value.longitude || undefined,
-    })),
+  const queryParams = computed(() => ({
+    q: searchQuery.value,
+    categories: customCategories !== undefined ? toValue(customCategories) : undefined,
+    openNow: openNow.value || undefined,
+    walkable: walkable.value || undefined,
+    lat: coords.value.latitude || undefined,
+    lng: coords.value.longitude || undefined,
+  }))
+
+  const { data: searchResults, status, refresh: refreshSearch } = useFetch('/api/search', {
+    query: queryParams,
     transform: locations => locations.map(loc => ({
       ...loc,
       hoursStatus: getOpeningHoursStatus(loc),
     })),
-    immediate: false,
-    watch: false,
-  })
-
-  const { execute: fetchAutocomplete, data: autocompleteResults } = useFetch(
-    '/api/search/autocomplete',
-    {
-      query: { q: debouncedSearchQuery },
-      immediate: false,
-      server: false,
-      watch: false,
-    },
-  )
-
-  // Watch debounced query and fetch when valid
-  watch(debouncedSearchQuery, (newQuery) => {
-    if (newQuery && newQuery.length >= 2) {
-      fetchAutocomplete()
-    }
+    immediate,
+    watch: watch ? [queryParams] : false,
   })
 
   return {
     searchQuery,
-    autocompleteResults,
     searchResults,
-    searchPending,
+    status,
     refreshSearch,
   }
 }

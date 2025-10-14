@@ -1,36 +1,38 @@
 {
-  "hero": {
-    "title": "Gib deine Krypto in Lugano aus",
-    "subtitle": "Entdecke Orte, die Kryptowährungszahlungen akzeptieren"
-  },
-  "search": {
-    "placeholder": "Suche Standorte oder füge Kategoriefilter hinzu...",
-    "noCategoriesFound": "Keine Kategorien gefunden"
-  },
-  "filters": {
-    "openNow": "Jetzt geöffnet",
-    "walkableDistance": "Fußläufige Entfernung (WIP)"
-  },
-  "location": {
-    "viewOnMaps": "Auf Maps ansehen",
-    "visitWebsite": "Website besuchen"
-  },
-  "empty": {
-    "title": "Gib deine Krypto aus",
-    "subtitle": "In Lugano findest du mehr als {count} Geschäfte, die Krypto akzeptieren",
-    "noResults": "Keine Standorte gefunden",
-    "noResultsSubtitle": "Versuche, deine Suche oder Filter anzupassen"
-  },
   "hours": {
     "open": "Jetzt geöffnet",
     "closingSoon": "Schließt bald",
     "closed": "Geschlossen",
     "unavailable": "Öffnungszeiten nicht verfügbar"
   },
+  "locations": {
+    "noResults": {
+      "title": "Keine Ergebnisse gefunden",
+      "description": "Passen Sie Ihre Suche oder Filter an"
+    }
+  },
   "carousels": {
     "openNow": "Jetzt geöffnet",
     "popular": "Beliebt",
     "recentlyViewed": "Kürzlich angesehen"
+  },
+  "contextual": {
+    "startYourDay": "Starte deinen Tag",
+    "morningWorkout": "Morgen-Training",
+    "morningCoffee": "Morgen-Kaffee",
+    "selfCare": "Selbstpflege",
+    "lunchSpots": "Mittagessen",
+    "quickBite": "Schneller Snack",
+    "afternoonBreak": "Nachmittagspause",
+    "relaxation": "Entspannung",
+    "afterWork": "Nach der Arbeit",
+    "eveningWorkout": "Abend-Training",
+    "dinnerTime": "Abendessen",
+    "drinks": "Getränke",
+    "nightlife": "Nachtleben",
+    "lateNight": "Spät geöffnet",
+    "openNow": "Jetzt geöffnet",
+    "emergency": "Notfalldienste"
   },
   "categories": {
     "car_dealer": "Autohändler",

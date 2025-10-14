@@ -22,6 +22,15 @@ export function useRecentlyViewed() {
     return validItems.map(item => item.uuid)
   })
 
+  // Fetch location data for recently viewed items
+  const recentlyViewedUuids = computed(() => recentlyViewed.value.slice(0, 10).join(','))
+  const { data: recentlyViewedData } = useFetch(`/api/locations`, {
+    query: { uuids: recentlyViewedUuids },
+    immediate: !!recentlyViewed.value.length,
+  })
+  const recentlyViewedLocations = computed(() => recentlyViewedData.value?.locations || [])
+  const filteredRecentlyViewed = computed(() => (recentlyViewedLocations.value || []).filter((loc): loc is NonNullable<typeof loc> => loc !== null && loc !== undefined))
+
   function addRecentlyViewed(uuid: string) {
     let items = [...storage.value]
 
@@ -43,6 +52,10 @@ export function useRecentlyViewed() {
 
   return {
     recentlyViewed,
+    recentlyViewedUuids,
+    recentlyViewedData,
+    recentlyViewedLocations,
+    filteredRecentlyViewed,
     addRecentlyViewed,
     clearRecentlyViewed,
   }

@@ -47,3 +47,14 @@ export function getOpeningHoursStatus(
     return { isOpen: false, nextChange: null, variant: 'unavailable', messageKey: variantConfig.unavailable }
   }
 }
+
+// Formats opening hours string into readable lines
+export function formatOpeningHours(openingHours: string): string[] {
+  try {
+    const schedule = new OpeningHours(openingHours.trim())
+    return schedule.prettifyValue().split(';').map(line => line.trim()).filter(Boolean)
+  }
+  catch {
+    return [openingHours]
+  }
+}

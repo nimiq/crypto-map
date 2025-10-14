@@ -37,7 +37,7 @@ const secondaryInfo = computed(() => {
 </script>
 
 <template>
-  <NuxtLink :to="location.gmapsUrl" :aria-label="`View ${location.name} on Google Maps`" target="_blank" flex="~ col" group rounded-8 no-underline flex-shrink-0 of-hidden w-140>
+  <NuxtLink :to="location.gmapsUrl" :aria-label="`View ${location.name} on Google Maps`" target="_blank" flex="~ col" group rounded-8 no-underline flex-shrink-0 w-140 of-hidden>
     <div aspect="4/3" bg-neutral-200 relative overflow-hidden>
       <img v-if="photoUrl" :src="photoUrl" :alt="`Photo of ${location.name}`" loading="lazy" rounded-4 size-full object-cover outline="1.5 offset--1.5 neutral-0/20">
     </div>
