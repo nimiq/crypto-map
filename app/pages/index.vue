@@ -87,7 +87,7 @@ const showCarousels = computed(() => !selectedItem.value)
     <AnnouncementBanner />
     <NuxtImg src="/assets/lugano.svg" alt="Lugano" mx-auto op-3 h-auto w-full pointer-events-none items-end bottom-0 left-0 right-0 absolute z-0 />
     <LanguageSelector />
-    <div f="$px $px-min-24 $px-max-32" pt-32 relative z-1 f-p-md>
+    <div f="$px-24/32" pt-32 relative z-1 f-py-xs>
       <div flex="~ items-center" min-h-40 relative f-mb-md>
         <Motion tag="h1" text="neutral-900 f-lg" font-bold :animate="{ opacity: isSearchOpen ? 0 : 1, transition: { duration: 0.2 } }" :style="{ pointerEvents: isSearchOpen ? 'none' : 'auto' }">
           {{ $t('hero.title') }}
