@@ -1,46 +1,47 @@
 catalog:
   dotenv: ^17.2.3
   motion-v: ^1.7.2
+  unocss: ^66.5.3
   vue-sonner: ^2.0.9
 
 catalogs:
   database:
-    drizzle-kit: latest
-    drizzle-orm: latest
-    postgres: latest
+    drizzle-kit: ^0.31.5
+    drizzle-orm: ^0.44.6
+    postgres: ^3.4.7
   dev:
     '@antfu/eslint-config': ^5.4.1
-    '@iconify-json/tabler': ^1.2.13
+    '@iconify-json/tabler': ^1.2.23
     '@nuxt/eslint': ^1.9.0
-    '@unocss/eslint-plugin': ^0.66.5
+    '@unocss/eslint-plugin': ^66.5.3
     eslint: ^9.37.0
     eslint-plugin-format: ^1.0.2
     tsx: ^4.20.6
-    typescript: ^5.7.3
+    typescript: ^5.9.3
     wrangler: ^4.41.0
   framework:
-    '@nuxt/fonts': latest
-    '@nuxt/icon': latest
-    '@nuxt/image': latest
-    '@nuxthub/core': latest
-    '@nuxtjs/i18n': latest
-    '@vueuse/nuxt': latest
-    nuxt: latest
-    nuxt-safe-runtime-config: latest
+    '@nuxt/fonts': ^0.11.4
+    '@nuxt/icon': ^2.0.0
+    '@nuxt/image': ^1.11.0
+    '@nuxthub/core': ^0.9.0
+    '@nuxtjs/i18n': ^10.1.0
+    '@vueuse/nuxt': ^13.9.0
+    nuxt: ^4.1.2
+    nuxt-safe-runtime-config: ^0.0.3
   test:
-    '@nuxt/test-utils': latest
-    '@vue/test-utils': latest
-    happy-dom: ^18.0.0
-    playwright-core: latest
-    vitest: latest
+    '@nuxt/test-utils': ^3.19.2
+    '@vue/test-utils': ^2.4.6
+    happy-dom: ^18.0.1
+    playwright-core: ^1.55.1
+    vitest: ^3.2.4
   ui:
-    '@unocss/nuxt': latest
-    '@unocss/preset-attributify': latest
-    nimiq-css: 1.0.0-beta.120
-    nimiq-flags: 1.0.0-beta.129
-    nimiq-icons: 1.0.0-beta.120
-    reka-ui: latest
-    unocss-preset-onmax: latest
+    '@unocss/nuxt': ^66.5.3
+    '@unocss/preset-attributify': ^66.5.3
+    nimiq-css: ^1.0.0-beta.120
+    nimiq-flags: ^1.0.0-beta.129
+    nimiq-icons: ^1.0.0-beta.120
+    reka-ui: ^2.5.1
+    unocss-preset-onmax: 1.0.0-beta.46
   utils:
     '@ai-sdk/openai': ^2.0.44
     ai: ^5.0.60

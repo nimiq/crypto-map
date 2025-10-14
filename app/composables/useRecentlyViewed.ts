@@ -4,7 +4,7 @@ interface RecentlyViewedItem {
 }
 
 const MAX_ITEMS = 20
-const MAX_AGE_DAYS = 30
+const MAX_AGE_DAYS = 3
 
 export function useRecentlyViewed() {
   const storage = useLocalStorage<RecentlyViewedItem[]>('recentlyViewed', [])

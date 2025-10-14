@@ -1,11 +1,14 @@
 import { eq, inArray, isNotNull, sql } from 'drizzle-orm'
 import * as v from 'valibot'
 
+// Plan B Forum at Lugano Convention Centre (Palazzo dei Congressi)
+const CONFERENCE_CENTER = { lat: 46.005030, lng: 8.956060 }
+
 const querySchema = v.object({
   page: v.optional(v.pipe(v.string(), v.transform(Number), v.number()), '1'),
   limit: v.optional(v.pipe(v.string(), v.transform(Number), v.number()), '50'),
   categoryId: v.optional(v.string()),
-  status: v.optional(v.picklist(['open', 'popular'])),
+  status: v.optional(v.picklist(['open', 'popular', 'contextual-primary', 'contextual-secondary'])),
   uuids: v.optional(v.pipe(v.string(), v.transform(s => s.split(',').filter(Boolean)))),
 })
 
@@ -15,6 +18,14 @@ export default defineEventHandler(async (event) => {
 
   const db = useDrizzle()
   const offset = (page - 1) * limit
+
+  // Handle contextual status by converting to category filtering
+  let contextualCategories: string[] | undefined
+  if (status === 'contextual-primary' || status === 'contextual-secondary') {
+    const timeContext = getContextualCategories()
+    const carousel = status === 'contextual-primary' ? timeContext.primary : timeContext.secondary
+    contextualCategories = carousel.categories
+  }
 
   // Build base query
   let query = db
@@ -34,6 +45,10 @@ export default defineEventHandler(async (event) => {
       updatedAt: tables.locations.updatedAt,
       latitude: sql<number>`ST_Y(${tables.locations.location})`,
       longitude: sql<number>`ST_X(${tables.locations.location})`,
+      distanceMeters: sql<number>`ST_Distance(
+        ${tables.locations.location}::geography,
+        ST_SetSRID(ST_MakePoint(${CONFERENCE_CENTER.lng}, ${CONFERENCE_CENTER.lat}), 4326)::geography
+      )`,
       categories: sql<Array<{ id: string, name: string, icon: string }>>`
         COALESCE(
           json_agg(
@@ -63,9 +78,15 @@ export default defineEventHandler(async (event) => {
     )`)
   }
 
+  // Handle contextual categories (applies to both primary and secondary)
+  if (contextualCategories && contextualCategories.length > 0)
+    whereConditions.push(inArray(tables.locationCategories.categoryId, contextualCategories))
+
   if (status === 'open')
     whereConditions.push(isNotNull(tables.locations.openingHours))
   else if (status === 'popular')
+    whereConditions.push(isNotNull(tables.locations.rating))
+  else if (status === 'contextual-primary' || status === 'contextual-secondary')
     whereConditions.push(isNotNull(tables.locations.rating))
 
   if (uuids && uuids.length > 0)
@@ -93,8 +114,8 @@ export default defineEventHandler(async (event) => {
 
   // Apply runtime filters
   let filteredLocations = locations
-  if (status === 'open')
-    filteredLocations = filterOpenNow(locations as any)
+  if (status === 'open' || status === 'contextual-primary' || status === 'contextual-secondary')
+    filteredLocations = filterOpenNow(locations)
 
   // Preserve order for uuids query
   if (uuids && uuids.length > 0) {
@@ -102,8 +123,17 @@ export default defineEventHandler(async (event) => {
     filteredLocations = uuids.map(uuid => locationsMap.get(uuid)).filter(Boolean) as typeof locations
   }
 
+  // Add contextual metadata if applicable
+  let contextualMetadata
+  if (status === 'contextual-primary' || status === 'contextual-secondary') {
+    const timeContext = getContextualCategories()
+    const carousel = status === 'contextual-primary' ? timeContext.primary : timeContext.secondary
+    contextualMetadata = { title: carousel.title, icon: carousel.icon }
+  }
+
   return {
     locations: filteredLocations,
+    contextual: contextualMetadata,
     pagination: skipCount
       ? undefined
       : {

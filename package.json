@@ -4,7 +4,8 @@
   "private": true,
   "packageManager": "pnpm@10.18.0",
   "scripts": {
-    "dev": "nuxt dev --remote",
+    "dev": "nuxt dev",
+    "dev:remote": "nuxt dev --remote",
     "build": "nuxt build",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
@@ -60,6 +61,7 @@
     "playwright-core": "catalog:test",
     "tsx": "catalog:dev",
     "typescript": "catalog:dev",
+    "unocss": "catalog:",
     "unocss-preset-onmax": "catalog:ui",
     "vitest": "catalog:test",
     "wrangler": "catalog:dev"

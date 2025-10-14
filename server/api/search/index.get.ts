@@ -1,6 +1,9 @@
 import { consola } from 'consola'
 import * as v from 'valibot'
 
+// Plan B Forum at Lugano Convention Centre (Palazzo dei Congressi)
+const CONFERENCE_CENTER = { lat: 46.005030, lng: 8.956060 }
+
 const querySchema = v.object({
   lat: v.optional(v.pipe(
     v.string(),
@@ -26,9 +29,8 @@ export default defineCachedEventHandler(async (event) => {
   if (!searchQuery || searchQuery.trim().length === 0)
     return []
 
-  const { lat, lng } = (!qLat || !qLng)
-    ? await locateByHost(getHeader(event, 'cf-connecting-ip')).catch(() => ({ lat: undefined, lng: undefined }))
-    : { lat: qLat, lng: qLng }
+  // Default to Lugano Convention Center if no lat/lng provided
+  const { lat, lng } = (!qLat || !qLng) ? CONFERENCE_CENTER : { lat: qLat, lng: qLng }
 
   if (lat !== undefined && lng !== undefined)
     consola.info(`User location: ${lat}, ${lng}`, { tag: 'geolocation' })

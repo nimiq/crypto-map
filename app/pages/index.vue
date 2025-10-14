@@ -62,12 +62,13 @@ watch(isSearchOpen, (open) => {
   }
 })
 
-// Fetch categories and carousel data
-const { data: categories } = useFetch('/api/categories')
-const { data: openNowData } = useFetch('/api/locations?status=open&limit=10')
-const openNowLocations = computed(() => openNowData.value?.locations || [])
-const { data: popularData } = useFetch('/api/locations?status=popular&limit=10')
-const popularLocations = computed(() => popularData.value?.locations || [])
+// Fetch carousel data
+const { data: contextualPrimaryData } = useFetch('/api/locations?status=contextual-primary&limit=10')
+const contextualPrimaryLocations = computed(() => contextualPrimaryData.value?.locations || [])
+const contextualPrimaryMeta = computed(() => contextualPrimaryData.value?.contextual)
+const { data: contextualSecondaryData } = useFetch('/api/locations?status=contextual-secondary&limit=10')
+const contextualSecondaryLocations = computed(() => contextualSecondaryData.value?.locations || [])
+const contextualSecondaryMeta = computed(() => contextualSecondaryData.value?.contextual)
 const recentlyViewedUuids = computed(() => recentlyViewed.value.slice(0, 10).join(','))
 const { data: recentlyViewedData } = useFetch(() => `/api/locations?uuids=${recentlyViewedUuids.value}`, {
   watch: [recentlyViewed],
@@ -83,9 +84,10 @@ const showCarousels = computed(() => !selectedItem.value)
 
 <template>
   <div bg-neutral-100 min-h-screen relative>
+    <AnnouncementBanner />
     <NuxtImg src="/assets/lugano.svg" alt="Lugano" mx-auto op-3 h-auto w-full pointer-events-none items-end bottom-0 left-0 right-0 absolute z-0 />
     <LanguageSelector />
-    <div relative z-1 f-p-md f="$px $px-min-24 $px-max-32">
+    <div f="$px-24/32" pt-32 relative z-1 f-py-xs>
       <div flex="~ items-center" min-h-40 relative f-mb-md>
         <Motion tag="h1" text="neutral-900 f-lg" font-bold :animate="{ opacity: isSearchOpen ? 0 : 1, transition: { duration: 0.2 } }" :style="{ pointerEvents: isSearchOpen ? 'none' : 'auto' }">
           {{ $t('hero.title') }}
@@ -127,28 +129,21 @@ const showCarousels = computed(() => !selectedItem.value)
       </div>
 
       <!-- Carousels View (when search is closed) -->
-      <div v-if="showCarousels" f-mt-md>
+      <div v-if="showCarousels" f-mt-md f-space-y-lg>
         <!-- Recently Viewed Carousel -->
         <Carousel v-if="filteredRecentlyViewed && filteredRecentlyViewed.length > 0" :title="$t('carousels.recentlyViewed')" icon="i-tabler:history">
           <LocationCard v-for="location in filteredRecentlyViewed" :key="location.uuid" :location="location" w-140 @click="selectedItem = { kind: 'location', uuid: location.uuid, name: location.name }" />
         </Carousel>
 
-        <!-- Open Now Carousel -->
-        <Carousel v-if="openNowLocations && openNowLocations.length > 0" :title="$t('carousels.openNow')" icon="i-tabler:clock">
-          <LocationCard v-for="location in openNowLocations" :key="location.uuid" :location="location" w-140 @click="selectedItem = { kind: 'location', uuid: location.uuid, name: location.name }" />
+        <!-- Contextual Primary Carousel (time-based) -->
+        <Carousel v-if="contextualPrimaryLocations && contextualPrimaryLocations.length > 0 && contextualPrimaryMeta" :title="$t(contextualPrimaryMeta.title)" :icon="contextualPrimaryMeta.icon">
+          <LocationCard v-for="location in contextualPrimaryLocations" :key="location.uuid" :location="location" w-140 @click="selectedItem = { kind: 'location', uuid: location.uuid, name: location.name }" />
         </Carousel>
 
-        <!-- Popular Locations Carousel -->
-        <Carousel v-if="popularLocations && popularLocations.length > 0" :title="$t('carousels.popular')" icon="i-tabler:star">
-          <LocationCard v-for="location in popularLocations" :key="location.uuid" :location="location" w-140 @click="selectedItem = { kind: 'location', uuid: location.uuid, name: location.name }" />
+        <!-- Contextual Secondary Carousel (time-based) -->
+        <Carousel v-if="contextualSecondaryLocations && contextualSecondaryLocations.length > 0 && contextualSecondaryMeta" :title="$t(contextualSecondaryMeta.title)" :icon="contextualSecondaryMeta.icon">
+          <LocationCard v-for="location in contextualSecondaryLocations" :key="location.uuid" :location="location" w-140 @click="selectedItem = { kind: 'location', uuid: location.uuid, name: location.name }" />
         </Carousel>
-
-        <!-- Category-based Carousels (top 5 categories) -->
-        <template v-if="categories && categories.length > 0">
-          <Carousel v-for="category in categories.slice(0, 5)" :key="category.id" :title="$te(`categories.${category.id}`) ? $t(`categories.${category.id}`) : category.name" :icon="category.icon">
-            <CategoryCarousel :category-id="category.id" @select="selectedItem = $event" />
-          </Carousel>
-        </template>
       </div>
 
       <!-- Search Results View -->
