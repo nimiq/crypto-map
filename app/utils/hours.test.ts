@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { formatOpeningHours, getOpeningHoursStatus, getWeeklyHours } from './hours'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { formatOpeningHours, getOpeningHoursStatus, getWeeklyHours, rotateWeeklyHoursToToday } from './hours'
 
 describe('getOpeningHoursStatus', () => {
   describe('basic functionality', () => {
@@ -175,42 +175,42 @@ describe('getWeeklyHours', () => {
   })
 
   describe('overnight hours', () => {
-    it('should append next day name for overnight hours', () => {
+    it('should not append next day name for overnight hours', () => {
       const result = getWeeklyHours('Fr-Sa 22:00-05:00')
-      expect(result[4]).toBe('22:00 - 05:00 Sat') // Friday night to Saturday morning
-      expect(result[5]).toBe('22:00 - 05:00 Sun') // Saturday night to Sunday morning
+      expect(result[4]).toBe('22:00 - 05:00') // Friday night to Saturday morning
+      expect(result[5]).toBe('22:00 - 05:00') // Saturday night to Sunday morning
     })
 
     it('should handle bar hours closing at 3 AM', () => {
       const result = getWeeklyHours('Th-Sa 20:00-03:00')
-      expect(result[3]).toBe('20:00 - 03:00 Fri') // Thursday to Friday
-      expect(result[4]).toBe('20:00 - 03:00 Sat') // Friday to Saturday
-      expect(result[5]).toBe('20:00 - 03:00 Sun') // Saturday to Sunday
+      expect(result[3]).toBe('20:00 - 03:00') // Thursday to Friday
+      expect(result[4]).toBe('20:00 - 03:00') // Friday to Saturday
+      expect(result[5]).toBe('20:00 - 03:00') // Saturday to Sunday
     })
 
     it('should handle Sunday overnight wrapping to Monday', () => {
       const result = getWeeklyHours('Su 22:00-05:00')
-      expect(result[6]).toBe('22:00 - 05:00 Mon') // Sunday to Monday
+      expect(result[6]).toBe('22:00 - 05:00') // Sunday to Monday
     })
 
     it('should handle every day overnight hours', () => {
       const result = getWeeklyHours('Mo-Su 18:00-02:00')
-      expect(result[0]).toBe('18:00 - 02:00 Tue') // Monday to Tuesday
-      expect(result[6]).toBe('18:00 - 02:00 Mon') // Sunday to Monday
+      expect(result[0]).toBe('18:00 - 02:00') // Monday to Tuesday
+      expect(result[6]).toBe('18:00 - 02:00') // Sunday to Monday
     })
   })
 
   describe('24/7 and special cases', () => {
     it('should handle 24/7 locations', () => {
       const result = getWeeklyHours('24/7')
-      result.forEach(day => {
+      result.forEach((day) => {
         expect(day).toBe('00:00 - 23:59')
       })
     })
 
     it('should handle closing at midnight', () => {
       const result = getWeeklyHours('Mo-Fr 09:00-00:00')
-      expect(result[0]).toBe('09:00 - 00:00 Tue') // Midnight counts as next day
+      expect(result[0]).toBe('09:00 - 00:00') // Midnight is displayed as 00:00
     })
 
     it('should return empty array for invalid format', () => {
@@ -274,14 +274,176 @@ describe('getWeeklyHours', () => {
 
     it('should handle nightclub hours (weekend only, overnight)', () => {
       const result = getWeeklyHours('Fr-Sa 23:00-06:00')
-      expect(result[4]).toBe('23:00 - 06:00 Sat') // Friday night
-      expect(result[5]).toBe('23:00 - 06:00 Sun') // Saturday night
+      expect(result[4]).toBe('23:00 - 06:00') // Friday night
+      expect(result[5]).toBe('23:00 - 06:00') // Saturday night
     })
 
     it('should handle bakery hours (very early opening)', () => {
       const result = getWeeklyHours('Mo-Sa 05:30-13:00')
       expect(result[0]).toBe('05:30 - 13:00')
       expect(result[6]).toBe('') // Sunday closed
+    })
+  })
+})
+
+describe('rotateWeeklyHoursToToday', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+
+  describe('rotation logic (Monday-first locale)', () => {
+    it('should start from Monday when today is Monday', () => {
+      vi.setSystemTime(new Date('2024-01-01T10:00:00Z')) // Monday 10 AM UTC (11 AM Zurich)
+      const hours = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+      const result = rotateWeeklyHoursToToday(hours, 'Europe/Zurich', 'de-CH')
+      expect(result.hours).toEqual(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'])
+      expect(result.separatorAfterIndex).toBeNull() // No separator when starting from Monday
+    })
+
+    it('should start from Wednesday when today is Wednesday', () => {
+      vi.setSystemTime(new Date('2024-01-03T10:00:00Z')) // Wednesday
+      const hours = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+      const result = rotateWeeklyHoursToToday(hours, 'Europe/Zurich', 'de-CH')
+      expect(result.hours).toEqual(['Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Mon', 'Tue'])
+      expect(result.separatorAfterIndex).toBe(4) // After Sunday
+    })
+
+    it('should start from Sunday when today is Sunday', () => {
+      vi.setSystemTime(new Date('2024-01-07T10:00:00Z')) // Sunday
+      const hours = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+      const result = rotateWeeklyHoursToToday(hours, 'Europe/Zurich', 'de-CH')
+      expect(result.hours).toEqual(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'])
+      expect(result.separatorAfterIndex).toBe(0) // After Sunday (first item)
+    })
+
+    it('should start from Saturday when today is Saturday', () => {
+      vi.setSystemTime(new Date('2024-01-06T10:00:00Z')) // Saturday
+      const hours = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+      const result = rotateWeeklyHoursToToday(hours, 'Europe/Zurich', 'de-CH')
+      expect(result.hours).toEqual(['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'])
+      expect(result.separatorAfterIndex).toBe(1) // After Sunday
+    })
+
+    it('should start from Friday when today is Friday', () => {
+      vi.setSystemTime(new Date('2024-01-05T10:00:00Z')) // Friday
+      const hours = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+      const result = rotateWeeklyHoursToToday(hours, 'Europe/Zurich', 'de-CH')
+      expect(result.hours).toEqual(['Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu'])
+      expect(result.separatorAfterIndex).toBe(2) // After Sunday
+    })
+  })
+
+  describe('separator logic (Monday-first locale)', () => {
+    it('should place separator after Sunday for Tuesday', () => {
+      vi.setSystemTime(new Date('2024-01-02T10:00:00Z')) // Tuesday
+      const hours = ['09:00-18:00', '09:00-18:00', '09:00-18:00', '09:00-18:00', '09:00-18:00', 'Closed', 'Closed']
+      const result = rotateWeeklyHoursToToday(hours, 'Europe/Zurich', 'de-CH')
+      expect(result.separatorAfterIndex).toBe(5) // After Sunday (Tue, Wed, Thu, Fri, Sat, Sun | Mon)
+    })
+
+    it('should place separator at index 0 for Sunday', () => {
+      vi.setSystemTime(new Date('2024-01-07T10:00:00Z')) // Sunday
+      const hours = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+      const result = rotateWeeklyHoursToToday(hours, 'Europe/Zurich', 'de-CH')
+      expect(result.separatorAfterIndex).toBe(0) // After first item (Sun | Mon, Tue, ...)
+    })
+
+    it('should have no separator when starting from Monday', () => {
+      vi.setSystemTime(new Date('2024-01-01T10:00:00Z')) // Monday
+      const hours = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+      const result = rotateWeeklyHoursToToday(hours, 'Europe/Zurich', 'de-CH')
+      expect(result.separatorAfterIndex).toBeNull()
+    })
+
+    it('should place separator after Sunday for Thursday', () => {
+      vi.setSystemTime(new Date('2024-01-04T10:00:00Z')) // Thursday
+      const hours = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+      const result = rotateWeeklyHoursToToday(hours, 'Europe/Zurich', 'de-CH')
+      expect(result.hours).toEqual(['D', 'E', 'F', 'G', 'A', 'B', 'C']) // Thu, Fri, Sat, Sun, Mon, Tue, Wed
+      expect(result.separatorAfterIndex).toBe(3) // After Sunday
+    })
+  })
+
+  describe('rotation logic (Sunday-first locale)', () => {
+    it('should start from Sunday with no separator when today is Sunday (US)', () => {
+      vi.setSystemTime(new Date('2024-01-07T10:00:00Z')) // Sunday
+      const hours = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+      const result = rotateWeeklyHoursToToday(hours, 'America/New_York', 'en-US')
+      expect(result.hours).toEqual(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'])
+      expect(result.separatorAfterIndex).toBeNull() // No separator when week starts on Sunday
+    })
+
+    it('should place separator after Saturday for Monday (US)', () => {
+      vi.setSystemTime(new Date('2024-01-01T15:00:00Z')) // Monday 10 AM EST
+      const hours = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+      const result = rotateWeeklyHoursToToday(hours, 'America/New_York', 'en-US')
+      expect(result.hours).toEqual(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'])
+      expect(result.separatorAfterIndex).toBe(5) // After Saturday (Mon-Sat | Sun)
+    })
+
+    it('should place separator after Saturday for Wednesday (US)', () => {
+      vi.setSystemTime(new Date('2024-01-03T15:00:00Z')) // Wednesday
+      const hours = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+      const result = rotateWeeklyHoursToToday(hours, 'America/New_York', 'en-US')
+      expect(result.hours).toEqual(['Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Mon', 'Tue'])
+      expect(result.separatorAfterIndex).toBe(3) // After Saturday (Wed-Sat | Sun-Tue)
+    })
+
+    it('should place separator after Saturday for Saturday (US)', () => {
+      vi.setSystemTime(new Date('2024-01-06T15:00:00Z')) // Saturday
+      const hours = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+      const result = rotateWeeklyHoursToToday(hours, 'America/New_York', 'en-US')
+      expect(result.hours).toEqual(['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'])
+      expect(result.separatorAfterIndex).toBe(0) // After Saturday (Sat | Sun-Fri)
+    })
+  })
+
+  describe('timezone handling', () => {
+    it('should respect timezone when determining today', () => {
+      // Monday 1 AM UTC = Sunday 8 PM New York (previous day)
+      vi.setSystemTime(new Date('2024-01-01T01:00:00Z'))
+      const hours = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+      const result = rotateWeeklyHoursToToday(hours, 'America/New_York', 'en-US')
+      expect(result.hours[0]).toBe('Sun') // Should start from Sunday in NY timezone
+    })
+
+    it('should respect timezone when determining today (Asia/Tokyo)', () => {
+      // Sunday 11 PM UTC = Monday 8 AM Tokyo (next day)
+      vi.setSystemTime(new Date('2024-01-07T23:00:00Z'))
+      const hours = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+      const result = rotateWeeklyHoursToToday(hours, 'Asia/Tokyo', 'ja-JP')
+      expect(result.hours[0]).toBe('Mon') // Should start from Monday in Tokyo timezone
+      expect(result.separatorAfterIndex).toBe(5) // Separator after Saturday (Sunday-first locale)
+    })
+  })
+
+  describe('edge cases', () => {
+    it('should handle array with less than 7 items', () => {
+      vi.setSystemTime(new Date('2024-01-03T10:00:00Z')) // Wednesday
+      const hours = ['Mon', 'Tue', 'Wed']
+      const result = rotateWeeklyHoursToToday(hours, 'Europe/Zurich', 'de-CH')
+      expect(result.hours).toEqual(['Mon', 'Tue', 'Wed']) // Should return unchanged
+      expect(result.separatorAfterIndex).toBeNull()
+    })
+
+    it('should handle empty hours', () => {
+      vi.setSystemTime(new Date('2024-01-03T10:00:00Z')) // Wednesday
+      const hours = ['', '', '', '', '', '', '']
+      const result = rotateWeeklyHoursToToday(hours, 'Europe/Zurich', 'de-CH')
+      expect(result.hours).toHaveLength(7)
+      expect(result.separatorAfterIndex).toBe(4) // Still calculates separator correctly
+    })
+
+    it('should handle real opening hours data', () => {
+      vi.setSystemTime(new Date('2024-01-03T10:00:00Z')) // Wednesday
+      const hours = getWeeklyHours('Mo-Fr 09:00-18:00')
+      const result = rotateWeeklyHoursToToday(hours, 'Europe/Zurich', 'de-CH')
+      expect(result.hours[0]).toBe('09:00 - 18:00') // Wednesday
+      expect(result.hours[2]).toBe('09:00 - 18:00') // Friday
+      expect(result.hours[3]).toBe('') // Saturday (closed)
+      expect(result.hours[4]).toBe('') // Sunday (closed)
+      expect(result.hours[5]).toBe('09:00 - 18:00') // Monday (next week)
+      expect(result.separatorAfterIndex).toBe(4) // After Sunday
     })
   })
 })

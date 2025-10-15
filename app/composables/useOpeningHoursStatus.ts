@@ -1,5 +1,5 @@
+import { format, isSameWeek, isTomorrow } from 'date-fns'
 import { toZonedTime } from 'date-fns-tz'
-import { format, isTomorrow, isSameWeek } from 'date-fns'
 import OpeningHours from 'opening_hours'
 
 export type OpeningHoursVariant = 'success' | 'warning' | 'neutral'
@@ -45,7 +45,8 @@ export function useOpeningHoursStatus(openingHours: MaybeRefOrGetter<string>, ti
                   variant: 'warning',
                   nextOpening: { time: openingTime, isTomorrow: true },
                 }
-              } else if (isSameWeek(nextOpeningLocal, localDate)) {
+              }
+              else if (isSameWeek(nextOpeningLocal, localDate)) {
                 const dayKey = format(nextOpeningLocal, 'EEEE').toLowerCase()
                 return {
                   label: t('hours.closingSoonOpensAt', { time: openingTime, day: t(`days.${dayKey}`) }),
@@ -73,14 +74,16 @@ export function useOpeningHoursStatus(openingHours: MaybeRefOrGetter<string>, ti
             variant: 'neutral',
             nextOpening: { time: openingTime, isTomorrow: true },
           }
-        } else if (isSameWeek(nextOpening, localDate)) {
+        }
+        else if (isSameWeek(nextOpening, localDate)) {
           const dayKey = format(nextOpening, 'EEEE').toLowerCase()
           return {
             label: t('hours.opensAt', { time: openingTime, day: t(`days.${dayKey}`) }),
             variant: 'neutral',
             nextOpening: { time: openingTime, dayKey, isTomorrow: false },
           }
-        } else {
+        }
+        else {
           // More than a week away - just show "Closed"
           return { label: t('hours.closed'), variant: 'neutral' }
         }

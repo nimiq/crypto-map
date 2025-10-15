@@ -21,7 +21,8 @@
     "noResults": {
       "title": "Keine Standorte gefunden",
       "description": "Versuche, deine Suche oder Filter anzupassen"
-    }
+    },
+    "loadingMore": "Weitere laden..."
   },
   "empty": {
     "title": "Gib deine Krypto aus",
@@ -51,6 +52,12 @@
     "openNow": "Jetzt geöffnet",
     "popular": "Beliebt",
     "recentlyViewed": "Kürzlich angesehen"
+  },
+  "devConfig": {
+    "language": "Sprache",
+    "location": "Standort",
+    "useLuganoLocation": "Lugano-Standort verwenden",
+    "usingQueryParams": "Standort aus URL wird verwendet"
   },
   "contextual": {
     "startYourDay": "Starte deinen Tag",

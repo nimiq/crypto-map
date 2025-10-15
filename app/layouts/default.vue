@@ -1,12 +1,12 @@
 <template>
-  <main f="$px-16/24" min-h-screen f-px-sm f-pt-md>
+  <main f="$px-16/24" min-h-screen f-px-sm f-pt-md f-pb-2xl>
     <header>
       <Search />
     </header>
 
     <slot />
 
-    <LanguageSelector />
+    <DevConfig />
   </main>
 </template>
 

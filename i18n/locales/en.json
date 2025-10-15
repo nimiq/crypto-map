@@ -23,7 +23,8 @@
     "noResults": {
       "title": "No locations found",
       "description": "Try adjusting your search or filters"
-    }
+    },
+    "loadingMore": "Loading more..."
   },
   "empty": {
     "title": "Spend your crypto",
@@ -53,6 +54,12 @@
     "openNow": "Open Now",
     "popular": "Popular",
     "recentlyViewed": "Recently Viewed"
+  },
+  "devConfig": {
+    "language": "Language",
+    "location": "Location",
+    "useLuganoLocation": "Use Lugano location",
+    "usingQueryParams": "Using location from URL"
   },
   "contextual": {
     "startYourDay": "Start Your Day",

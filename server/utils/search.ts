@@ -109,7 +109,7 @@ export async function searchLocationsBySimilarCategories(
       ${distanceFilter}
     GROUP BY ${tables.locations.uuid}
     ${orderByClause}
-    LIMIT 10
+    LIMIT 100
   `)
 
     return ((result as any).rows || []) as LocationResponse[]
@@ -176,5 +176,5 @@ export async function searchLocationsByText(
     ? baseQuery.orderBy(selectFields.distanceMeters)
     : baseQuery
 
-  return await queryBuilder.limit(10) as SearchLocationResponse[]
+  return await queryBuilder.limit(100) as SearchLocationResponse[]
 }

@@ -8,11 +8,12 @@ const hasSearchParams = computed(() => !!query.value || !!category.value)
 
 const categories = computed(() => category.value ? [category.value] : undefined)
 
-const { searchResults: locations, status } = useLocationSearch({
+const { searchResults: locations, status, hasMore, loadMore } = useLocationSearch({
   query,
   categories,
-  immediate: hasSearchParams,
-  watch: true,
+  immediate: toValue(hasSearchParams),
+  shouldWatch: true,
+  enableInfiniteScroll: true,
 })
 </script>
 
@@ -20,12 +21,12 @@ const { searchResults: locations, status } = useLocationSearch({
   <div>
     <DiscoverCarousels v-if="!hasSearchParams" />
 
-    <div v-else f-mt-sm>
-      <header f-mb-md nq-label>
+    <template v-else>
+      <header f-mb-xs nq-label f-mt-sm>
         <h1 text="f-xs neutral-900" font-bold m-0>
           {{ query }}
         </h1>
-        <p v-if="category" text="f-xs neutral-700" m-0 f-mt-xs >
+        <p v-if="category" text="f-xs neutral-700" m-0 f-mt-xs>
           {{ t(`categories.${category}`) }}
         </p>
       </header>
@@ -34,8 +35,8 @@ const { searchResults: locations, status } = useLocationSearch({
         <div v-for="n in 9" :key="n" rounded-8 bg-neutral-200 h-158 w-full animate-pulse />
       </div>
 
-      <div v-else-if="!locations || locations.length === 0" flex="~ col items-center justify-center" text-center f-py-xl>
-        <Icon name="i-tabler:search-off" text-64 text-neutral-400 f-mb-md />
+      <div v-else-if="!locations || locations.length === 0" flex="~ col items-center justify-center" text-center>
+        <Icon name="i-tabler:search-off" text-64 text-neutral-400 f-mb-sm />
         <h2 text="f-md neutral-800" font-semibold m-0>
           {{ t('locations.noResults.title') }}
         </h2>
@@ -44,9 +45,7 @@ const { searchResults: locations, status } = useLocationSearch({
         </p>
       </div>
 
-      <div v-else grid="~ cols-3 gap-x-16 gap-y-20">
-        <LocationCard v-for="location in locations" :key="location.uuid" :location w-full />
-      </div>
-    </div>
+      <LocationGrid v-else :locations="locations || []" :has-more="hasMore" @load-more="loadMore" />
+    </template>
   </div>
 </template>

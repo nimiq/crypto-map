@@ -1,42 +1,43 @@
 import { consola } from 'consola'
 import * as v from 'valibot'
 
-// Plan B Forum at Lugano Convention Centre (Palazzo dei Congressi)
-const CONFERENCE_CENTER = { lat: 46.005030, lng: 8.956060 }
-
 const querySchema = v.object({
-  lat: v.optional(v.pipe(
-    v.string(),
-    v.transform(Number),
-    v.number('Latitude must be a number'),
-    v.minValue(-90, 'Latitude must be >= -90'),
-    v.maxValue(90, 'Latitude must be <= 90'),
-  )),
-  lng: v.optional(v.pipe(
-    v.string(),
-    v.transform(Number),
-    v.number('Longitude must be a number'),
-    v.minValue(-180, 'Longitude must be >= -180'),
-    v.maxValue(180, 'Longitude must be <= 180'),
-  )),
+  lat: v.optional(v.pipe(v.string(), v.transform(Number), v.number('Latitude must be a number'), v.minValue(-90, 'Latitude must be >= -90'), v.maxValue(90, 'Latitude must be <= 90'))),
+  lng: v.optional(v.pipe(v.string(), v.transform(Number), v.number('Longitude must be a number'), v.minValue(-180, 'Longitude must be >= -180'), v.maxValue(180, 'Longitude must be <= 180'))),
   q: v.optional(v.string()),
   openNow: v.optional(v.pipe(v.string(), v.transform(val => val === 'true'))),
   walkable: v.optional(v.pipe(v.string(), v.transform(val => val === 'true'))),
+  page: v.fallback(v.pipe(v.string(), v.transform(Number), v.number(), v.minValue(1)), 1),
+  limit: v.fallback(v.pipe(v.string(), v.transform(Number), v.number(), v.minValue(1), v.maxValue(100)), 20),
 })
 
 export default defineCachedEventHandler(async (event) => {
-  const { q: searchQuery, openNow = false, walkable = false, lat: qLat, lng: qLng } = await getValidatedQuery(event, data => v.parse(querySchema, data))
+  const { q: searchQuery, openNow = false, walkable = false, lat: qLat, lng: qLng, page = 1, limit = 20 } = await getValidatedQuery(event, data => v.parse(querySchema, data))
   if (!searchQuery || searchQuery.trim().length === 0)
-    return []
+    return { results: [], hasMore: false, page, total: 0 }
 
-  // Default to Lugano Convention Center if no lat/lng provided
-  const { lat, lng } = (!qLat || !qLng) ? CONFERENCE_CENTER : { lat: qLat, lng: qLng }
+  // Use query lat/lng if provided, otherwise fallback to Cloudflare IP geolocation
+  let lat = qLat
+  let lng = qLng
 
-  if (lat !== undefined && lng !== undefined)
-    consola.info(`User location: ${lat}, ${lng}`, { tag: 'geolocation' })
+  if (!lat || !lng) {
+    try {
+      const cfIp = event.node.req.headers['cf-connecting-ip'] as string | undefined
+      const geoLocation = await locateByHost(cfIp)
+      lat = geoLocation.lat
+      lng = geoLocation.lng
+      consola.info(`Using Cloudflare IP geolocation: ${lat}, ${lng}`, { tag: 'geolocation' })
+    }
+    catch (error) {
+      consola.warn('Failed to get Cloudflare IP geolocation', { tag: 'geolocation', error })
+    }
+  }
+  else {
+    consola.info(`User location from query: ${lat}, ${lng}`, { tag: 'geolocation' })
+  }
 
   // Build search options with origin and distance filter
-  const searchOptions: SearchLocationOptions = {}
+  const searchOptions: SearchLocationOptions = { page, limit }
   if (lat !== undefined && lng !== undefined) {
     searchOptions.origin = { lat, lng }
     // Apply 1.5km walkable distance filter when walkable flag is true
@@ -64,21 +65,29 @@ export default defineCachedEventHandler(async (event) => {
       combinedMap.set(loc.uuid, loc)
   }
 
-  let searchResults = Array.from(combinedMap.values())
+  const searchResults = Array.from(combinedMap.values())
 
   // Sort by distance if origin is provided and walkable is true
   if (walkable && searchOptions.origin) {
     searchResults.sort((a, b) => (a.distanceMeters ?? Infinity) - (b.distanceMeters ?? Infinity))
-    // Limit to 10 results to match the DB limit
-    searchResults = searchResults.slice(0, 10)
   }
 
-  return openNow ? filterOpenNow(searchResults) : searchResults
+  // Apply openNow filter
+  const filteredResults = openNow ? filterOpenNow(searchResults) : searchResults
+
+  // Calculate pagination metadata
+  const total = filteredResults.length
+  const startIndex = (page - 1) * limit
+  const endIndex = startIndex + limit
+  const paginatedResults = filteredResults.slice(startIndex, endIndex)
+  const hasMore = endIndex < total
+
+  return { results: paginatedResults, hasMore, page, total }
 }, {
   maxAge: 60 * 60 * 24, // Cache for 1 day
   getKey: (event) => {
     const query = getQuery(event)
-    return `search:${query.q}:${query.lat || ''}:${query.lng || ''}:${query.openNow || ''}:${query.walkable || ''}`
+    return `search:${query.q}:${query.lat || ''}:${query.lng || ''}:${query.openNow || ''}:${query.walkable || ''}:${query.page || 1}:${query.limit || 20}`
   },
   swr: true, // Stale-while-revalidate
 })

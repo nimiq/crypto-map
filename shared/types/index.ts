@@ -7,11 +7,10 @@ export type LocationCategory = typeof locationCategories.$inferSelect
 export type CategoryResponse = Pick<Category, 'id' | 'name' | 'icon'>
 
 export interface SearchLocationOptions {
-  origin?: {
-    lat: number
-    lng: number
-  }
+  origin?: { lat: number, lng: number }
   maxDistanceMeters?: number
+  page?: number
+  limit?: number
 }
 
 export type LocationResponse = Omit<Location, 'location' | 'street' | 'city' | 'postalCode' | 'region' | 'country'> & {
@@ -26,4 +25,11 @@ export type LocationResponse = Omit<Location, 'location' | 'street' | 'city' | '
 export type SearchLocationResponse = LocationResponse & {
   highlightedName?: string
   icon?: string
+}
+
+export type LocationDetailResponse = Omit<Location, 'location' | 'street' | 'city' | 'postalCode' | 'region' | 'country'> & {
+  address: string
+  latitude: number
+  longitude: number
+  categories: CategoryResponse[]
 }

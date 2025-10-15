@@ -12,6 +12,16 @@ const { autocompleteResults } = useSearchAutocomplete()
 
 const isComboboxOpen = ref(false)
 
+const shouldShowNearYou = computed(() => {
+  const trimmed = searchQuery.value.trim()
+  return trimmed.length >= 4 || trimmed.includes(' ')
+})
+
+const searchDisplayValue = computed(() => {
+  const marked = `<mark>${searchQuery.value}</mark>`
+  return shouldShowNearYou.value ? `${marked} near you` : marked
+})
+
 const input = useTemplateRef<InstanceType<typeof ComboboxInput>>('search-input')
 const $input = computed(() => input.value?.$el as HTMLInputElement | undefined)
 
@@ -88,7 +98,7 @@ function handleClose() {
               <Item :item="{ kind: 'query', query: 'Bar' }" icon="i-tabler:glass-cocktail" color="green" />
             </template>
             <template v-else>
-              <Item :key="searchQuery" color="red" :item="{ kind: 'query', query: searchQuery }" :display-value="`<mark>${searchQuery}</mark> near you`" icon="i-tabler:search" />
+              <Item :key="searchQuery" color="red" :item="{ kind: 'query', query: searchQuery }" :display-value="searchDisplayValue" icon="i-tabler:search" />
               <ComboboxSeparator v-if="autocompleteResults && autocompleteResults.length > 0" border="t-1 neutral-400" w="[calc(100%-60px+var(--f-p))]" ml-60 />
               <template v-for="({ uuid, name, address, icon }, i) in autocompleteResults" :key="uuid">
                 <Item :item="{ kind: 'location', uuid, name }" :icon="icon || 'i-tabler:map-pin'" :subline="address" />

@@ -21,7 +21,8 @@
     "noResults": {
       "title": "Aucun emplacement trouvé",
       "description": "Essayez d'ajuster votre recherche ou vos filtres"
-    }
+    },
+    "loadingMore": "Chargement..."
   },
   "empty": {
     "title": "Dépensez vos cryptos",
@@ -51,6 +52,12 @@
     "openNow": "Ouvert maintenant",
     "popular": "Populaire",
     "recentlyViewed": "Récemment consultés"
+  },
+  "devConfig": {
+    "language": "Langue",
+    "location": "Emplacement",
+    "useLuganoLocation": "Utiliser l'emplacement de Lugano",
+    "usingQueryParams": "Utilisation de l'emplacement de l'URL"
   },
   "contextual": {
     "startYourDay": "Commencez votre journée",
