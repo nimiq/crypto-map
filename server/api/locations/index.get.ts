@@ -12,6 +12,37 @@ const querySchema = v.object({
   uuids: v.optional(v.pipe(v.string(), v.transform(s => s.split(',').filter(Boolean)))),
 })
 
+/**
+ * Builds shared WHERE conditions for location queries
+ */
+function buildWhereConditions(options: { categoryId?: string, contextualCategories?: string[], status?: string, uuids?: string[] }) {
+  const { categoryId, contextualCategories, status, uuids } = options
+  const whereConditions = []
+
+  if (categoryId) {
+    whereConditions.push(sql`${tables.locations.uuid} IN (
+      SELECT ${tables.locationCategories.locationUuid}
+      FROM ${tables.locationCategories}
+      WHERE ${tables.locationCategories.categoryId} = ${categoryId}
+    )`)
+  }
+
+  if (contextualCategories && contextualCategories.length > 0)
+    whereConditions.push(inArray(tables.locationCategories.categoryId, contextualCategories))
+
+  if (status === 'open')
+    whereConditions.push(isNotNull(tables.locations.openingHours))
+  else if (status === 'popular')
+    whereConditions.push(isNotNull(tables.locations.rating))
+  else if (status === 'contextual-primary' || status === 'contextual-secondary')
+    whereConditions.push(isNotNull(tables.locations.rating))
+
+  if (uuids && uuids.length > 0)
+    whereConditions.push(inArray(tables.locations.uuid, uuids))
+
+  return whereConditions
+}
+
 export default defineEventHandler(async (event) => {
   const result = await getValidatedQuery(event, data => v.safeParse(querySchema, data))
   const { page = 1, limit = 50, categoryId, status, uuids } = result.success ? result.output : {}
@@ -26,6 +57,9 @@ export default defineEventHandler(async (event) => {
     const carousel = status === 'contextual-primary' ? timeContext.primary : timeContext.secondary
     contextualCategories = carousel.categories
   }
+
+  // Build shared WHERE conditions
+  const whereConditions = buildWhereConditions({ categoryId, contextualCategories, status, uuids })
 
   // Build base query
   let query = db
@@ -67,35 +101,9 @@ export default defineEventHandler(async (event) => {
     .leftJoin(tables.categories, eq(tables.locationCategories.categoryId, tables.categories.id))
     .$dynamic()
 
-  // Add WHERE conditions
-  const whereConditions = []
-
-  if (categoryId) {
-    whereConditions.push(sql`${tables.locations.uuid} IN (
-      SELECT ${tables.locationCategories.locationUuid}
-      FROM ${tables.locationCategories}
-      WHERE ${tables.locationCategories.categoryId} = ${categoryId}
-    )`)
-  }
-
-  // Handle contextual categories (applies to both primary and secondary)
-  if (contextualCategories && contextualCategories.length > 0)
-    whereConditions.push(inArray(tables.locationCategories.categoryId, contextualCategories))
-
-  if (status === 'open')
-    whereConditions.push(isNotNull(tables.locations.openingHours))
-  else if (status === 'popular')
-    whereConditions.push(isNotNull(tables.locations.rating))
-  else if (status === 'contextual-primary' || status === 'contextual-secondary')
-    whereConditions.push(isNotNull(tables.locations.rating))
-
-  if (uuids && uuids.length > 0)
-    whereConditions.push(inArray(tables.locations.uuid, uuids))
-
   if (whereConditions.length > 0)
     query = query.where(sql.join(whereConditions, sql` AND `))
 
-  // Group by location
   query = query.groupBy(tables.locations.uuid)
 
   // Add ORDER BY
@@ -107,15 +115,54 @@ export default defineEventHandler(async (event) => {
   // Execute query (skip count for carousel/uuid queries as it's not needed and can timeout)
   const skipCount = Boolean(status || uuids)
 
-  const [locations, totalCount] = await Promise.all([
-    query.limit(limit).offset(offset),
-    skipCount ? Promise.resolve(0) : db.select({ count: sql<number>`count(*)::int` }).from(tables.locations).then(r => r[0]?.count || 0),
-  ])
+  // Determine if we need runtime filtering for count accuracy
+  const needsRuntimeFilter = status === 'open' || status === 'contextual-primary' || status === 'contextual-secondary'
 
-  // Apply runtime filters
+  let locations: Awaited<typeof query>
+  let totalCount: number
+
+  if (skipCount) {
+    // Skip count for carousel/uuid queries
+    locations = await query.limit(limit).offset(offset)
+    totalCount = 0
+  }
+  else if (needsRuntimeFilter) {
+    // For openNow filtering: fetch all matching records (lightweight), filter runtime, then paginate
+    const allLocations = await query
+    const filteredAll = filterOpenNow(allLocations)
+    totalCount = filteredAll.length
+    locations = filteredAll.slice(offset, offset + limit)
+  }
+  else {
+    // Standard path: count with same WHERE conditions
+    let countQuery = db
+      .select({ count: sql<number>`count(DISTINCT ${tables.locations.uuid})::int` })
+      .from(tables.locations)
+      .leftJoin(tables.locationCategories, eq(tables.locations.uuid, tables.locationCategories.locationUuid))
+      .$dynamic()
+
+    if (whereConditions.length > 0)
+      countQuery = countQuery.where(sql.join(whereConditions, sql` AND `))
+
+    const [locationsResult, countResult] = await Promise.all([
+      query.limit(limit).offset(offset),
+      countQuery.then(r => r[0]?.count || 0),
+    ])
+
+    locations = locationsResult
+    totalCount = countResult
+  }
+
+  // Apply runtime filters to paginated results
   let filteredLocations = locations
-  if (status === 'open' || status === 'contextual-primary' || status === 'contextual-secondary')
+  if (needsRuntimeFilter && !skipCount) {
+    // Already filtered above for count accuracy, skip re-filtering
+    filteredLocations = locations
+  }
+  else if (needsRuntimeFilter) {
+    // For skipCount=true cases (carousels), still filter paginated results
     filteredLocations = filterOpenNow(locations)
+  }
 
   // Preserve order for uuids query
   if (uuids && uuids.length > 0) {
