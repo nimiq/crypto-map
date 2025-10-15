@@ -1,16 +1,15 @@
 <script setup lang="ts">
 const { t } = useI18n()
-const query = useRouteQuery<string | undefined>('query', undefined)
 const category = useRouteQuery<string | undefined>('category', undefined)
 const { openNow, nearMe } = useSearchFilters()
-
-const hasSearchParams = computed(() => !!query.value || !!category.value)
 
 const selectedFilters = computed<string[]>({
   get: () => {
     const filters: string[] = []
-    if (openNow.value) filters.push('openNow')
-    if (nearMe.value) filters.push('nearMe')
+    if (openNow.value)
+      filters.push('openNow')
+    if (nearMe.value)
+      filters.push('nearMe')
     return filters
   },
   set: (value: string[]) => {
@@ -41,11 +40,11 @@ function clearCategory() {
 <template>
   <div>
     <ToggleGroupRoot v-model="selectedFilters" type="multiple" nq-raw flex="~ gap-8">
-      <ToggleGroupItem value="openNow" bg="neutral-0 reka-on:blue" rounded-full outline="~ 1.5 offset--1.5 neutral/10 reka-on:white/10" f-px-2xs flex="~ items-center gap-4" py-3>
+      <ToggleGroupItem value="openNow" bg="neutral-0 reka-on:blue" outline="~ 1.5 offset--1.5 neutral/10 reka-on:white/10" flex="~ items-center gap-4" py-3 rounded-full f-px-2xs>
         <Icon name="i-tabler:clock" text="neutral-700 reka-on:white" />
         <span text="f-xs neutral-800 reka-on:white" font-medium>{{ t('filters.openNow') }}</span>
       </ToggleGroupItem>
-      <ToggleGroupItem value="nearMe" bg="neutral-0 reka-on:blue" rounded-full outline="~ 1.5 offset--1.5 neutral/10" f-px-2xs flex="~ items-center gap-4" py-3>
+      <ToggleGroupItem value="nearMe" bg="neutral-0 reka-on:blue" outline="~ 1.5 offset--1.5 neutral/10" flex="~ items-center gap-4" py-3 rounded-full f-px-2xs>
         <Icon name="i-tabler:walk" text="neutral-700 reka-on:white" />
         <span text="f-xs neutral-800 reka-on:white" font-medium>{{ t('filters.nearMe') }}</span>
       </ToggleGroupItem>

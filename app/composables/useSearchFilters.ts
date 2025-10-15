@@ -5,14 +5,24 @@ export function useSearchFilters() {
   const openNow = computed<boolean>({
     get: () => params.openNow === 'true',
     set: (val) => {
-      params.openNow = val ? 'true' : null
+      if (val) {
+        params.openNow = 'true'
+      }
+      else {
+        delete params.openNow
+      }
     },
   })
 
   const nearMe = computed<boolean>({
     get: () => params.nearMe === 'true',
     set: (val) => {
-      params.nearMe = val ? 'true' : null
+      if (val) {
+        params.nearMe = 'true'
+      }
+      else {
+        delete params.nearMe
+      }
     },
   })
 

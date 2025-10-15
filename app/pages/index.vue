@@ -34,7 +34,7 @@ watch([query, category], () => {
       </div>
 
       <div v-else-if="!locations || locations.length === 0" flex="~ col items-center justify-center" text-center>
-        <div outline="neutral-400 ~ 3" size-96 stack f-mb-sm rounded-4>
+        <div outline="neutral-400 ~ 3" stack rounded-4 size-96 f-mb-sm>
           <Icon name="i-nimiq:duotone-cactus" text-64 text-neutral-500 />
         </div>
         <h2 text="f-md neutral-800" font-semibold m-0>
