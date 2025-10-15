@@ -8,18 +8,13 @@ const hasSearchParams = computed(() => !!query.value || !!category.value)
 
 const categories = computed(() => category.value ? [category.value] : undefined)
 
-const { searchResults: locations, status, hasMore, loadMore, refreshSearch } = useLocationSearch({
+const { searchResults: locations, status, hasMore, loadMore } = useLocationSearch({
   query,
   categories,
   immediate: toValue(hasSearchParams),
   shouldWatch: true,
   enableInfiniteScroll: true,
 })
-
-watch([query, category], () => {
-  if (query.value || category.value)
-    refreshSearch()
-}, { immediate: true })
 </script>
 
 <template>

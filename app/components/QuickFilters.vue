@@ -35,24 +35,34 @@ const categoryLabel = computed(() => category.value ? formatCategoryLabel(catego
 function clearCategory() {
   category.value = undefined
 }
+
+// Fetch categories to get icon for selected category
+const { data: categories } = useFetch('/api/categories')
+const categoryIcon = computed(() => {
+  if (!category.value || !categories.value)
+    return 'i-tabler:category'
+  const cat = categories.value.find(c => c.id === category.value)
+  return cat?.icon || 'i-tabler:category'
+})
 </script>
 
 <template>
-  <div>
+  <div flex="~ gap-8">
+    <button v-if="category" bg-blue outline="~ 1.5 offset--1.5 white/10" flex="~ items-center gap-4" py-3 rounded-full f-px-2xs border-0 cursor-pointer @click="clearCategory">
+      <Icon :name="categoryIcon" text-white scale-0- />
+      <span text="f-xs white" font-medium>{{ categoryLabel }}</span>
+      <Icon name="i-tabler:x" text-white op-70 />
+    </button>
+
     <ToggleGroupRoot v-model="selectedFilters" type="multiple" nq-raw flex="~ gap-8">
       <ToggleGroupItem value="openNow" bg="neutral-0 reka-on:blue" outline="~ 1.5 offset--1.5 neutral/10 reka-on:white/10" flex="~ items-center gap-4" py-3 rounded-full f-px-2xs>
-        <Icon name="i-tabler:clock" text="neutral-700 reka-on:white" />
+        <Icon name="i-tabler:clock" text="neutral-700 reka-on:white" scale-90 />
         <span text="f-xs neutral-800 reka-on:white" font-medium>{{ t('filters.openNow') }}</span>
       </ToggleGroupItem>
       <ToggleGroupItem value="nearMe" bg="neutral-0 reka-on:blue" outline="~ 1.5 offset--1.5 neutral/10" flex="~ items-center gap-4" py-3 rounded-full f-px-2xs>
-        <Icon name="i-tabler:walk" text="neutral-700 reka-on:white" />
+        <Icon name="i-tabler:walk" text="neutral-700 reka-on:white" scale-90 />
         <span text="f-xs neutral-800 reka-on:white" font-medium>{{ t('filters.nearMe') }}</span>
       </ToggleGroupItem>
     </ToggleGroupRoot>
-
-    <button v-if="category" @click="clearCategory">
-      <span>{{ categoryLabel }}</span>
-      <Icon name="i-tabler:x" />
-    </button>
   </div>
 </template>

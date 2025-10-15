@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { nextTick } from 'vue'
 import type { ComboboxInput } from 'reka-ui'
 
 type SearchItem
@@ -6,12 +7,38 @@ type SearchItem
     | { kind: 'query', query: string }
     | { kind: 'category', category: string, label: string }
 
-const searchQuery = useState('searchQuery', () => '')
-const { autocompleteResults, skipNextAutocompleteFetch } = useSearchAutocomplete()
 const { t } = useI18n()
 
 const routeQuery = useRouteQuery<string | undefined>('query', undefined)
 const routeCategory = useRouteQuery<string | undefined>('category', undefined)
+
+// Local input state for real-time typing, synced with route query
+const localSearchInput = ref('')
+
+// Computed getter/setter for combobox binding
+const searchQuery = computed({
+  get: () => localSearchInput.value,
+  set: (value: string) => {
+    localSearchInput.value = value
+  },
+})
+
+const { autocompleteResults } = useSearchAutocomplete(localSearchInput, routeCategory)
+
+// Sync local input with route when route changes externally
+watch([routeQuery, routeCategory], () => {
+  if (routeCategory.value) {
+    localSearchInput.value = formatCategoryLabel(routeCategory.value)
+    collapseCombobox()
+  }
+  else if (routeQuery.value) {
+    localSearchInput.value = routeQuery.value
+    collapseCombobox()
+  }
+  else {
+    localSearchInput.value = ''
+  }
+}, { immediate: true })
 
 const isComboboxOpen = ref(false)
 
@@ -21,8 +48,7 @@ const shouldShowNearYou = computed(() => {
 })
 
 const searchDisplayValue = computed(() => {
-  const marked = `<mark>${searchQuery.value}</mark>`
-  return shouldShowNearYou.value ? `${marked} near you` : marked
+  return shouldShowNearYou.value ? `${searchQuery.value} near you` : searchQuery.value
 })
 
 const input = useTemplateRef<InstanceType<typeof ComboboxInput>>('search-input')
@@ -32,7 +58,7 @@ const [DefineComboboxItemTemplate, Item] = createReusableTemplate<{
   item: SearchItem
   displayValue?: string
   icon: string
-  color?: 'orange' | 'red' | 'purple' | 'green' | 'neutral'
+  color?: 'orange' | 'gold' | 'red' | 'purple' | 'green' | 'neutral'
   subline?: string
 }>()
 
@@ -55,9 +81,20 @@ function getDisplayValue(item: SearchItem, displayValue?: string) {
   }
 }
 
+function collapseCombobox() {
+  isComboboxOpen.value = false
+  if (import.meta.client) {
+    nextTick(() => {
+      $input.value?.blur()
+    })
+  }
+}
+
 function handleClose() {
-  searchQuery.value = ''
-  $input.value?.blur()
+  localSearchInput.value = ''
+  routeQuery.value = undefined
+  routeCategory.value = undefined
+  collapseCombobox()
 }
 
 function formatCategoryLabel(category: string) {
@@ -74,7 +111,7 @@ function formatCategoryLabel(category: string) {
 
 const quickCategories = computed(() => ([
   { category: 'restaurant', label: formatCategoryLabel('restaurant'), icon: 'i-tabler:tools-kitchen-2', color: 'orange' as const },
-  { category: 'cafe', label: formatCategoryLabel('cafe'), icon: 'i-tabler:coffee', color: 'red' as const },
+  { category: 'cafe', label: formatCategoryLabel('cafe'), icon: 'i-tabler:coffee', color: 'gold' as const },
   { category: 'bar', label: formatCategoryLabel('bar'), icon: 'i-tabler:beer', color: 'green' as const },
   { category: 'pharmacy', label: formatCategoryLabel('pharmacy'), icon: 'i-tabler:pill', color: 'purple' as const },
 ]))
@@ -85,37 +122,6 @@ const showQuickCategories = computed(() => {
   return searchQuery.value.trim().length === 0 && !hasQuery && !routeCategory.value
 })
 
-watch(routeCategory, (newCategory, prevCategory) => {
-  if (newCategory) {
-    const label = formatCategoryLabel(newCategory)
-    if (searchQuery.value !== label) {
-      skipNextAutocompleteFetch()
-      searchQuery.value = label
-    }
-    autocompleteResults.value = []
-  }
-  else if (!routeQuery.value && prevCategory) {
-    skipNextAutocompleteFetch()
-    searchQuery.value = ''
-    autocompleteResults.value = []
-  }
-}, { immediate: true })
-
-watch(routeQuery, (newQuery, prevQuery) => {
-  if (newQuery) {
-    if (searchQuery.value !== newQuery) {
-      skipNextAutocompleteFetch()
-      searchQuery.value = newQuery
-    }
-    autocompleteResults.value = []
-  }
-  else if (!routeCategory.value && prevQuery) {
-    skipNextAutocompleteFetch()
-    searchQuery.value = ''
-    autocompleteResults.value = []
-  }
-}, { immediate: true })
-
 async function handleItemClick(item: SearchItem) {
   switch (item.kind) {
     case 'location':
@@ -124,14 +130,13 @@ async function handleItemClick(item: SearchItem) {
     case 'query':
       routeQuery.value = item.query
       routeCategory.value = undefined
-      searchQuery.value = ''
-      isComboboxOpen.value = false
+      localSearchInput.value = ''
+      collapseCombobox()
       break
     case 'category':
-      skipNextAutocompleteFetch()
       routeCategory.value = item.category
       routeQuery.value = undefined
-      isComboboxOpen.value = false
+      collapseCombobox()
       break
   }
 }
@@ -144,7 +149,8 @@ async function handleItemClick(item: SearchItem) {
         <div
           :class="{
             'outline-orange-500 bg-orange-400 text-orange-1100': color === 'orange',
-            'outline-gold-500 bg-gold-400 text-gold-1100': color === 'red',
+            'outline-gold-500 bg-gold-400 text-gold-1100': color === 'gold',
+            'outline-red-500 bg-red-400 text-red-1100': color === 'red',
             'outline-purple-500 bg-purple-400 text-purple-1100': color === 'purple',
             'outline-green-500 bg-green-400 text-green-1100': color === 'green',
             'outline-neutral-400 bg-neutral-300 text-neutral-900': color === 'neutral',
@@ -153,10 +159,10 @@ async function handleItemClick(item: SearchItem) {
           <Icon :name="icon" text-18 />
         </div>
         <div v-if="subline" flex="~ col gap-2">
-          <span text-neutral-800 v-html="getDisplayValue(item, displayValue)" />
+          <span text-neutral-800>{{ getDisplayValue(item, displayValue) }}</span>
           <span text-neutral-600 text-f-xs>{{ subline }}</span>
         </div>
-        <span v-else text-neutral-800 v-html="getDisplayValue(item, displayValue)" />
+        <span v-else text-neutral-800>{{ getDisplayValue(item, displayValue) }}</span>
       </button>
     </ComboboxItem>
   </DefineComboboxItemTemplate>
@@ -164,12 +170,12 @@ async function handleItemClick(item: SearchItem) {
   <ComboboxRoot v-model:open="isComboboxOpen" open-on-click open-on-focus>
     <ComboboxAnchor relative>
       <ComboboxInput ref="search-input" v-model="searchQuery" bg="neutral-0 focus:neutral-100" outline="0.5 neutral-400" name="search" text-neutral px-47 py-6 rounded-full w-full transition-colors shadow-sm placeholder="Search here" />
-      <ComboboxTrigger left-16 top-0 absolute translate-y="9.5" @click="handleClose">
+      <button left-16 top-0 absolute translate-y-9.5 border-0 bg-transparent p-0 cursor-pointer @click="handleClose">
         <Icon v-if="!isComboboxOpen" name="i-nimiq:logos-crypto-map" size-18 />
         <Icon v-else name="i-tabler:arrow-left" op-70 size-18 />
-      </ComboboxTrigger>
+      </button>
       <ComboboxCancel v-if="searchQuery.length > 0" as-child translate-y-0 right-0 top-0 absolute z-1>
-        <button flex="~ items-center justify-center" size-36>
+        <button flex="~ items-center justify-center" size-36 @click="() => { routeQuery = undefined; routeCategory = undefined }">
           <Icon name="i-tabler:x" text-16 op-65 translate-y-1 />
         </button>
       </ComboboxCancel>
@@ -187,7 +193,7 @@ async function handleItemClick(item: SearchItem) {
             </template>
             <template v-else>
               <template v-if="!routeCategory">
-                <Item :key="`query-${searchQuery}`" color="red" :item="{ kind: 'query', query: searchQuery }" :display-value="searchDisplayValue" icon="i-tabler:search" />
+                <Item color="red" :item="{ kind: 'query', query: searchQuery }" :display-value="searchDisplayValue" icon="i-tabler:search" />
                 <ComboboxSeparator v-if="autocompleteResults && autocompleteResults.length > 0" border="t-1 neutral-400" w="[calc(100%-60px+var(--f-p))]" ml-60 />
               </template>
               <template v-for="({ uuid, name, address, icon }, i) in autocompleteResults" :key="uuid">

@@ -1,7 +1,7 @@
 import { watch } from 'vue'
 
 interface UseLocationSearchOptions {
-  query?: MaybeRefOrGetter<string>
+  query: MaybeRefOrGetter<string | undefined>
   categories?: MaybeRefOrGetter<string[] | undefined>
   immediate?: boolean
   shouldWatch?: boolean
@@ -9,15 +9,14 @@ interface UseLocationSearchOptions {
 }
 
 // Main location search with filters and geolocation
-export function useLocationSearch(options: UseLocationSearchOptions = {}) {
-  const { query: customQuery, categories: customCategories, immediate = false, shouldWatch = false, enableInfiniteScroll = false } = options
+export function useLocationSearch(options: UseLocationSearchOptions) {
+  const { query: queryOption, categories: customCategories, immediate = false, shouldWatch = false, enableInfiniteScroll = false } = options
 
   const { openNow, nearMe } = useSearchFilters()
   const { lat, lng } = useUserLocation()
-  const sharedQuery = useState('searchQuery', () => '')
 
-  // Use custom query if provided, otherwise use shared state
-  const searchQuery = customQuery !== undefined ? computed(() => toValue(customQuery)) : sharedQuery
+  // Query ref is now required and comes from route
+  const searchQuery = computed(() => toValue(queryOption) ?? '')
 
   // Pagination state for infinite scroll
   const currentPage = ref(1)
@@ -30,16 +29,18 @@ export function useLocationSearch(options: UseLocationSearchOptions = {}) {
     categories: customCategories !== undefined ? toValue(customCategories) : undefined,
     openNow: openNow.value || undefined,
     nearMe: nearMe.value || undefined,
-    lat: lat.value || undefined,
-    lng: lng.value || undefined,
+    lat: lat.value ?? undefined,
+    lng: lng.value ?? undefined,
     page: enableInfiniteScroll ? currentPage.value : undefined,
     limit: enableInfiniteScroll ? 20 : undefined,
   }))
 
+  const serializedQueryParams = computed(() => JSON.stringify(queryParams.value))
+
   const { data: apiResponse, status, refresh: refreshSearch } = useFetch('/api/search', {
     query: queryParams,
     immediate,
-    watch: shouldWatch ? [queryParams] : false,
+    watch: false,
   })
 
   // Process response based on mode
@@ -79,13 +80,16 @@ export function useLocationSearch(options: UseLocationSearchOptions = {}) {
     }
   })
 
-  // Reset pagination when query changes
-  watch(queryParams, () => {
-    if (enableInfiniteScroll) {
-      currentPage.value = 1
-      allResults.value = []
-    }
-  }, { deep: true })
+  // Watch query params and trigger refresh when shouldWatch is enabled
+  if (shouldWatch) {
+    watch(serializedQueryParams, async () => {
+      if (enableInfiniteScroll) {
+        currentPage.value = 1
+        allResults.value = []
+      }
+      await refreshSearch()
+    })
+  }
 
   const loadMore = async () => {
     if (hasMore.value && status.value !== 'pending') {

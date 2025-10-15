@@ -7,10 +7,15 @@ const { t, locale } = useI18n()
 
 const uuid = computed(() => route.params.uuid as string)
 
-const { data: location, status } = await useFetch<LocationDetailResponse>(`/api/locations/${uuid.value}`)
+const { data: location, status } = useLazyFetch<LocationDetailResponse>(() => `/api/locations/${uuid.value}`, {
+  watch: [uuid],
+})
 
-if (!location.value && status.value === 'success')
-  throw createError({ statusCode: 404, statusMessage: 'Location not found' })
+watch(() => [location.value, status.value], () => {
+  if (!location.value && status.value === 'success') {
+    throw createError({ statusCode: 404, statusMessage: 'Location not found' })
+  }
+})
 
 const photoUrl = computed(() => location.value ? `/images/location/${location.value.uuid}` : null)
 
