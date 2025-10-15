@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { nextTick } from 'vue'
 import type { ComboboxInput } from 'reka-ui'
+import { nextTick } from 'vue'
 
 type SearchItem
   = | { kind: 'location', uuid: string, name: string }
@@ -170,7 +170,7 @@ async function handleItemClick(item: SearchItem) {
   <ComboboxRoot v-model:open="isComboboxOpen" open-on-click open-on-focus>
     <ComboboxAnchor relative>
       <ComboboxInput ref="search-input" v-model="searchQuery" bg="neutral-0 focus:neutral-100" outline="0.5 neutral-400" name="search" text-neutral px-47 py-6 rounded-full w-full transition-colors shadow-sm placeholder="Search here" />
-      <button left-16 top-0 absolute translate-y-9.5 border-0 bg-transparent p-0 cursor-pointer @click="handleClose">
+      <button p-0 border-0 bg-transparent cursor-pointer translate-y-9.5 left-16 top-0 absolute @click="handleClose">
         <Icon v-if="!isComboboxOpen" name="i-nimiq:logos-crypto-map" size-18 />
         <Icon v-else name="i-tabler:arrow-left" op-70 size-18 />
       </button>

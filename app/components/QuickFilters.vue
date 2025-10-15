@@ -48,8 +48,8 @@ const categoryIcon = computed(() => {
 
 <template>
   <div flex="~ gap-8">
-    <button v-if="category" bg-blue outline="~ 1.5 offset--1.5 white/10" flex="~ items-center gap-4" py-3 rounded-full f-px-2xs border-0 cursor-pointer @click="clearCategory">
-      <Icon :name="categoryIcon" text-white scale-0- />
+    <button v-if="category" outline="~ 1.5 offset--1.5 white/10" flex="~ items-center gap-4" py-3 border-0 rounded-full bg-blue cursor-pointer f-px-2xs @click="clearCategory">
+      <Icon :name="categoryIcon" scale-0- text-white />
       <span text="f-xs white" font-medium>{{ categoryLabel }}</span>
       <Icon name="i-tabler:x" text-white op-70 />
     </button>
