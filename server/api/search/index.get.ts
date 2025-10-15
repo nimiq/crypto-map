@@ -12,7 +12,7 @@ const querySchema = v.object({
   limit: v.fallback(v.pipe(v.string(), v.transform(Number), v.number(), v.minValue(1), v.maxValue(100)), 20),
 })
 
-export default defineCachedEventHandler(async (event) => {
+async function searchHandler(event: any) {
   const { q: searchQuery, categories: rawCategories, openNow = false, nearMe = false, lat: qLat, lng: qLng, page = 1, limit = 20 } = await getValidatedQuery(event, data => v.parse(querySchema, data))
 
   // Normalize categories to array
@@ -124,12 +124,23 @@ export default defineCachedEventHandler(async (event) => {
 
     return { results: paginatedResults, hasMore, page, total: filteredResults.length }
   }
-}, {
-  maxAge: 60 * 60 * 24, // Cache for 1 day
+}
+
+const cachedSearchHandler = defineCachedEventHandler(searchHandler, {
+  maxAge: 60 * 60 * 24,
   getKey: (event) => {
     const query = getQuery(event)
     const categoriesKey = query.categories ? (Array.isArray(query.categories) ? query.categories.join(',') : query.categories) : ''
     return `search:${query.q}:${query.lat || ''}:${query.lng || ''}:${query.openNow || ''}:${query.nearMe || ''}:${categoriesKey}:${query.page || 1}:${query.limit || 20}`
   },
-  swr: true, // Stale-while-revalidate
+  swr: true,
+})
+
+export default defineEventHandler(async (event) => {
+  const query = getQuery(event)
+  // Bypass cache for openNow to ensure real-time availability data
+  if (query.openNow === 'true') {
+    return searchHandler(event)
+  }
+  return cachedSearchHandler(event)
 })
