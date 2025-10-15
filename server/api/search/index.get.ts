@@ -42,65 +42,88 @@ export default defineCachedEventHandler(async (event) => {
     consola.info(`User location from query: ${lat}, ${lng}`, { tag: 'geolocation' })
   }
 
-  // Build search options with origin and distance filter
-  const searchOptions: SearchLocationOptions = { page, limit }
-  if (lat !== undefined && lng !== undefined) {
-    searchOptions.origin = { lat, lng }
-    // Apply 1.5km distance filter when nearMe flag is true
-    if (nearMe) {
-      searchOptions.maxDistanceMeters = 1500
-    }
-  }
-  // Add category filter if provided
-  if (categories) {
-    searchOptions.categories = categories
-  }
-
   let searchResults: SearchLocationResponse[]
 
-  // If no query but has categories, fetch locations by category only
   if ((!searchQuery || searchQuery.trim().length === 0) && categories) {
+    // Fetch extra when filtering to ensure we have enough results after filtering
+    const fetchMultiplier = openNow ? 3 : 1
+    const effectiveLimit = limit * fetchMultiplier
+
+    const searchOptions: SearchLocationOptions = {
+      page: 1,
+      limit: effectiveLimit + ((page - 1) * limit),
+    }
+    if (lat !== undefined && lng !== undefined) {
+      searchOptions.origin = { lat, lng }
+      if (nearMe) {
+        searchOptions.maxDistanceMeters = 1500
+      }
+    }
+
     searchResults = await searchLocationsByCategories(categories, searchOptions)
+
+    const filteredResults = openNow ? filterOpenNow(searchResults) : searchResults
+
+    const startIndex = (page - 1) * limit
+    const endIndex = startIndex + limit
+    const paginatedResults = filteredResults.slice(startIndex, endIndex)
+    const hasMore = endIndex < filteredResults.length || searchResults.length === effectiveLimit + ((page - 1) * limit)
+
+    return {
+      results: paginatedResults,
+      hasMore,
+      page,
+      total: filteredResults.length,
+    }
   }
   else {
-    // Hybrid search: fast text search + smart semantic matching
+    // Fetch extra to account for deduplication and filtering
+    const filterMultiplier = openNow ? 4 : 2
+    const fetchLimit = Math.min(page * limit * filterMultiplier, 400)
+
+    const searchOptions: SearchLocationOptions = { fetchLimit }
+    if (lat !== undefined && lng !== undefined) {
+      searchOptions.origin = { lat, lng }
+      if (nearMe) {
+        searchOptions.maxDistanceMeters = 1500
+      }
+    }
+    if (categories) {
+      searchOptions.categories = categories
+    }
+
     const [textResults, categoryResults] = await Promise.all([
       searchLocationsByText(searchQuery!, searchOptions),
       searchLocationsBySimilarCategories(searchQuery!, searchOptions),
     ])
 
-    // Text results prioritized - they appear first in the list
+    // Text results prioritized
     const combinedMap = new Map<string, SearchLocationResponse>()
 
     for (const loc of textResults || []) {
       combinedMap.set(loc.uuid, loc)
     }
 
-    // Category results added only if not already matched by text search
     for (const loc of categoryResults || []) {
       if (!combinedMap.has(loc.uuid))
         combinedMap.set(loc.uuid, loc)
     }
 
     searchResults = Array.from(combinedMap.values())
+
+    if (nearMe && searchOptions.origin) {
+      searchResults.sort((a, b) => (a.distanceMeters ?? Infinity) - (b.distanceMeters ?? Infinity))
+    }
+
+    const filteredResults = openNow ? filterOpenNow(searchResults) : searchResults
+
+    const startIndex = (page - 1) * limit
+    const endIndex = startIndex + limit
+    const paginatedResults = filteredResults.slice(startIndex, endIndex)
+    const hasMore = endIndex < filteredResults.length
+
+    return { results: paginatedResults, hasMore, page, total: filteredResults.length }
   }
-
-  // Sort by distance if origin is provided and nearMe is true
-  if (nearMe && searchOptions.origin) {
-    searchResults.sort((a, b) => (a.distanceMeters ?? Infinity) - (b.distanceMeters ?? Infinity))
-  }
-
-  // Apply openNow filter
-  const filteredResults = openNow ? filterOpenNow(searchResults) : searchResults
-
-  // Calculate pagination metadata
-  const total = filteredResults.length
-  const startIndex = (page - 1) * limit
-  const endIndex = startIndex + limit
-  const paginatedResults = filteredResults.slice(startIndex, endIndex)
-  const hasMore = endIndex < total
-
-  return { results: paginatedResults, hasMore, page, total }
 }, {
   maxAge: 60 * 60 * 24, // Cache for 1 day
   getKey: (event) => {

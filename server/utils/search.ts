@@ -57,8 +57,7 @@ export async function searchLocationsBySimilarCategories(
   try {
     const db = useDrizzle()
     const queryEmbedding = await generateEmbeddingCached(query)
-    const { origin, maxDistanceMeters, categories: requiredCategories, fetchLimit } = options
-    const limit = fetchLimit && fetchLimit > 0 ? fetchLimit : 100
+    const { origin, maxDistanceMeters, categories: requiredCategories, fetchLimit, page, limit: pageLimit } = options
 
     const vectorMatches = await db.execute(sql`
       SELECT ${tables.categories.id} as id
@@ -82,7 +81,9 @@ export async function searchLocationsBySimilarCategories(
       {
         origin,
         maxDistanceMeters,
-        fetchLimit: limit,
+        fetchLimit,
+        page,
+        limit: pageLimit,
       },
     )
 
@@ -108,8 +109,10 @@ export async function searchLocationsByCategories(
   categories: string[],
   options: SearchLocationOptions = {},
 ): Promise<SearchLocationResponse[]> {
-  const { origin, maxDistanceMeters, fetchLimit } = options
-  const limit = fetchLimit && fetchLimit > 0 ? fetchLimit : 100
+  const { origin, maxDistanceMeters, fetchLimit, page = 1, limit: pageLimit = 20 } = options
+
+  const limit = fetchLimit && fetchLimit > 0 ? fetchLimit : pageLimit
+  const offset = fetchLimit ? 0 : (page - 1) * pageLimit
 
   const db = useDrizzle()
   const selectFields: Record<string, any> = {
@@ -163,7 +166,7 @@ export async function searchLocationsByCategories(
     ? baseQuery.orderBy(selectFields.distanceMeters)
     : baseQuery.orderBy(sql`${tables.locations.rating} DESC NULLS LAST`)
 
-  return await queryBuilder.limit(limit) as SearchLocationResponse[]
+  return await queryBuilder.limit(limit).offset(offset) as SearchLocationResponse[]
 }
 
 // PostgreSQL's built-in FTS is faster than vector search for exact/prefix matches
@@ -181,8 +184,10 @@ export async function searchLocationsByText(
     ? singularQuery.split(/\s+/).join(' & ')
     : null
 
-  const { origin, maxDistanceMeters, categories, fetchLimit } = options
-  const limit = fetchLimit && fetchLimit > 0 ? fetchLimit : 100
+  const { origin, maxDistanceMeters, categories, fetchLimit, page = 1, limit: pageLimit = 20 } = options
+
+  const limit = fetchLimit && fetchLimit > 0 ? fetchLimit : pageLimit
+  const offset = fetchLimit ? 0 : (page - 1) * pageLimit
 
   const db = useDrizzle()
   const selectFields: Record<string, any> = {
@@ -244,5 +249,5 @@ export async function searchLocationsByText(
     ? baseQuery.orderBy(selectFields.distanceMeters)
     : baseQuery
 
-  return await queryBuilder.limit(limit) as SearchLocationResponse[]
+  return await queryBuilder.limit(limit).offset(offset) as SearchLocationResponse[]
 }

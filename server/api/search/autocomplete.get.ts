@@ -16,9 +16,8 @@ export default defineCachedEventHandler(async (event) => {
     }),
   )
 
-  const fetchLimit = 10
-  const results = await searchLocationsByText(searchQuery, { fetchLimit })
-  return results.slice(0, fetchLimit)
+  const results = await searchLocationsByText(searchQuery, { fetchLimit: 10 })
+  return results
 }, {
   maxAge: 60 * 60 * 24 * 7, // Cache for 7 days
   getKey: event => `autocomplete:${getQuery(event).q}`,
