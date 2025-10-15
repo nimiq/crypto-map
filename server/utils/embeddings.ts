@@ -2,7 +2,8 @@ import { createOpenAI } from '@ai-sdk/openai'
 import { embed } from 'ai'
 
 export async function generateEmbeddingCached(value: string): Promise<number[]> {
-  const cacheKey = `embedding:${value.trim().toLowerCase()}`
+  const normalizedValue = value.trim().toLowerCase()
+  const cacheKey = `embedding:${normalizedValue}`
 
   const cached = await hubKV().get<number[]>(cacheKey)
   if (cached)

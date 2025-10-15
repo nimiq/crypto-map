@@ -1,5 +1,24 @@
 // Lower threshold means more results, higher means more precise matches
-const SIMILARITY_THRESHOLD = 0.7
+const SIMILARITY_THRESHOLD = 0.3
+const SEMANTIC_CATEGORY_LIMIT = 5
+
+const KEYWORD_FALLBACKS: Array<{ keywords: string[], categories: string[] }> = [
+  { keywords: ['restaurant', 'food', 'eat', 'dining'], categories: ['restaurant', 'food_store', 'bar', 'cafe', 'bakery'] },
+  { keywords: ['coffee', 'cafe'], categories: ['cafe', 'coffee_shop'] },
+  { keywords: ['bar', 'drink'], categories: ['bar'] },
+  { keywords: ['shop', 'store'], categories: ['store', 'clothing_store', 'food_store'] },
+  { keywords: ['hotel', 'stay', 'lodging'], categories: ['lodging'] },
+]
+
+function pickFallbackCategories(query: string): string[] {
+  const normalized = query.toLowerCase()
+  for (const fallback of KEYWORD_FALLBACKS) {
+    if (fallback.keywords.some(keyword => normalized.includes(keyword)))
+      return fallback.categories
+  }
+
+  return []
+}
 
 const locationSelect = {
   uuid: tables.locations.uuid,
@@ -34,97 +53,47 @@ const locationSelect = {
 export async function searchLocationsBySimilarCategories(
   query: string,
   options: SearchLocationOptions = {},
-): Promise<LocationResponse[]> {
+): Promise<SearchLocationResponse[]> {
   try {
     const db = useDrizzle()
     const queryEmbedding = await generateEmbeddingCached(query)
-    const { origin, maxDistanceMeters, categories, fetchLimit } = options
+    const { origin, maxDistanceMeters, categories: requiredCategories, fetchLimit } = options
     const limit = fetchLimit && fetchLimit > 0 ? fetchLimit : 100
 
-    // Build distance calculation and filter clauses
-    const distanceSelect = origin
-      ? sql`, ST_Distance(
-        ${tables.locations.location}::geography,
-        ST_SetSRID(ST_MakePoint(${origin.lng}, ${origin.lat}), 4326)::geography
-      ) as "distanceMeters"`
-      : sql``
-
-    const distanceFilter = origin && maxDistanceMeters
-      ? sql`AND ST_DWithin(
-        ${tables.locations.location}::geography,
-        ST_SetSRID(ST_MakePoint(${origin.lng}, ${origin.lat}), 4326)::geography,
-        ${maxDistanceMeters}
-      )`
-      : sql``
-
-    let categoryFilter = sql``
-    if (categories && categories.length > 0) {
-      const categoryConditions = categories.map(cat => sql`${tables.locationCategories.categoryId} = ${cat}`)
-      categoryFilter = sql`AND ${tables.locations.uuid} IN (
-        SELECT ${tables.locationCategories.locationUuid}
-        FROM ${tables.locationCategories}
-        WHERE ${sql.join(categoryConditions, sql` OR `)}
-      )`
-    }
-
-    const orderByClause = origin
-      ? sql`ORDER BY "distanceMeters"`
-      : sql``
-
-    // Single query using CTE to find similar categories and join to locations
-    const result = await db.execute(sql`
-    WITH similar_categories AS (
-      SELECT ${tables.categories.id}
+    const vectorMatches = await db.execute(sql`
+      SELECT ${tables.categories.id} as id
       FROM ${tables.categories}
       WHERE ${tables.categories.embedding} IS NOT NULL
         AND 1 - (${tables.categories.embedding} <=> ${JSON.stringify(queryEmbedding)}::vector) >= ${SIMILARITY_THRESHOLD}
       ORDER BY 1 - (${tables.categories.embedding} <=> ${JSON.stringify(queryEmbedding)}::vector) DESC
-      LIMIT 5
-    )
-    SELECT
-      ${tables.locations.uuid},
-      ${tables.locations.name},
-      ${tables.locations.street} || ', ' || ${tables.locations.postalCode} || ' ' || ${tables.locations.city} || ', ' || ${tables.locations.country} as address,
-      ST_Y(${tables.locations.location}) as latitude,
-      ST_X(${tables.locations.location}) as longitude,
-      ${tables.locations.rating},
-      ${tables.locations.photo},
-      ${tables.locations.gmapsPlaceId} as "gmapsPlaceId",
-      ${tables.locations.gmapsUrl} as "gmapsUrl",
-      ${tables.locations.website},
-      ${tables.locations.source},
-      ${tables.locations.timezone},
-      ${tables.locations.openingHours} as "openingHours",
-      ${tables.locations.createdAt} as "createdAt",
-      ${tables.locations.updatedAt} as "updatedAt",
-      STRING_AGG(${tables.locationCategories.categoryId}, ',') as "categoryIds",
-      COALESCE(
-        json_agg(
-          json_build_object(
-            'id', ${tables.categories.id},
-            'name', ${tables.categories.name},
-            'icon', ${tables.categories.icon}
-          )
-        ) FILTER (WHERE ${tables.categories.id} IS NOT NULL),
-        '[]'
-      ) as categories
-      ${distanceSelect}
-    FROM ${tables.locations}
-    INNER JOIN ${tables.locationCategories}
-      ON ${tables.locations.uuid} = ${tables.locationCategories.locationUuid}
-    INNER JOIN similar_categories
-      ON ${tables.locationCategories.categoryId} = similar_categories.id
-    LEFT JOIN ${tables.categories}
-      ON ${tables.locationCategories.categoryId} = ${tables.categories.id}
-    WHERE 1=1
-      ${distanceFilter}
-      ${categoryFilter}
-    GROUP BY ${tables.locations.uuid}
-    ${orderByClause}
-    LIMIT ${limit}
-  `)
+      LIMIT ${SEMANTIC_CATEGORY_LIMIT}
+    `)
 
-    return ((result as any).rows || []) as LocationResponse[]
+    let categoryIds = ((vectorMatches as any).rows || []).map((row: any) => row.id as string)
+
+    if (categoryIds.length === 0)
+      categoryIds = pickFallbackCategories(query)
+
+    if (categoryIds.length === 0)
+      return []
+
+    const semanticResults = await searchLocationsByCategories(
+      categoryIds,
+      {
+        origin,
+        maxDistanceMeters,
+        fetchLimit: limit,
+      },
+    )
+
+    if (requiredCategories && requiredCategories.length > 0) {
+      return semanticResults.filter((location) => {
+        const locationCategorySet = new Set((location.categoryIds ?? '').split(',').filter(Boolean))
+        return requiredCategories.every(cat => locationCategorySet.has(cat))
+      })
+    }
+
+    return semanticResults
   }
   catch (error) {
     // If semantic search fails (e.g., missing OpenAI key), fall back to empty results
@@ -202,14 +171,23 @@ export async function searchLocationsByText(
   query: string,
   options: SearchLocationOptions = {},
 ): Promise<SearchLocationResponse[]> {
-  const tsQuery = query.trim().split(/\s+/).join(' & ')
+  const originalQuery = query.trim()
+  if (!originalQuery)
+    return []
+
+  const tsQuery = originalQuery.split(/\s+/).join(' & ')
+  const singularQuery = originalQuery.replace(/s\b/g, '').trim()
+  const fallbackTsQuery = singularQuery && singularQuery !== originalQuery
+    ? singularQuery.split(/\s+/).join(' & ')
+    : null
+
   const { origin, maxDistanceMeters, categories, fetchLimit } = options
   const limit = fetchLimit && fetchLimit > 0 ? fetchLimit : 100
 
   const db = useDrizzle()
   const selectFields: Record<string, any> = {
     ...locationSelect,
-    highlightedName: sql<string>`ts_headline('simple', ${tables.locations.name}, to_tsquery('simple', ${tsQuery}), 'StartSel=<mark>, StopSel=</mark>')`.as('highlightedName'),
+    highlightedName: sql<string>`ts_headline('english', ${tables.locations.name}, to_tsquery('english', ${tsQuery}), 'StartSel=<mark>, StopSel=</mark>')`.as('highlightedName'),
     icon: sql<string>`(array_agg(${tables.categories.icon}) FILTER (WHERE ${tables.categories.icon} IS NOT NULL))[1]`.as('icon'),
   }
 
@@ -223,10 +201,12 @@ export async function searchLocationsByText(
     `.as('distanceMeters')
   }
 
-  const whereConditions = [
-    sql`to_tsvector('simple', ${tables.locations.name} || ' ' || ${tables.locations.street} || ' ' || ${tables.locations.city} || ' ' || ${tables.locations.country})
-        @@ to_tsquery('simple', ${tsQuery})`,
-  ]
+  const searchVector = sql`to_tsvector('english', ${tables.locations.name} || ' ' || ${tables.locations.street} || ' ' || ${tables.locations.city} || ' ' || ${tables.locations.country})`
+  const textMatch = fallbackTsQuery
+    ? sql`(${searchVector} @@ to_tsquery('english', ${tsQuery}) OR ${searchVector} @@ to_tsquery('english', ${fallbackTsQuery}))`
+    : sql`${searchVector} @@ to_tsquery('english', ${tsQuery})`
+
+  const whereConditions = [textMatch]
 
   // Add geospatial filter if origin and maxDistanceMeters are provided
   if (origin && maxDistanceMeters) {
