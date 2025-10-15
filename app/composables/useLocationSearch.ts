@@ -12,7 +12,7 @@ interface UseLocationSearchOptions {
 export function useLocationSearch(options: UseLocationSearchOptions = {}) {
   const { query: customQuery, categories: customCategories, immediate = false, shouldWatch = false, enableInfiniteScroll = false } = options
 
-  const { openNow, walkable } = useSearchFilters()
+  const { openNow, nearMe } = useSearchFilters()
   const { lat, lng } = useUserLocation()
   const sharedQuery = useState('searchQuery', () => '')
 
@@ -29,7 +29,7 @@ export function useLocationSearch(options: UseLocationSearchOptions = {}) {
     q: typeof searchQuery.value === 'string' && searchQuery.value.trim().length > 0 ? searchQuery.value : undefined,
     categories: customCategories !== undefined ? toValue(customCategories) : undefined,
     openNow: openNow.value || undefined,
-    walkable: walkable.value || undefined,
+    nearMe: nearMe.value || undefined,
     lat: lat.value || undefined,
     lng: lng.value || undefined,
     page: enableInfiniteScroll ? currentPage.value : undefined,

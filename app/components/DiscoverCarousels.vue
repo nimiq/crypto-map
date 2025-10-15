@@ -4,7 +4,7 @@ const { contextualPrimaryLocations, contextualPrimaryMeta, contextualSecondaryLo
 </script>
 
 <template>
-  <div f-mt-md children:f-mt-sm>
+  <div children:f-mt-sm>
     <Carousel v-if="filteredRecentlyViewed && filteredRecentlyViewed.length > 0" :title="$t('carousels.recentlyViewed')" icon="i-tabler:history">
       <LocationCard v-for="location in filteredRecentlyViewed" :key="location.uuid" :location />
     </Carousel>

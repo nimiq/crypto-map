@@ -10,7 +10,7 @@
   },
   "filters": {
     "openNow": "Open now",
-    "walkableDistance": "Walkable distance (WIP)",
+    "nearMe": "Near me",
     "restaurants": "Restaurants"
   },
   "location": {

@@ -38,7 +38,7 @@ catalogs:
     nimiq-icons: ^1.0.0-beta.133
     reka-ui: ^2.5.1
     unocss: ^66.5.3
-    unocss-preset-onmax: 1.0.0-beta.47
+    unocss-preset-onmax: 1.0.0-beta.48
     vue-sonner: ^2.0.9
   utils:
     '@ai-sdk/openai': ^2.0.52

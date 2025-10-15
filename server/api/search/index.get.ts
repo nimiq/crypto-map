@@ -7,13 +7,13 @@ const querySchema = v.object({
   q: v.optional(v.string()),
   categories: v.optional(v.union([v.string(), v.array(v.string())])),
   openNow: v.optional(v.pipe(v.string(), v.transform(val => val === 'true'))),
-  walkable: v.optional(v.pipe(v.string(), v.transform(val => val === 'true'))),
+  nearMe: v.optional(v.pipe(v.string(), v.transform(val => val === 'true'))),
   page: v.fallback(v.pipe(v.string(), v.transform(Number), v.number(), v.minValue(1)), 1),
   limit: v.fallback(v.pipe(v.string(), v.transform(Number), v.number(), v.minValue(1), v.maxValue(100)), 20),
 })
 
 export default defineCachedEventHandler(async (event) => {
-  const { q: searchQuery, categories: rawCategories, openNow = false, walkable = false, lat: qLat, lng: qLng, page = 1, limit = 20 } = await getValidatedQuery(event, data => v.parse(querySchema, data))
+  const { q: searchQuery, categories: rawCategories, openNow = false, nearMe = false, lat: qLat, lng: qLng, page = 1, limit = 20 } = await getValidatedQuery(event, data => v.parse(querySchema, data))
 
   // Normalize categories to array
   const categories = rawCategories ? (Array.isArray(rawCategories) ? rawCategories : [rawCategories]) : undefined
@@ -46,8 +46,8 @@ export default defineCachedEventHandler(async (event) => {
   const searchOptions: SearchLocationOptions = { page, limit }
   if (lat !== undefined && lng !== undefined) {
     searchOptions.origin = { lat, lng }
-    // Apply 1.5km walkable distance filter when walkable flag is true
-    if (walkable) {
+    // Apply 1.5km distance filter when nearMe flag is true
+    if (nearMe) {
       searchOptions.maxDistanceMeters = 1500
     }
   }
@@ -85,8 +85,8 @@ export default defineCachedEventHandler(async (event) => {
     searchResults = Array.from(combinedMap.values())
   }
 
-  // Sort by distance if origin is provided and walkable is true
-  if (walkable && searchOptions.origin) {
+  // Sort by distance if origin is provided and nearMe is true
+  if (nearMe && searchOptions.origin) {
     searchResults.sort((a, b) => (a.distanceMeters ?? Infinity) - (b.distanceMeters ?? Infinity))
   }
 
@@ -106,7 +106,7 @@ export default defineCachedEventHandler(async (event) => {
   getKey: (event) => {
     const query = getQuery(event)
     const categoriesKey = query.categories ? (Array.isArray(query.categories) ? query.categories.join(',') : query.categories) : ''
-    return `search:${query.q}:${query.lat || ''}:${query.lng || ''}:${query.openNow || ''}:${query.walkable || ''}:${categoriesKey}:${query.page || 1}:${query.limit || 20}`
+    return `search:${query.q}:${query.lat || ''}:${query.lng || ''}:${query.openNow || ''}:${query.nearMe || ''}:${categoriesKey}:${query.page || 1}:${query.limit || 20}`
   },
   swr: true, // Stale-while-revalidate
 })

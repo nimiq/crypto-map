@@ -5,19 +5,19 @@ export function useSearchFilters() {
   const openNow = computed<boolean>({
     get: () => params.openNow === 'true',
     set: (val) => {
-      params.openNow = val || null as any
+      params.openNow = val ? 'true' : null
     },
   })
 
-  const walkable = computed<boolean>({
-    get: () => params.walkable === 'true',
+  const nearMe = computed<boolean>({
+    get: () => params.nearMe === 'true',
     set: (val) => {
-      params.walkable = val || null as any
+      params.nearMe = val ? 'true' : null
     },
   })
 
   return {
     openNow,
-    walkable,
+    nearMe,
   }
 }

@@ -9,7 +9,8 @@
   },
   "filters": {
     "openNow": "Abierto ahora",
-    "walkableDistance": "Distancia caminable (WIP)"
+    "walkableDistance": "Distancia caminable (WIP)",
+    "nearMe": "Cerca de mí"
   },
   "location": {
     "viewOnMaps": "Ver en Maps",
