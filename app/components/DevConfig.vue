@@ -28,13 +28,13 @@ const flags = {
 
 <template>
   <div bottom-16 right-16 fixed z-50>
-  <PopoverRoot>
-    <PopoverTrigger as-child>
-      <button flex="~ items-center justify-center" outline="~ 1.5 neutral-200 focus-visible:neutral-900" rounded-full bg-neutral-0 size-40 cursor-pointer transition-colors shadow hover:bg-neutral-50>
-        <Icon name="i-tabler:settings" text-neutral size-20 />
-      </button>
-    </PopoverTrigger>
-      <PopoverContent outline="~ 1.5 neutral-200" rounded-8 bg-white fixed bottom-16 right-16 w-280 shadow-lg z-50 f-p-md>
+    <PopoverRoot>
+      <PopoverTrigger as-child>
+        <button flex="~ items-center justify-center" outline="~ 1.5 neutral-200 focus-visible:neutral-900" rounded-full bg-neutral-0 size-40 cursor-pointer shadow transition-colors hover:bg-neutral-50>
+          <Icon name="i-tabler:settings" text-neutral size-20 />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent outline="~ 1.5 neutral-200" rounded-8 bg-white w-280 shadow-lg bottom-16 right-16 fixed z-50 f-p-md>
         <!-- Language Section -->
         <div f-mb-md>
           <h3 text="f-xs neutral-900" font-semibold m-0 f-mb-xs>
@@ -63,11 +63,7 @@ const flags = {
             {{ t('devConfig.usingQueryParams') }}
           </p>
         </div>
-
-        <PopoverArrow width="8" height="8" as-child>
-          <div border="l t neutral-200" bg-white rotate-45 />
-        </PopoverArrow>
       </PopoverContent>
-  </PopoverRoot>
-</div>
+    </PopoverRoot>
+  </div>
 </template>

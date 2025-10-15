@@ -20,7 +20,8 @@
   "locations": {
     "noResults": {
       "title": "Keine Standorte gefunden",
-      "description": "Versuche, deine Suche oder Filter anzupassen"
+      "description": "Versuche, deine Suche oder Filter anzupassen",
+      "resetFilters": "Filter zurücksetzen"
     },
     "loadingMore": "Weitere laden..."
   },

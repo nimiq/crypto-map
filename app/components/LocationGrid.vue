@@ -17,7 +17,7 @@ useIntersectionObserver(sentinelRef, ([entry]) => {
 <template>
   <div nq-raw>
     <div v-if="locations.length > 0" grid="~ cols-3 gap-x-16 gap-y-20">
-      <LocationCard v-for="location in locations" :key="location.uuid" :location="location" w-full />
+      <LocationCard v-for="location in locations" :key="location.uuid" :location w-full />
     </div>
 
     <!-- Sentinel element for intersection observer -->

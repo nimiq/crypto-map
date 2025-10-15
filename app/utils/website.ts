@@ -8,7 +8,7 @@ export function parseWebsiteUrl(url: string): WebsiteInfo {
     hostname = urlObj.hostname.replace(/^www\./, '')
   }
   catch {
-    hostname = url.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0]
+    hostname = url.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0] || ''
   }
 
   // Instagram

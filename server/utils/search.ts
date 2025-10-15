@@ -38,7 +38,8 @@ export async function searchLocationsBySimilarCategories(
   try {
     const db = useDrizzle()
     const queryEmbedding = await generateEmbeddingCached(query)
-    const { origin, maxDistanceMeters } = options
+    const { origin, maxDistanceMeters, categories, fetchLimit } = options
+    const limit = fetchLimit && fetchLimit > 0 ? fetchLimit : 100
 
     // Build distance calculation and filter clauses
     const distanceSelect = origin
@@ -55,6 +56,16 @@ export async function searchLocationsBySimilarCategories(
         ${maxDistanceMeters}
       )`
       : sql``
+
+    let categoryFilter = sql``
+    if (categories && categories.length > 0) {
+      const categoryConditions = categories.map(cat => sql`${tables.locationCategories.categoryId} = ${cat}`)
+      categoryFilter = sql`AND ${tables.locations.uuid} IN (
+        SELECT ${tables.locationCategories.locationUuid}
+        FROM ${tables.locationCategories}
+        WHERE ${sql.join(categoryConditions, sql` OR `)}
+      )`
+    }
 
     const orderByClause = origin
       ? sql`ORDER BY "distanceMeters"`
@@ -107,9 +118,10 @@ export async function searchLocationsBySimilarCategories(
       ON ${tables.locationCategories.categoryId} = ${tables.categories.id}
     WHERE 1=1
       ${distanceFilter}
+      ${categoryFilter}
     GROUP BY ${tables.locations.uuid}
     ${orderByClause}
-    LIMIT 100
+    LIMIT ${limit}
   `)
 
     return ((result as any).rows || []) as LocationResponse[]
@@ -122,13 +134,77 @@ export async function searchLocationsBySimilarCategories(
   }
 }
 
+// Fetch locations by categories only (no search query)
+export async function searchLocationsByCategories(
+  categories: string[],
+  options: SearchLocationOptions = {},
+): Promise<SearchLocationResponse[]> {
+  const { origin, maxDistanceMeters, fetchLimit } = options
+  const limit = fetchLimit && fetchLimit > 0 ? fetchLimit : 100
+
+  const db = useDrizzle()
+  const selectFields: Record<string, any> = {
+    ...locationSelect,
+    icon: sql<string>`(array_agg(${tables.categories.icon}) FILTER (WHERE ${tables.categories.icon} IS NOT NULL))[1]`.as('icon'),
+  }
+
+  // Add distance calculation if origin is provided
+  if (origin) {
+    selectFields.distanceMeters = sql<number>`
+      ST_Distance(
+        ${tables.locations.location}::geography,
+        ST_SetSRID(ST_MakePoint(${origin.lng}, ${origin.lat}), 4326)::geography
+      )
+    `.as('distanceMeters')
+  }
+
+  const whereConditions = []
+
+  // Add geospatial filter if origin and maxDistanceMeters are provided
+  if (origin && maxDistanceMeters) {
+    whereConditions.push(
+      sql`ST_DWithin(
+        ${tables.locations.location}::geography,
+        ST_SetSRID(ST_MakePoint(${origin.lng}, ${origin.lat}), 4326)::geography,
+        ${maxDistanceMeters}
+      )`,
+    )
+  }
+
+  // Add category filter
+  const categoryConditions = categories.map(cat => sql`${tables.locationCategories.categoryId} = ${cat}`)
+  whereConditions.push(
+    sql`${tables.locations.uuid} IN (
+      SELECT ${tables.locationCategories.locationUuid}
+      FROM ${tables.locationCategories}
+      WHERE ${sql.join(categoryConditions, sql` OR `)}
+    )`,
+  )
+
+  const baseQuery = db
+    .select(selectFields)
+    .from(tables.locations)
+    .leftJoin(tables.locationCategories, eq(tables.locations.uuid, tables.locationCategories.locationUuid))
+    .leftJoin(tables.categories, eq(tables.locationCategories.categoryId, tables.categories.id))
+    .where(and(...whereConditions))
+    .groupBy(tables.locations.uuid)
+
+  // Order by distance if origin is provided, otherwise by rating
+  const queryBuilder = origin
+    ? baseQuery.orderBy(selectFields.distanceMeters)
+    : baseQuery.orderBy(sql`${tables.locations.rating} DESC NULLS LAST`)
+
+  return await queryBuilder.limit(limit) as SearchLocationResponse[]
+}
+
 // PostgreSQL's built-in FTS is faster than vector search for exact/prefix matches
 export async function searchLocationsByText(
   query: string,
   options: SearchLocationOptions = {},
 ): Promise<SearchLocationResponse[]> {
   const tsQuery = query.trim().split(/\s+/).join(' & ')
-  const { origin, maxDistanceMeters } = options
+  const { origin, maxDistanceMeters, categories, fetchLimit } = options
+  const limit = fetchLimit && fetchLimit > 0 ? fetchLimit : 100
 
   const db = useDrizzle()
   const selectFields: Record<string, any> = {
@@ -163,6 +239,18 @@ export async function searchLocationsByText(
     )
   }
 
+  // Add category filter if categories are provided
+  if (categories && categories.length > 0) {
+    const categoryConditions = categories.map(cat => sql`${tables.locationCategories.categoryId} = ${cat}`)
+    whereConditions.push(
+      sql`${tables.locations.uuid} IN (
+        SELECT ${tables.locationCategories.locationUuid}
+        FROM ${tables.locationCategories}
+        WHERE ${sql.join(categoryConditions, sql` OR `)}
+      )`,
+    )
+  }
+
   const baseQuery = db
     .select(selectFields)
     .from(tables.locations)
@@ -176,5 +264,5 @@ export async function searchLocationsByText(
     ? baseQuery.orderBy(selectFields.distanceMeters)
     : baseQuery
 
-  return await queryBuilder.limit(100) as SearchLocationResponse[]
+  return await queryBuilder.limit(limit) as SearchLocationResponse[]
 }

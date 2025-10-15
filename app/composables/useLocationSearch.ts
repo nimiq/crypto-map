@@ -26,7 +26,7 @@ export function useLocationSearch(options: UseLocationSearchOptions = {}) {
   const total = ref(0)
 
   const queryParams = computed(() => ({
-    q: searchQuery.value,
+    q: typeof searchQuery.value === 'string' && searchQuery.value.trim().length > 0 ? searchQuery.value : undefined,
     categories: customCategories !== undefined ? toValue(customCategories) : undefined,
     openNow: openNow.value || undefined,
     walkable: walkable.value || undefined,

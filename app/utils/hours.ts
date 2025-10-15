@@ -61,7 +61,6 @@ export function formatOpeningHours(openingHours: string): string[] {
 export function getWeeklyHours(openingHoursString: string): string[] {
   try {
     const oh = new OpeningHours(openingHoursString.trim())
-    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
     return Array.from({ length: 7 }, (_, dayIndex) => {
       // Create a date for each day of the week starting from Monday

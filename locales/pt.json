@@ -8,8 +8,10 @@
   "locations": {
     "noResults": {
       "title": "Nenhum resultado encontrado",
-      "description": "Tente ajustar sua busca ou filtros"
-    }
+      "description": "Tente ajustar sua busca ou filtros",
+      "resetFilters": "Redefinir filtros"
+    },
+    "loadingMore": "Carregando mais..."
   },
   "carousels": {
     "openNow": "Aberto agora",

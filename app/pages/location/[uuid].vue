@@ -121,7 +121,7 @@ function handleBack() {
         {{ t('location.viewOnMaps') }}
       </NuxtLink>
 
-      <NuxtLink v-if="websiteInfo" :to="websiteInfo.url" external :nq-arrow="websiteInfo.hasArrow ? '' : undefined" bg-transparent after:op-90 font-medium un-text="blue-1100 f-sm" target="_blank" flex="~ items-center gap-8">
+      <NuxtLink v-if="websiteInfo" :to="websiteInfo.url" :nq-arrow="websiteInfo.hasArrow ? '' : undefined" external font-medium bg-transparent after:op-90 un-text="blue-1100 f-sm" target="_blank" flex="~ items-center gap-8">
         <Icon v-if="websiteInfo.icon" :name="websiteInfo.icon" text-14 />
         {{ websiteInfo.displayText }}
       </NuxtLink>
@@ -129,7 +129,7 @@ function handleBack() {
 
     <!-- Categories -->
     <div v-if="location.categories && location.categories.length > 0" flex="~ col gap-8" f-mt-lg>
-      <h2 text="neutral-800 11" nq-label my-0>
+      <h2 text="neutral-800 11" my-0 nq-label>
         {{ t('location.categories') }}
       </h2>
       <div flex="~ wrap gap-8">
@@ -142,7 +142,7 @@ function handleBack() {
 
     <!-- Opening Hours -->
     <div v-if="weeklyHours.entries.length > 0" flex="~ col gap-8" f-mt-lg>
-      <h2 text="neutral-800 11" nq-label my-0>
+      <h2 text="neutral-800 11" my-0 nq-label>
         {{ t('location.openingHours') }}
       </h2>
       <div flex="~ col gap-4" text="neutral-700 f-xs">

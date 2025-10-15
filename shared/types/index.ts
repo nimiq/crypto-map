@@ -9,8 +9,10 @@ export type CategoryResponse = Pick<Category, 'id' | 'name' | 'icon'>
 export interface SearchLocationOptions {
   origin?: { lat: number, lng: number }
   maxDistanceMeters?: number
+  categories?: string[]
   page?: number
   limit?: number
+  fetchLimit?: number
 }
 
 export type LocationResponse = Omit<Location, 'location' | 'street' | 'city' | 'postalCode' | 'region' | 'country'> & {

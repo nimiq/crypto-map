@@ -8,13 +8,18 @@ const hasSearchParams = computed(() => !!query.value || !!category.value)
 
 const categories = computed(() => category.value ? [category.value] : undefined)
 
-const { searchResults: locations, status, hasMore, loadMore } = useLocationSearch({
+const { searchResults: locations, status, hasMore, loadMore, refreshSearch } = useLocationSearch({
   query,
   categories,
   immediate: toValue(hasSearchParams),
   shouldWatch: true,
   enableInfiniteScroll: true,
 })
+
+watch([query, category], () => {
+  if (query.value || category.value)
+    refreshSearch()
+}, { immediate: true })
 </script>
 
 <template>
@@ -22,11 +27,11 @@ const { searchResults: locations, status, hasMore, loadMore } = useLocationSearc
     <DiscoverCarousels v-if="!hasSearchParams" />
 
     <template v-else>
-      <header f-mb-xs nq-label f-mt-sm>
+      <header f-mt-sm f-mb-xs nq-label>
         <h1 text="f-xs neutral-900" font-bold m-0>
-          {{ query }}
+          {{ query || (category ? t(`categories.${category}`) : '') }}
         </h1>
-        <p v-if="category" text="f-xs neutral-700" m-0 f-mt-xs>
+        <p v-if="category && query" text="f-xs neutral-700" m-0 f-mt-xs>
           {{ t(`categories.${category}`) }}
         </p>
       </header>
@@ -43,6 +48,10 @@ const { searchResults: locations, status, hasMore, loadMore } = useLocationSearc
         <p text="f-sm neutral-600" m-0 f-mt-xs>
           {{ t('locations.noResults.description') }}
         </p>
+        <NuxtLink to="/" flex="~ items-center gap-8" px-16 py-8 rounded-full bg-neutral-100 no-underline transition-colors f-mt-md hover:bg-neutral-200 un-text="neutral-800 f-sm">
+          <Icon name="i-tabler:refresh" text-16 />
+          <span>{{ t('locations.noResults.resetFilters') }}</span>
+        </NuxtLink>
       </div>
 
       <LocationGrid v-else :locations="locations || []" :has-more="hasMore" @load-more="loadMore" />

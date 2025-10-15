@@ -20,7 +20,8 @@
   "locations": {
     "noResults": {
       "title": "Nenhum local encontrado",
-      "description": "Tente ajustar sua pesquisa ou filtros"
+      "description": "Tente ajustar sua pesquisa ou filtros",
+      "resetFilters": "Redefinir filtros"
     },
     "loadingMore": "Carregando mais..."
   },
