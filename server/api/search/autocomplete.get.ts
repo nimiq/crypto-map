@@ -17,26 +17,8 @@ export default defineCachedEventHandler(async (event) => {
   )
 
   const fetchLimit = 10
-  const searchOptions = { fetchLimit }
-
-  const [textResults, semanticResults] = await Promise.all([
-    searchLocationsByText(searchQuery, searchOptions),
-    searchLocationsBySimilarCategories(searchQuery, searchOptions),
-  ])
-
-  type CombinedResult = Awaited<ReturnType<typeof searchLocationsByText>>[number]
-  const combined = new Map<string, CombinedResult>()
-
-  for (const location of textResults || []) {
-    combined.set(location.uuid, location)
-  }
-
-  for (const location of semanticResults || []) {
-    if (!combined.has(location.uuid))
-      combined.set(location.uuid, location as CombinedResult)
-  }
-
-  return Array.from(combined.values()).slice(0, fetchLimit)
+  const results = await searchLocationsByText(searchQuery, { fetchLimit })
+  return results.slice(0, fetchLimit)
 }, {
   maxAge: 60 * 60 * 24 * 7, // Cache for 7 days
   getKey: event => `autocomplete:${getQuery(event).q}`,
