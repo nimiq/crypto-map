@@ -1,4 +1,5 @@
 import { desc, sql } from 'drizzle-orm'
+import { categoryLocationJoin, locationCount } from '../utils/sql-fragments'
 
 export default defineCachedEventHandler(async (event) => {
   const db = useDrizzle()
@@ -9,13 +10,13 @@ export default defineCachedEventHandler(async (event) => {
       id: tables.categories.id,
       name: tables.categories.name,
       icon: tables.categories.icon,
-      locationCount: sql<number>`count(${tables.locationCategories.locationUuid})::int`,
+      locationCount,
     })
     .from(tables.categories)
-    .leftJoin(tables.locationCategories, sql`${tables.categories.id} = ${tables.locationCategories.categoryId}`)
+    .leftJoin(tables.locationCategories, categoryLocationJoin)
     .groupBy(tables.categories.id, tables.categories.name, tables.categories.icon)
-    .having(sql`count(${tables.locationCategories.locationUuid}) > 0`)
-    .orderBy(desc(sql`count(${tables.locationCategories.locationUuid})`))
+    .having(sql`count(DISTINCT ${tables.locationCategories.locationUuid}) > 0`)
+    .orderBy(desc(locationCount))
     .limit(20)
 
   setResponseHeader(event, 'Cache-Control', 'public, max-age=3600, stale-while-revalidate=43200')
