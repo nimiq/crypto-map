@@ -24,6 +24,8 @@ async function main() {
     await sql.unsafe('DROP TABLE IF EXISTS category_hierarchies CASCADE')
     await sql.unsafe('DROP TABLE IF EXISTS locations CASCADE')
     await sql.unsafe('DROP TABLE IF EXISTS categories CASCADE')
+    await sql.unsafe('DROP TABLE IF EXISTS drizzle.__drizzle_migrations CASCADE')
+    await sql.unsafe('DROP SCHEMA IF EXISTS drizzle CASCADE')
 
     consola.success('All tables dropped successfully')
   }

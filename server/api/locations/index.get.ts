@@ -1,5 +1,6 @@
 import { eq, inArray, isNotNull, sql } from 'drizzle-orm'
 import * as v from 'valibot'
+import { filterOpenNow } from '../../utils/open-now'
 import {
   categoryFilterOr,
   locationSelectWithDistance,
@@ -110,7 +111,27 @@ export default defineEventHandler(async (event) => {
   if (whereConditions.length > 0)
     query = query.where(sql.join(whereConditions, sql` AND `))
 
-  query = query.groupBy(tables.locations.uuid)
+  query = query.groupBy(
+    tables.locations.uuid,
+    tables.locations.name,
+    tables.locations.street,
+    tables.locations.city,
+    tables.locations.postalCode,
+    tables.locations.region,
+    tables.locations.country,
+    tables.locations.location,
+    tables.locations.rating,
+    tables.locations.ratingCount,
+    tables.locations.photo,
+    tables.locations.gmapsPlaceId,
+    tables.locations.gmapsUrl,
+    tables.locations.website,
+    tables.locations.source,
+    tables.locations.timezone,
+    tables.locations.openingHours,
+    tables.locations.createdAt,
+    tables.locations.updatedAt,
+  )
 
   // Add ORDER BY
   if (status === 'contextual-primary' || status === 'contextual-secondary') {
@@ -127,10 +148,7 @@ export default defineEventHandler(async (event) => {
   const skipCount = Boolean(status || uuids)
 
   // Determine if we need runtime filtering for count accuracy
-  const needsRuntimeFilter
-    = status === 'open'
-      || status === 'contextual-primary'
-      || status === 'contextual-secondary'
+  const needsRuntimeFilter = status === 'open'
 
   let locations: Awaited<typeof query>
   let totalCount: number
