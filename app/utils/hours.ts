@@ -55,7 +55,7 @@ export function formatOpeningHours(openingHours: string): string[] {
 
 /**
  * Parse OSM opening hours format and return array of formatted hours for each day
- * @param openingHoursString OSM format opening hours string (e.g., "Mo-Fr 09:00-18:00")
+ * @param openingHoursString OSM format opening hours string (e.g., 'Mo-Fr 09:00-18:00')
  * @returns Array of 7 strings (Mon-Sun) showing when each day opens/closes, or empty string if closed
  */
 export function getWeeklyHours(openingHoursString: string): string[] {
@@ -93,7 +93,7 @@ export function getWeeklyHours(openingHoursString: string): string[] {
       if (dayIntervals.length === 0)
         return ''
 
-      // Format all intervals for this day (handles split shifts like "09:00-12:00, 14:00-18:00")
+      // Format all intervals for this day (handles split shifts like '09:00-12:00, 14:00-18:00')
       return dayIntervals.map(([start, end]) => {
         const startTime = formatTime(start)
         const endTime = formatTime(end)
@@ -146,8 +146,8 @@ function getFirstDayOfWeek(locale: string): number {
  * Rotates weekly hours array to start from today (in location's timezone)
  * Includes separator index to visually distinguish current week from next week
  * @param weeklyHours Array of 7 hour strings (Mon-Sun)
- * @param timezone IANA timezone identifier (e.g., "Europe/Zurich")
- * @param locale Locale string for determining week start day (e.g., "en-US", "de-CH")
+ * @param timezone IANA timezone identifier (e.g., 'Europe/Zurich')
+ * @param locale Locale string for determining week start day (e.g., 'en-US', 'de-CH')
  * @returns Object with rotated hours and separator index (after last day of current week)
  */
 export function rotateWeeklyHoursToToday(weeklyHours: string[], timezone: string, locale: string = 'en-US'): RotatedWeeklyHours {

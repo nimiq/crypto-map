@@ -81,7 +81,7 @@ async function main() {
     const hasEmbeddings = categories.some(cat => cat.embeddings && cat.embeddings.length > 0)
     if (hasEmbeddings) {
       consola.warn('Categories already have embeddings!')
-      consola.warn('Remove the "embeddings" field from categories.json and run again to regenerate')
+      consola.warn('Remove the 'embeddings' field from categories.json and run again to regenerate')
       process.exit(0)
     }
 
@@ -136,7 +136,7 @@ async function main() {
 
       // Ensure embedding is valid
       if (!embedding || embedding.length !== EMBEDDING_DIMENSIONS) {
-        throw new Error(`Invalid embedding for category "${cat.name}" at index ${i}`)
+        throw new Error(`Invalid embedding for category '${cat.name}' at index ${i}`)
       }
 
       return {

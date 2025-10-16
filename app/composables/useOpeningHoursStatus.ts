@@ -84,7 +84,7 @@ export function useOpeningHoursStatus(openingHours: MaybeRefOrGetter<string>, ti
           }
         }
         else {
-          // More than a week away - just show "Closed"
+          // More than a week away - just show 'Closed'
           return { label: t('hours.closed'), variant: 'neutral' }
         }
       }
