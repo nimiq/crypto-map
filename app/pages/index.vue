@@ -1,26 +1,9 @@
 <script setup lang="ts">
 const { t } = useI18n()
-
-const {
-  categories,
-  openNow,
-  nearMe,
-  searchResults: locations,
-  status,
-  hasMore,
-  loadMore,
-  hasSearchParams,
-  removeCategory,
-} = useSearch()
-
+const { categories, openNow, nearMe, searchResults: locations, status, hasMore, loadMore, hasSearchParams, removeCategory } = useSearch()
 const { data: categoriesData } = useFetch('/api/categories')
 
-function handleOpenNowUpdate(value: boolean) {
-  openNow.value = value
-}
-function handleNearMeUpdate(value: boolean) {
-  nearMe.value = value
-}
+const showEmptyState = computed(() => !locations.value || locations.value.length === 0)
 </script>
 
 <template>
@@ -28,34 +11,12 @@ function handleNearMeUpdate(value: boolean) {
     <DiscoverCarousels v-if="!hasSearchParams" />
 
     <template v-else>
-      <QuickFilters
-        f-mt-2xs
-        f-mb-md
-        :selected-categories="categories"
-        :open-now="openNow"
-        :near-me="nearMe"
-        :categories="categoriesData"
-        @remove-category="removeCategory"
-        @update:open-now="handleOpenNowUpdate"
-        @update:near-me="handleNearMeUpdate"
-      />
+      <QuickFilters v-model:open-now="openNow" v-model:near-me="nearMe" f-mt-2xs f-mb-md :selected-categories="categories" :categories="categoriesData" @remove-category="removeCategory" />
       <div v-if="status === 'pending'" grid="~ cols-3 gap-x-16 gap-y-20">
-        <div
-          v-for="n in 9"
-          :key="n"
-          rounded-8
-          bg-neutral-300
-          h-158
-          w-full
-          animate-pulse
-        />
+        <div v-for="n in 9" :key="n" rounded-8 bg-neutral-300 h-158 w-full animate-pulse />
       </div>
 
-      <div
-        v-else-if="!locations || locations.length === 0"
-        flex="~ col items-center justify-center"
-        text-center
-      >
+      <div v-else-if="showEmptyState" flex="~ col items-center justify-center" text-center>
         <div outline="neutral-400 ~ 3" stack rounded-4 size-96 f-mb-sm>
           <Icon name="i-nimiq:duotone-cactus" text-64 text-neutral-500 />
         </div>
@@ -71,12 +32,7 @@ function handleNearMeUpdate(value: boolean) {
         </NuxtLink>
       </div>
 
-      <LocationGrid
-        v-else
-        :locations="locations || []"
-        :has-more="hasMore"
-        @load-more="loadMore"
-      />
+      <LocationGrid v-else :locations="locations || []" :has-more @load-more="loadMore" />
     </template>
   </div>
 </template>

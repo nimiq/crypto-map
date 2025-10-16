@@ -1,23 +1,26 @@
 <script setup lang='ts'>
-interface Props { selectedCategories?: string[], openNow: boolean, nearMe: boolean, categories?: Array<{ id: string, name: string, icon: string }> }
-interface Emits { (e: 'removeCategory', categoryId: string): void, (e: 'update:openNow', value: boolean): void, (e: 'update:nearMe', value: boolean): void }
+interface Props { selectedCategories?: string[], categories?: Array<{ id: string, name: string, icon: string }> }
+interface Emits { (e: 'removeCategory', categoryId: string): void }
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 const { t } = useI18n()
 
+const openNow = defineModel<boolean>('openNow', { default: false })
+const nearMe = defineModel<boolean>('nearMe', { default: false })
+
 const selectedFilters = computed<string[]>({
   get: () => {
     const filters: string[] = []
-    if (props.openNow)
+    if (openNow.value)
       filters.push('openNow')
-    if (props.nearMe)
+    if (nearMe.value)
       filters.push('nearMe')
     return filters
   },
   set: (value: string[]) => {
-    emit('update:openNow', value.includes('openNow'))
-    emit('update:nearMe', value.includes('nearMe'))
+    openNow.value = value.includes('openNow')
+    nearMe.value = value.includes('nearMe')
   },
 })
 
