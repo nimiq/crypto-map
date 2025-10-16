@@ -30,7 +30,9 @@ function createOpenAIProvider() {
   const apiKey = process.env.OPENAI_API_KEY
 
   if (!apiKey) {
-    throw new Error('OPENAI_API_KEY environment variable is required for embedding generation')
+    throw new Error(
+      'OPENAI_API_KEY environment variable is required for embedding generation',
+    )
   }
 
   return createOpenAI({ apiKey })
@@ -39,14 +41,21 @@ function createOpenAIProvider() {
 /**
  * Validate embedding dimensions for consistency
  */
-function validateEmbeddings(embeddings: number[][], expectedCount: number): void {
+function validateEmbeddings(
+  embeddings: number[][],
+  expectedCount: number,
+): void {
   if (embeddings.length !== expectedCount) {
-    throw new Error(`Expected ${expectedCount} embeddings, got ${embeddings.length}`)
+    throw new Error(
+      `Expected ${expectedCount} embeddings, got ${embeddings.length}`,
+    )
   }
 
   for (let i = 0; i < embeddings.length; i++) {
     if (embeddings[i].length !== EMBEDDING_DIMENSIONS) {
-      throw new Error(`Embedding ${i} has incorrect dimensions: expected ${EMBEDDING_DIMENSIONS}, got ${embeddings[i].length}`)
+      throw new Error(
+        `Embedding ${i} has incorrect dimensions: expected ${EMBEDDING_DIMENSIONS}, got ${embeddings[i].length}`,
+      )
     }
   }
 }
@@ -78,19 +87,27 @@ async function main() {
     }
 
     // Check if embeddings already exist
-    const hasEmbeddings = categories.some(cat => cat.embeddings && cat.embeddings.length > 0)
+    const hasEmbeddings = categories.some(
+      cat => cat.embeddings && cat.embeddings.length > 0,
+    )
     if (hasEmbeddings) {
       consola.warn('Categories already have embeddings!')
-      consola.warn('Remove the 'embeddings' field from categories.json and run again to regenerate')
+      consola.warn(
+        'Remove the \'embeddings\' field from categories.json and run again to regenerate',
+      )
       process.exit(0)
     }
 
     consola.info(`Found ${categories.length} categories`)
-    consola.start(`Generating embeddings using ${EMBEDDING_MODEL} (${EMBEDDING_DIMENSIONS} dimensions)`)
+    consola.start(
+      `Generating embeddings using ${EMBEDDING_MODEL} (${EMBEDDING_DIMENSIONS} dimensions)`,
+    )
 
     // Prepare category names for embedding generation
     const categoryNames = categories.map(c => c.name)
-    consola.info(`Processing categories: ${categoryNames.slice(0, 5).join(', ')}${categoryNames.length > 5 ? '...' : ''}`)
+    consola.info(
+      `Processing categories: ${categoryNames.slice(0, 5).join(', ')}${categoryNames.length > 5 ? '...' : ''}`,
+    )
 
     // Generate embeddings using AI SDK with improved error handling
     let embeddings: number[][]
@@ -117,13 +134,17 @@ async function main() {
 
       if (error instanceof Error) {
         if (error.message.includes('rate limit')) {
-          consola.info('Rate limit exceeded. AI SDK will automatically retry with exponential backoff.')
+          consola.info(
+            'Rate limit exceeded. AI SDK will automatically retry with exponential backoff.',
+          )
         }
         else if (error.message.includes('API key')) {
           consola.info('Check your OPENAI_API_KEY environment variable')
         }
         else if (error.message.includes('network')) {
-          consola.info('Network error occurred. Check your internet connection.')
+          consola.info(
+            'Network error occurred. Check your internet connection.',
+          )
         }
       }
 
@@ -136,7 +157,9 @@ async function main() {
 
       // Ensure embedding is valid
       if (!embedding || embedding.length !== EMBEDDING_DIMENSIONS) {
-        throw new Error(`Invalid embedding for category '${cat.name}' at index ${i}`)
+        throw new Error(
+          `Invalid embedding for category '${cat.name}' at index ${i}`,
+        )
       }
 
       return {
@@ -147,7 +170,11 @@ async function main() {
 
     // Write updated categories back to JSON file with error handling
     try {
-      await writeFile(categoriesPath, JSON.stringify(updatedCategories, null, 2), 'utf-8')
+      await writeFile(
+        categoriesPath,
+        JSON.stringify(updatedCategories, null, 2),
+        'utf-8',
+      )
       consola.success(`Embeddings saved to ${categoriesPath}`)
       consola.info('Commit the updated categories.json file to git')
     }

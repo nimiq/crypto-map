@@ -85,7 +85,7 @@ export const locations = pgTable(
       .default(sql`NOW()`)
       .$defaultFn(() => new Date()),
   },
-  (table) => [index('location_spatial_idx').using('gist', table.location)],
+  table => [index('location_spatial_idx').using('gist', table.location)],
 )
 
 export type Location = typeof locations.$inferSelect
@@ -103,7 +103,7 @@ export const locationCategories = pgTable(
       .default(sql`NOW()`)
       .$defaultFn(() => new Date()),
   },
-  (table) => [
+  table => [
     primaryKey({ columns: [table.locationUuid, table.categoryId] }),
     index('location_idx').on(table.locationUuid),
     index('category_idx').on(table.categoryId),

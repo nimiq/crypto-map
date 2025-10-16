@@ -1,7 +1,7 @@
 import { readdir, readFile } from 'node:fs/promises'
 import process from 'node:process'
-import { config } from 'dotenv'
 import { createConsola } from 'consola'
+import { config } from 'dotenv'
 import { join } from 'pathe'
 import postgres from 'postgres'
 
@@ -39,7 +39,7 @@ async function main() {
     consola.info('Running migrations...')
     const migrationsDir = join(import.meta.dirname, '..', 'migrations')
     const migrationFiles = (await readdir(migrationsDir))
-      .filter((f) => f.endsWith('.sql'))
+      .filter(f => f.endsWith('.sql'))
       .sort()
 
     for (const file of migrationFiles) {
@@ -82,7 +82,7 @@ async function main() {
     consola.info('Running SQL seed files...')
     const sqlDir = join(import.meta.dirname, '..', 'sql')
     const sqlFiles = (await readdir(sqlDir))
-      .filter((f) => f.endsWith('.sql'))
+      .filter(f => f.endsWith('.sql'))
       .sort()
 
     for (const file of sqlFiles) {
@@ -93,10 +93,12 @@ async function main() {
     }
 
     consola.success('Database setup complete')
-  } catch (error) {
+  }
+  catch (error) {
     consola.error('Failed to setup database:', error)
     process.exit(1)
-  } finally {
+  }
+  finally {
     await sql.end()
   }
 }

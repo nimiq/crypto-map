@@ -40,10 +40,11 @@ export function useSearch() {
       const queryLower = trimmed.toLowerCase()
 
       if (
-        queryLower === categoryLower ||
-        queryLower === categoryLower.replace(/_/g, ' ')
-      )
+        queryLower === categoryLower
+        || queryLower === categoryLower.replace(/_/g, ' ')
+      ) {
         return
+      }
     }
 
     fetchAutocomplete()
@@ -84,7 +85,8 @@ export function useSearch() {
   })
 
   const searchResults = computed(() => {
-    if (!apiResponse.value) return []
+    if (!apiResponse.value)
+      return []
     return allResults.value
   })
 
@@ -99,7 +101,8 @@ export function useSearch() {
           ...loc,
           hoursStatus: getOpeningHoursStatus(loc),
         }))
-      } else {
+      }
+      else {
         allResults.value.push(
           ...results.map((loc: any) => ({
             ...loc,
@@ -115,7 +118,8 @@ export function useSearch() {
   watch([query, category, openNow, nearMe, lat, lng], async () => {
     currentPage.value = 1
     allResults.value = []
-    if (hasSearchParams.value) await refreshSearch()
+    if (hasSearchParams.value)
+      await refreshSearch()
   })
 
   async function loadMore() {
@@ -130,10 +134,11 @@ export function useSearch() {
   function formatCategoryLabel(cat: string) {
     const translationKey = `categories.${cat}`
     const translated = t(translationKey)
-    if (translated && translated !== translationKey) return translated
+    if (translated && translated !== translationKey)
+      return translated
     return cat
       .split('_')
-      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
       .join(' ')
   }
 
@@ -143,9 +148,11 @@ export function useSearch() {
     () => {
       if (category.value) {
         localSearchInput.value = formatCategoryLabel(category.value)
-      } else if (query.value) {
+      }
+      else if (query.value) {
         localSearchInput.value = query.value
-      } else {
+      }
+      else {
         localSearchInput.value = ''
       }
     },
