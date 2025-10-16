@@ -28,5 +28,6 @@ logs
 database/data/
 database/sql/*.sql
 !database/sql/1.rls-policies.sql
+!database/sql/2.category-hierarchies.sql
 
 .pnpm-store

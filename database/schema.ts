@@ -111,3 +111,25 @@ export const locationCategories = pgTable(
 )
 
 export type LocationCategory = typeof locationCategories.$inferSelect
+
+export const categoryHierarchies = pgTable(
+  'category_hierarchies',
+  {
+    childId: text('child_id')
+      .notNull()
+      .references(() => categories.id, { onDelete: 'cascade' }),
+    parentId: text('parent_id')
+      .notNull()
+      .references(() => categories.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at')
+      .default(sql`NOW()`)
+      .$defaultFn(() => new Date()),
+  },
+  table => [
+    primaryKey({ columns: [table.childId, table.parentId] }),
+    index('category_hierarchies_child_idx').on(table.childId),
+    index('category_hierarchies_parent_idx').on(table.parentId),
+  ],
+)
+
+export type CategoryHierarchy = typeof categoryHierarchies.$inferSelect

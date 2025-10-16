@@ -84,3 +84,31 @@ CREATE POLICY "Only service_role can delete location_categories"
 ON location_categories FOR DELETE
 TO service_role
 USING (true);
+
+-- Enable RLS on category_hierarchies table
+ALTER TABLE category_hierarchies ENABLE ROW LEVEL SECURITY;
+
+-- Category Hierarchies: Read-only for all, write-only for service_role (seed only)
+DROP POLICY IF EXISTS "Allow read access for all users" ON category_hierarchies;
+CREATE POLICY "Allow read access for all users"
+ON category_hierarchies FOR SELECT
+TO anon, authenticated, service_role
+USING (true);
+
+DROP POLICY IF EXISTS "Only service_role can write category_hierarchies (seed only)" ON category_hierarchies;
+CREATE POLICY "Only service_role can write category_hierarchies (seed only)"
+ON category_hierarchies FOR INSERT
+TO service_role
+WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Block updates on category_hierarchies" ON category_hierarchies;
+CREATE POLICY "Block updates on category_hierarchies"
+ON category_hierarchies FOR UPDATE
+TO anon, authenticated
+USING (false);
+
+DROP POLICY IF EXISTS "Block deletes on category_hierarchies" ON category_hierarchies;
+CREATE POLICY "Block deletes on category_hierarchies"
+ON category_hierarchies FOR DELETE
+TO anon, authenticated
+USING (false);

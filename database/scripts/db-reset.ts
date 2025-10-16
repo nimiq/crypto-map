@@ -1,6 +1,9 @@
 import process from 'node:process'
 import { createConsola } from 'consola'
+import { config } from 'dotenv'
 import postgres from 'postgres'
+
+config()
 
 const consola = createConsola().withTag('db-reset')
 
@@ -18,6 +21,7 @@ async function main() {
     consola.start('Dropping all tables...')
 
     await sql.unsafe('DROP TABLE IF EXISTS location_categories CASCADE')
+    await sql.unsafe('DROP TABLE IF EXISTS category_hierarchies CASCADE')
     await sql.unsafe('DROP TABLE IF EXISTS locations CASCADE')
     await sql.unsafe('DROP TABLE IF EXISTS categories CASCADE')
 
