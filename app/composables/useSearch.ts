@@ -147,6 +147,7 @@ export function useSearch() {
   }
 
   // Keep search input in sync with query/category state
+  // Only sync when they're explicitly set, not when empty (to preserve typing)
   watch(
     [query, category],
     () => {
@@ -156,11 +157,7 @@ export function useSearch() {
       else if (query.value) {
         localSearchInput.value = query.value
       }
-      else {
-        localSearchInput.value = ''
-      }
     },
-    { immediate: true },
   )
 
   function updateQuery(value: string | undefined) {
@@ -185,6 +182,7 @@ export function useSearch() {
     query.value = ''
     category.value = undefined
     localSearchInput.value = ''
+    autocompleteResults.value = []
   }
 
   return {
