@@ -2,13 +2,16 @@
 const { filteredRecentlyViewed } = useRecentlyViewed()
 const { contextualPrimaryLocations, contextualPrimaryMeta, contextualSecondaryLocations, contextualSecondaryMeta } = useContextualCarousels()
 const { setCategories, openNow, nearMe } = useSearch()
+const { getLeafCategories } = useCategoryHierarchy()
 
 const showRecentlyViewed = computed(() => filteredRecentlyViewed.value && filteredRecentlyViewed.value.length > 0)
 const showPrimaryCarousel = computed(() => contextualPrimaryLocations.value && contextualPrimaryLocations.value.length > 0 && contextualPrimaryMeta.value)
 const showSecondaryCarousel = computed(() => contextualSecondaryLocations.value && contextualSecondaryLocations.value.length > 0 && contextualSecondaryMeta.value)
 
-function handleLoadMore(categories: string[]) {
-  setCategories(categories)
+async function handleLoadMore(categories: string[]) {
+  // Filter to only leaf categories (most specific ones)
+  const leafCategories = await getLeafCategories(categories)
+  setCategories(leafCategories)
   openNow.value = true
   nearMe.value = true
 }

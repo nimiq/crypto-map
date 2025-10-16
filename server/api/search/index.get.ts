@@ -64,6 +64,21 @@ async function searchHandler(event: any) {
 
     const filteredResults = openNow ? filterOpenNow(searchResults) : searchResults
 
+    // Compute primary category for each location
+    const locationCategories = new Map<string, string[]>()
+    for (const location of filteredResults) {
+      locationCategories.set(location.uuid, location.categories.map(c => c.id))
+    }
+    const primaryCategoryIds = await getMostSpecificCategoriesBatch(locationCategories)
+
+    // Add primaryCategory to results
+    for (const location of filteredResults) {
+      const primaryCategoryId = primaryCategoryIds.get(location.uuid)
+      if (primaryCategoryId) {
+        location.primaryCategory = location.categories.find(c => c.id === primaryCategoryId)
+      }
+    }
+
     const startIndex = (page - 1) * limit
     const endIndex = startIndex + limit
     const paginatedResults = filteredResults.slice(startIndex, endIndex)
@@ -116,6 +131,21 @@ async function searchHandler(event: any) {
     }
 
     const filteredResults = openNow ? filterOpenNow(searchResults) : searchResults
+
+    // Compute primary category for each location
+    const locationCategories = new Map<string, string[]>()
+    for (const location of filteredResults) {
+      locationCategories.set(location.uuid, location.categories.map(c => c.id))
+    }
+    const primaryCategoryIds = await getMostSpecificCategoriesBatch(locationCategories)
+
+    // Add primaryCategory to results
+    for (const location of filteredResults) {
+      const primaryCategoryId = primaryCategoryIds.get(location.uuid)
+      if (primaryCategoryId) {
+        location.primaryCategory = location.categories.find(c => c.id === primaryCategoryId)
+      }
+    }
 
     const startIndex = (page - 1) * limit
     const endIndex = startIndex + limit

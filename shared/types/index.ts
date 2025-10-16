@@ -21,6 +21,7 @@ export type LocationResponse = Omit<Location, 'location' | 'street' | 'city' | '
   longitude: number
   categoryIds: string
   categories: CategoryResponse[]
+  primaryCategory?: CategoryResponse
   distanceMeters?: number
 }
 
@@ -34,4 +35,5 @@ export type LocationDetailResponse = Omit<Location, 'location' | 'street' | 'cit
   latitude: number
   longitude: number
   categories: CategoryResponse[]
+  primaryCategory?: CategoryResponse
 }

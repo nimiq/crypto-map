@@ -10,7 +10,7 @@ export default defineCachedEventHandler(async (event) => {
 
   const db = useDrizzle()
 
-  const result = await db
+  const rows = await db
     .select(baseLocationSelect)
     .from(tables.locations)
     .leftJoin(tables.locationCategories, eq(tables.locations.uuid, tables.locationCategories.locationUuid))
@@ -18,10 +18,18 @@ export default defineCachedEventHandler(async (event) => {
     .where(eq(tables.locations.uuid, uuid))
     .groupBy(tables.locations.uuid)
     .limit(1)
-    .then(rows => rows[0])
 
-  if (!result)
+  if (!rows[0])
     throw createError({ statusCode: 404, statusMessage: 'Location not found' })
+
+  const result = rows[0] as LocationDetailResponse
+
+  // Compute primary category
+  const categoryIds = result.categories.map(c => c.id)
+  const primaryCategoryId = await getMostSpecificCategory(categoryIds)
+  if (primaryCategoryId) {
+    result.primaryCategory = result.categories.find(c => c.id === primaryCategoryId)
+  }
 
   setResponseHeader(event, 'Cache-Control', 'public, max-age=900, stale-while-revalidate=900')
 

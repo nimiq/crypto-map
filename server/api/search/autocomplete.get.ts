@@ -17,6 +17,22 @@ export default defineCachedEventHandler(async (event) => {
   )
 
   const results = await searchLocationsByText(searchQuery, { fetchLimit: 10 })
+
+  // Compute primary category for each location
+  const locationCategories = new Map<string, string[]>()
+  for (const location of results) {
+    locationCategories.set(location.uuid, location.categories.map(c => c.id))
+  }
+  const primaryCategoryIds = await getMostSpecificCategoriesBatch(locationCategories)
+
+  // Add primaryCategory to results
+  for (const location of results) {
+    const primaryCategoryId = primaryCategoryIds.get(location.uuid)
+    if (primaryCategoryId) {
+      location.primaryCategory = location.categories.find(c => c.id === primaryCategoryId)
+    }
+  }
+
   return results
 }, {
   maxAge: 60 * 60 * 24 * 7, // Cache for 7 days

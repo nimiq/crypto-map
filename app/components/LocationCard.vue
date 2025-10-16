@@ -45,9 +45,9 @@ const secondaryInfo = computed(() => {
       <h3 text="f-sm neutral-900 left" font-semibold m-0 line-clamp-2>
         {{ location.name }}
       </h3>
-      <div v-if="location.categories?.[0] || secondaryInfo" flex="~ items-center gap-4 wrap" text="f-xs" lh-none>
-        <span v-if="location.categories?.[0]" text-neutral-700>{{ t(`categories.${location.categories[0].id}`) }}</span>
-        <span v-if="location.categories?.[0] && secondaryInfo" text-neutral-700>•</span>
+      <div v-if="(location.primaryCategory || location.categories?.[0]) || secondaryInfo" flex="~ items-center gap-4 wrap" text="f-xs" lh-none>
+        <span v-if="location.primaryCategory || location.categories?.[0]" text-neutral-700>{{ t(`categories.${(location.primaryCategory || location.categories[0]).id}`) }}</span>
+        <span v-if="(location.primaryCategory || location.categories?.[0]) && secondaryInfo" text-neutral-700>•</span>
         <span v-if="secondaryInfo" :class="secondaryInfo.color" whitespace-nowrap>{{ secondaryInfo.text }}</span>
       </div>
     </div>
