@@ -1,3 +1,13 @@
+import type { SearchLocationOptions, SearchLocationResponse } from '../../shared/types'
+import { and, eq, sql, tables, useDrizzle } from './drizzle'
+import { generateEmbeddingCached } from './embeddings'
+import {
+  baseLocationSelect,
+  categoryFilterOr,
+  distance,
+  withinDistance,
+} from './sql-fragments'
+
 // Lower threshold means more results, higher means more precise matches
 const SIMILARITY_THRESHOLD = 0.3
 const SEMANTIC_CATEGORY_LIMIT = 5
@@ -21,32 +31,8 @@ function pickFallbackCategories(query: string): string[] {
 }
 
 const locationSelect = {
-  uuid: tables.locations.uuid,
-  name: tables.locations.name,
-  address: sql<string>`${tables.locations.street} || ', ' || ${tables.locations.postalCode} || ' ' || ${tables.locations.city} || ', ' || ${tables.locations.country}`.as('address'),
-  latitude: sql<number>`ST_Y(${tables.locations.location})`.as('latitude'),
-  longitude: sql<number>`ST_X(${tables.locations.location})`.as('longitude'),
-  rating: tables.locations.rating,
-  photo: tables.locations.photo,
-  gmapsPlaceId: tables.locations.gmapsPlaceId,
-  gmapsUrl: tables.locations.gmapsUrl,
-  website: tables.locations.website,
-  source: tables.locations.source,
-  timezone: tables.locations.timezone,
-  openingHours: tables.locations.openingHours,
-  createdAt: tables.locations.createdAt,
-  updatedAt: tables.locations.updatedAt,
+  ...baseLocationSelect,
   categoryIds: sql<string>`STRING_AGG(${tables.locationCategories.categoryId}, ',')`.as('categoryIds'),
-  categories: sql<LocationResponse['categories']>`COALESCE(
-    json_agg(
-      json_build_object(
-        'id', ${tables.categories.id},
-        'name', ${tables.categories.name},
-        'icon', ${tables.categories.icon}
-      )
-    ) FILTER (WHERE ${tables.categories.id} IS NOT NULL),
-    '[]'
-  )`.as('categories'),
 }
 
 // Combined semantic search: finds similar categories and their locations in a single query
@@ -122,36 +108,18 @@ export async function searchLocationsByCategories(
 
   // Add distance calculation if origin is provided
   if (origin) {
-    selectFields.distanceMeters = sql<number>`
-      ST_Distance(
-        ${tables.locations.location}::geography,
-        ST_SetSRID(ST_MakePoint(${origin.lng}, ${origin.lat}), 4326)::geography
-      )
-    `.as('distanceMeters')
+    selectFields.distanceMeters = distance(origin)
   }
 
   const whereConditions = []
 
   // Add geospatial filter if origin and maxDistanceMeters are provided
   if (origin && maxDistanceMeters) {
-    whereConditions.push(
-      sql`ST_DWithin(
-        ${tables.locations.location}::geography,
-        ST_SetSRID(ST_MakePoint(${origin.lng}, ${origin.lat}), 4326)::geography,
-        ${maxDistanceMeters}
-      )`,
-    )
+    whereConditions.push(withinDistance(origin, maxDistanceMeters))
   }
 
   // Add category filter
-  const categoryConditions = categories.map(cat => sql`${tables.locationCategories.categoryId} = ${cat}`)
-  whereConditions.push(
-    sql`${tables.locations.uuid} IN (
-      SELECT ${tables.locationCategories.locationUuid}
-      FROM ${tables.locationCategories}
-      WHERE ${sql.join(categoryConditions, sql` OR `)}
-    )`,
-  )
+  whereConditions.push(categoryFilterOr(categories))
 
   const baseQuery = db
     .select(selectFields)
@@ -178,9 +146,19 @@ export async function searchLocationsByText(
   if (!originalQuery)
     return []
 
-  const tsQuery = originalQuery.split(/\s+/).join(' & ')
-  const singularQuery = originalQuery.replace(/s\b/g, '').trim()
-  const fallbackTsQuery = singularQuery && singularQuery !== originalQuery
+  // Sanitize query for PostgreSQL tsquery - remove special characters and normalize whitespace
+  // PostgreSQL tsquery syntax doesn't allow consecutive operators or special chars like &, |, !, ()
+  const sanitizedQuery = originalQuery
+    .replace(/[&|!()]/g, ' ') // Remove tsquery special characters that cause syntax errors
+    .replace(/\s+/g, ' ') // Normalize whitespace to prevent empty terms
+    .trim()
+
+  if (!sanitizedQuery)
+    return []
+
+  const tsQuery = sanitizedQuery.split(/\s+/).join(' & ')
+  const singularQuery = sanitizedQuery.replace(/s\b/g, '').trim()
+  const fallbackTsQuery = singularQuery && singularQuery !== sanitizedQuery
     ? singularQuery.split(/\s+/).join(' & ')
     : null
 
@@ -198,12 +176,7 @@ export async function searchLocationsByText(
 
   // Add distance calculation if origin is provided
   if (origin) {
-    selectFields.distanceMeters = sql<number>`
-      ST_Distance(
-        ${tables.locations.location}::geography,
-        ST_SetSRID(ST_MakePoint(${origin.lng}, ${origin.lat}), 4326)::geography
-      )
-    `.as('distanceMeters')
+    selectFields.distanceMeters = distance(origin)
   }
 
   const searchVector = sql`to_tsvector('english', ${tables.locations.name} || ' ' || ${tables.locations.street} || ' ' || ${tables.locations.city} || ' ' || ${tables.locations.country})`
@@ -215,25 +188,12 @@ export async function searchLocationsByText(
 
   // Add geospatial filter if origin and maxDistanceMeters are provided
   if (origin && maxDistanceMeters) {
-    whereConditions.push(
-      sql`ST_DWithin(
-        ${tables.locations.location}::geography,
-        ST_SetSRID(ST_MakePoint(${origin.lng}, ${origin.lat}), 4326)::geography,
-        ${maxDistanceMeters}
-      )`,
-    )
+    whereConditions.push(withinDistance(origin, maxDistanceMeters))
   }
 
   // Add category filter if categories are provided
   if (categories && categories.length > 0) {
-    const categoryConditions = categories.map(cat => sql`${tables.locationCategories.categoryId} = ${cat}`)
-    whereConditions.push(
-      sql`${tables.locations.uuid} IN (
-        SELECT ${tables.locationCategories.locationUuid}
-        FROM ${tables.locationCategories}
-        WHERE ${sql.join(categoryConditions, sql` OR `)}
-      )`,
-    )
+    whereConditions.push(categoryFilterOr(categories))
   }
 
   const baseQuery = db

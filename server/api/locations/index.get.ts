@@ -1,5 +1,6 @@
 import { eq, inArray, isNotNull, sql } from 'drizzle-orm'
 import * as v from 'valibot'
+import { categoryFilterOr, locationSelectWithDistance } from '../../utils/sql-fragments'
 
 // Plan B Forum at Lugano Convention Centre (Palazzo dei Congressi)
 const CONFERENCE_CENTER = { lat: 46.005030, lng: 8.956060 }
@@ -20,15 +21,11 @@ function buildWhereConditions(options: { categoryId?: string, contextualCategori
   const whereConditions = []
 
   if (categoryId) {
-    whereConditions.push(sql`${tables.locations.uuid} IN (
-      SELECT ${tables.locationCategories.locationUuid}
-      FROM ${tables.locationCategories}
-      WHERE ${tables.locationCategories.categoryId} = ${categoryId}
-    )`)
+    whereConditions.push(categoryFilterOr([categoryId]))
   }
 
   if (contextualCategories && contextualCategories.length > 0)
-    whereConditions.push(inArray(tables.locationCategories.categoryId, contextualCategories))
+    whereConditions.push(categoryFilterOr(contextualCategories))
 
   if (status === 'open')
     whereConditions.push(isNotNull(tables.locations.openingHours))
@@ -63,39 +60,7 @@ export default defineEventHandler(async (event) => {
 
   // Build base query
   let query = db
-    .select({
-      uuid: tables.locations.uuid,
-      name: tables.locations.name,
-      address: sql<string>`${tables.locations.street} || ', ' || ${tables.locations.postalCode} || ' ' || ${tables.locations.city} || ', ' || ${tables.locations.country}`,
-      rating: tables.locations.rating,
-      photo: tables.locations.photo,
-      gmapsPlaceId: tables.locations.gmapsPlaceId,
-      gmapsUrl: tables.locations.gmapsUrl,
-      website: tables.locations.website,
-      source: tables.locations.source,
-      timezone: tables.locations.timezone,
-      openingHours: tables.locations.openingHours,
-      createdAt: tables.locations.createdAt,
-      updatedAt: tables.locations.updatedAt,
-      latitude: sql<number>`ST_Y(${tables.locations.location})`,
-      longitude: sql<number>`ST_X(${tables.locations.location})`,
-      distanceMeters: sql<number>`ST_Distance(
-        ${tables.locations.location}::geography,
-        ST_SetSRID(ST_MakePoint(${CONFERENCE_CENTER.lng}, ${CONFERENCE_CENTER.lat}), 4326)::geography
-      )`,
-      categories: sql<Array<{ id: string, name: string, icon: string }>>`
-        COALESCE(
-          json_agg(
-            json_build_object(
-              'id', ${tables.categories.id},
-              'name', ${tables.categories.name},
-              'icon', ${tables.categories.icon}
-            )
-          ) FILTER (WHERE ${tables.categories.id} IS NOT NULL),
-          '[]'
-        )
-      `,
-    })
+    .select(locationSelectWithDistance(CONFERENCE_CENTER))
     .from(tables.locations)
     .leftJoin(tables.locationCategories, eq(tables.locations.uuid, tables.locationCategories.locationUuid))
     .leftJoin(tables.categories, eq(tables.locationCategories.categoryId, tables.categories.id))
