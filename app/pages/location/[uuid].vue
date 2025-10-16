@@ -4,6 +4,8 @@ import { toZonedTime } from 'date-fns-tz'
 const route = useRoute()
 const router = useRouter()
 const { t, locale } = useI18n()
+const { query, category } = useSearch()
+const { addHistoryItem } = useSearchHistory()
 
 const uuid = computed(() => route.params.uuid as string)
 
@@ -24,6 +26,21 @@ watch(
       })
     }
   },
+)
+
+watch(
+  () => [location.value, status.value, query.value, category.value],
+  () => {
+    if (location.value && status.value === 'success') {
+      if (query.value) {
+        addHistoryItem('query', query.value)
+      }
+      else if (category.value) {
+        addHistoryItem('category', category.value)
+      }
+    }
+  },
+  { immediate: true },
 )
 
 const photoUrl = computed(() =>
@@ -242,9 +259,9 @@ function handleBack() {
       </h2>
       <div flex="~ wrap gap-8">
         <NuxtLink
-          v-for="category in location.categories"
-          :key="category.id"
-          :to="`/?category=${category.id}`"
+          v-for="cat in location.categories"
+          :key="cat.id"
+          :to="`/?category=${cat.id}`"
           flex="~ items-center gap-6"
           px-8
           py-3
@@ -255,8 +272,8 @@ function handleBack() {
           no-underline
           transition-colors
         >
-          <Icon :name="category.icon" text-12 />
-          {{ t(`categories.${category.id}`) }}
+          <Icon :name="cat.icon" text-12 />
+          {{ t(`categories.${cat.id}`) }}
         </NuxtLink>
       </div>
     </div>

@@ -37,3 +37,12 @@ export type LocationDetailResponse = Omit<Location, 'location' | 'street' | 'cit
   categories: CategoryResponse[]
   primaryCategory?: CategoryResponse
 }
+
+export interface QuickCategoryItem {
+  category?: string
+  query?: string
+  label: string
+  icon: string
+  color: 'orange' | 'gold' | 'red' | 'purple' | 'green' | 'neutral'
+  isHistory?: boolean
+}

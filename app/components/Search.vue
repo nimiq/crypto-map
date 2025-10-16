@@ -126,32 +126,8 @@ function formatCategoryLabel(category: string) {
     .join(' ')
 }
 
-const quickCategories = computed(() => [
-  {
-    category: 'restaurant',
-    label: formatCategoryLabel('restaurant'),
-    icon: 'i-tabler:tools-kitchen-2',
-    color: 'orange' as const,
-  },
-  {
-    category: 'cafe',
-    label: formatCategoryLabel('cafe'),
-    icon: 'i-tabler:coffee',
-    color: 'gold' as const,
-  },
-  {
-    category: 'bar',
-    label: formatCategoryLabel('bar'),
-    icon: 'i-tabler:beer',
-    color: 'green' as const,
-  },
-  {
-    category: 'pharmacy',
-    label: formatCategoryLabel('pharmacy'),
-    icon: 'i-tabler:pill',
-    color: 'purple' as const,
-  },
-])
+const { getQuickCategories } = useSearchHistory()
+const quickCategories = computed(() => getQuickCategories())
 
 const showQuickCategories = computed(() => {
   const queryValue = query.value ?? ''
@@ -214,8 +190,8 @@ async function handleItemClick(item: SearchItem) {
         <ComboboxViewport flex="~ col" h-full of-auto>
           <div flex="~ col" h-full f="$p-16/24" px="$f-p">
             <template v-if="showQuickCategories">
-              <template v-for="(item, index) in quickCategories" :key="item.category">
-                <Item :item="{ kind: 'category', category: item.category, label: item.label }" :icon="item.icon" :color="item.color" />
+              <template v-for="(item, index) in quickCategories" :key="item.category || item.query">
+                <Item :item="item.query ? { kind: 'query', query: item.query } : { kind: 'category', category: item.category!, label: item.label }" :icon="item.icon" :color="item.color" />
                 <ComboboxSeparator v-if="index < quickCategories.length - 1" border="t-1 neutral-400" w="[calc(100%-60px+var(--f-p))]" ml-60 />
               </template>
             </template>
