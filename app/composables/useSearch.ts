@@ -51,9 +51,15 @@ export function useSearch() {
   })
 
   const hasSearchParams = computed(() => !!query.value || !!category.value)
-  const categories = computed(() =>
-    category.value ? [category.value] : undefined,
-  )
+  const categories = computed(() => {
+    if (!category.value)
+      return undefined
+    // Handle comma-separated categories (from carousel load-more)
+    if (category.value.includes(',')) {
+      return category.value.split(',').map(c => c.trim())
+    }
+    return [category.value]
+  })
 
   const currentPage = ref(1)
   const allResults = ref<SearchLocationResponse[]>([])
@@ -167,6 +173,16 @@ export function useSearch() {
     category.value = value
   }
 
+  function setCategories(cats: string[]) {
+    category.value = cats.length > 0 ? cats.join(',') : undefined
+  }
+
+  function removeCategory(catId: string) {
+    const current = categories.value || []
+    const filtered = current.filter(c => c !== catId)
+    setCategories(filtered)
+  }
+
   function clearSearch() {
     query.value = ''
     category.value = undefined
@@ -176,6 +192,7 @@ export function useSearch() {
   return {
     query,
     category,
+    categories,
     localSearchInput,
     openNow,
     nearMe,
@@ -190,6 +207,8 @@ export function useSearch() {
     formatCategoryLabel,
     updateQuery,
     updateCategory,
+    setCategories,
+    removeCategory,
     clearSearch,
   }
 }

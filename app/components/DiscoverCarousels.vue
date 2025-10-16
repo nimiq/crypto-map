@@ -6,6 +6,14 @@ const {
   contextualSecondaryLocations,
   contextualSecondaryMeta,
 } = useContextualCarousels()
+
+const { setCategories, openNow, nearMe } = useSearch()
+
+function handleLoadMore(categories: string[]) {
+  setCategories(categories)
+  openNow.value = true
+  nearMe.value = true
+}
 </script>
 
 <template>
@@ -30,6 +38,8 @@ const {
       "
       :title="$t(contextualPrimaryMeta.title)"
       :icon="contextualPrimaryMeta.icon"
+      :categories="contextualPrimaryMeta.categories"
+      @see-all="handleLoadMore"
     >
       <LocationCard
         v-for="location in contextualPrimaryLocations"
@@ -46,6 +56,8 @@ const {
       "
       :title="$t(contextualSecondaryMeta.title)"
       :icon="contextualSecondaryMeta.icon"
+      :categories="contextualSecondaryMeta.categories"
+      @see-all="handleLoadMore"
     >
       <LocationCard
         v-for="location in contextualSecondaryLocations"

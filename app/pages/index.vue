@@ -1,9 +1,8 @@
 <script setup lang="ts">
 const { t } = useI18n()
 
-// Use unified search composable
 const {
-  category,
+  categories,
   openNow,
   nearMe,
   searchResults: locations,
@@ -11,15 +10,11 @@ const {
   hasMore,
   loadMore,
   hasSearchParams,
+  removeCategory,
 } = useSearch()
 
-// Fetch categories for filter display
 const { data: categoriesData } = useFetch('/api/categories')
 
-// Event handlers for QuickFilters only
-function handleCategoryUpdate(value: string | undefined) {
-  category.value = value
-}
 function handleOpenNowUpdate(value: boolean) {
   openNow.value = value
 }
@@ -30,21 +25,20 @@ function handleNearMeUpdate(value: boolean) {
 
 <template>
   <div>
-    <QuickFilters
-      f-mt-2xs
-      f-mb-md
-      :category="category"
-      :open-now="openNow"
-      :near-me="nearMe"
-      :categories="categoriesData"
-      @update:category="handleCategoryUpdate"
-      @update:open-now="handleOpenNowUpdate"
-      @update:near-me="handleNearMeUpdate"
-    />
-
     <DiscoverCarousels v-if="!hasSearchParams" />
 
     <template v-else>
+      <QuickFilters
+        f-mt-2xs
+        f-mb-md
+        :selected-categories="categories"
+        :open-now="openNow"
+        :near-me="nearMe"
+        :categories="categoriesData"
+        @remove-category="removeCategory"
+        @update:open-now="handleOpenNowUpdate"
+        @update:near-me="handleNearMeUpdate"
+      />
       <div v-if="status === 'pending'" grid="~ cols-3 gap-x-16 gap-y-20">
         <div
           v-for="n in 9"

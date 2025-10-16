@@ -1,22 +1,42 @@
 import { eq, inArray, isNotNull, sql } from 'drizzle-orm'
 import * as v from 'valibot'
-import { categoryFilterOr, locationSelectWithDistance } from '../../utils/sql-fragments'
+import {
+  categoryFilterOr,
+  locationSelectWithDistance,
+} from '../../utils/sql-fragments'
 
 // Plan B Forum at Lugano Convention Centre (Palazzo dei Congressi)
-const CONFERENCE_CENTER = { lat: 46.005030, lng: 8.956060 }
+const CONFERENCE_CENTER = { lat: 46.00503, lng: 8.95606 }
 
 const querySchema = v.object({
   page: v.optional(v.pipe(v.string(), v.transform(Number), v.number()), '1'),
   limit: v.optional(v.pipe(v.string(), v.transform(Number), v.number()), '50'),
   categoryId: v.optional(v.string()),
-  status: v.optional(v.picklist(['open', 'popular', 'contextual-primary', 'contextual-secondary'])),
-  uuids: v.optional(v.pipe(v.string(), v.transform(s => s.split(',').filter(Boolean)))),
+  status: v.optional(
+    v.picklist([
+      'open',
+      'popular',
+      'contextual-primary',
+      'contextual-secondary',
+    ]),
+  ),
+  uuids: v.optional(
+    v.pipe(
+      v.string(),
+      v.transform(s => s.split(',').filter(Boolean)),
+    ),
+  ),
 })
 
 /**
  * Builds shared WHERE conditions for location queries
  */
-function buildWhereConditions(options: { categoryId?: string, contextualCategories?: string[], status?: string, uuids?: string[] }) {
+function buildWhereConditions(options: {
+  categoryId?: string
+  contextualCategories?: string[]
+  status?: string
+  uuids?: string[]
+}) {
   const { categoryId, contextualCategories, status, uuids } = options
   const whereConditions = []
 
@@ -41,8 +61,15 @@ function buildWhereConditions(options: { categoryId?: string, contextualCategori
 }
 
 export default defineEventHandler(async (event) => {
-  const result = await getValidatedQuery(event, data => v.safeParse(querySchema, data))
-  const { page = 1, limit = 50, categoryId, status, uuids } = result.success ? result.output : {}
+  const result = await getValidatedQuery(event, data =>
+    v.safeParse(querySchema, data))
+  const {
+    page = 1,
+    limit = 50,
+    categoryId,
+    status,
+    uuids,
+  } = result.success ? result.output : {}
 
   const db = useDrizzle()
   const offset = (page - 1) * limit
@@ -51,19 +78,33 @@ export default defineEventHandler(async (event) => {
   let contextualCategories: string[] | undefined
   if (status === 'contextual-primary' || status === 'contextual-secondary') {
     const timeContext = getContextualCategories()
-    const carousel = status === 'contextual-primary' ? timeContext.primary : timeContext.secondary
+    const carousel
+      = status === 'contextual-primary'
+        ? timeContext.primary
+        : timeContext.secondary
     contextualCategories = carousel.categories
   }
 
   // Build shared WHERE conditions
-  const whereConditions = buildWhereConditions({ categoryId, contextualCategories, status, uuids })
+  const whereConditions = buildWhereConditions({
+    categoryId,
+    contextualCategories,
+    status,
+    uuids,
+  })
 
   // Build base query
   let query = db
     .select(locationSelectWithDistance(CONFERENCE_CENTER))
     .from(tables.locations)
-    .leftJoin(tables.locationCategories, eq(tables.locations.uuid, tables.locationCategories.locationUuid))
-    .leftJoin(tables.categories, eq(tables.locationCategories.categoryId, tables.categories.id))
+    .leftJoin(
+      tables.locationCategories,
+      eq(tables.locations.uuid, tables.locationCategories.locationUuid),
+    )
+    .leftJoin(
+      tables.categories,
+      eq(tables.locationCategories.categoryId, tables.categories.id),
+    )
     .$dynamic()
 
   if (whereConditions.length > 0)
@@ -72,16 +113,24 @@ export default defineEventHandler(async (event) => {
   query = query.groupBy(tables.locations.uuid)
 
   // Add ORDER BY
-  if (categoryId || status)
+  if (status === 'contextual-primary' || status === 'contextual-secondary') {
+    query = query.orderBy(sql`"distanceMeters" ASC`)
+  }
+  else if (categoryId || status) {
     query = query.orderBy(sql`${tables.locations.rating} DESC NULLS LAST`)
-  else
+  }
+  else {
     query = query.orderBy(tables.locations.name)
+  }
 
   // Execute query (skip count for carousel/uuid queries as it's not needed and can timeout)
   const skipCount = Boolean(status || uuids)
 
   // Determine if we need runtime filtering for count accuracy
-  const needsRuntimeFilter = status === 'open' || status === 'contextual-primary' || status === 'contextual-secondary'
+  const needsRuntimeFilter
+    = status === 'open'
+      || status === 'contextual-primary'
+      || status === 'contextual-secondary'
 
   let locations: Awaited<typeof query>
   let totalCount: number
@@ -101,9 +150,14 @@ export default defineEventHandler(async (event) => {
   else {
     // Standard path: count with same WHERE conditions
     let countQuery = db
-      .select({ count: sql<number>`count(DISTINCT ${tables.locations.uuid})::int` })
+      .select({
+        count: sql<number>`count(DISTINCT ${tables.locations.uuid})::int`,
+      })
       .from(tables.locations)
-      .leftJoin(tables.locationCategories, eq(tables.locations.uuid, tables.locationCategories.locationUuid))
+      .leftJoin(
+        tables.locationCategories,
+        eq(tables.locations.uuid, tables.locationCategories.locationUuid),
+      )
       .$dynamic()
 
     if (whereConditions.length > 0)
@@ -131,16 +185,27 @@ export default defineEventHandler(async (event) => {
 
   // Preserve order for uuids query
   if (uuids && uuids.length > 0) {
-    const locationsMap = new Map(filteredLocations.map(loc => [loc.uuid, loc]))
-    filteredLocations = uuids.map(uuid => locationsMap.get(uuid)).filter(Boolean) as typeof locations
+    const locationsMap = new Map(
+      filteredLocations.map(loc => [loc.uuid, loc]),
+    )
+    filteredLocations = uuids
+      .map(uuid => locationsMap.get(uuid))
+      .filter(Boolean) as typeof locations
   }
 
   // Add contextual metadata if applicable
   let contextualMetadata
   if (status === 'contextual-primary' || status === 'contextual-secondary') {
     const timeContext = getContextualCategories()
-    const carousel = status === 'contextual-primary' ? timeContext.primary : timeContext.secondary
-    contextualMetadata = { title: carousel.title, icon: carousel.icon }
+    const carousel
+      = status === 'contextual-primary'
+        ? timeContext.primary
+        : timeContext.secondary
+    contextualMetadata = {
+      title: carousel.title,
+      icon: carousel.icon,
+      categories: carousel.categories,
+    }
   }
 
   return {

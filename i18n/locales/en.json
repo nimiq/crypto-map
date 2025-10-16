@@ -51,6 +51,9 @@
     "saturday": "Saturday",
     "sunday": "Sunday"
   },
+  "carousel": {
+    "seeAll": "See All"
+  },
   "carousels": {
     "openNow": "Open Now",
     "popular": "Popular",

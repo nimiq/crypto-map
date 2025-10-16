@@ -1,6 +1,6 @@
 <script setup lang='ts'>
-interface Props { category?: string, openNow: boolean, nearMe: boolean, categories?: Array<{ id: string, name: string, icon: string }> }
-interface Emits { (e: 'update:category', value: string | undefined): void, (e: 'update:openNow', value: boolean): void, (e: 'update:nearMe', value: boolean): void }
+interface Props { selectedCategories?: string[], openNow: boolean, nearMe: boolean, categories?: Array<{ id: string, name: string, icon: string }> }
+interface Emits { (e: 'removeCategory', categoryId: string): void, (e: 'update:openNow', value: boolean): void, (e: 'update:nearMe', value: boolean): void }
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
@@ -29,37 +29,37 @@ function formatCategoryLabel(cat: string) {
   return cat.split('_').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ')
 }
 
-const categoryLabel = computed(() => props.category ? formatCategoryLabel(props.category) : null)
-
-function clearCategory() {
-  emit('update:category', undefined)
+function getCategoryIcon(categoryId: string) {
+  if (!props.categories)
+    return 'i-tabler:category'
+  const cat = props.categories.find(c => c.id === categoryId)
+  return cat?.icon || 'i-tabler:category'
 }
 
-const categoryIcon = computed(() => {
-  if (!props.category || !props.categories)
-    return 'i-tabler:category'
-  const cat = props.categories.find(c => c.id === props.category)
-  return cat?.icon || 'i-tabler:category'
-})
+function removeCategory(categoryId: string) {
+  emit('removeCategory', categoryId)
+}
 </script>
 
 <template>
-  <div flex="~ gap-8">
-    <button v-if="category" outline="~ 1.5 offset--1.5 white/10" flex="~ items-center gap-4" py-3 border-0 rounded-full bg-blue cursor-pointer f-px-2xs @click="clearCategory">
-      <Icon :name="categoryIcon" scale-0- text-white />
-      <span text="f-xs white" font-medium>{{ categoryLabel }}</span>
-      <Icon name="i-tabler:x" text-white op-70 />
-    </button>
+  <div translate-x="[calc(-1*var(--f-px))]" w-screen>
+    <div flex="~ gap-8" of-x-auto nq-hide-scrollbar px="$f-px">
+      <button v-for="catId in selectedCategories" :key="catId" outline="~ 1.5 offset--1.5 white/10" flex="~ items-center gap-4" py-3 border-0 rounded-full bg-blue cursor-pointer f-px-2xs @click="removeCategory(catId)">
+        <Icon :name="getCategoryIcon(catId)" text-white scale-90 />
+        <span text="f-xs white" font-medium>{{ formatCategoryLabel(catId) }}</span>
+        <Icon name="i-tabler:x" text-white op-70 />
+      </button>
 
-    <ToggleGroupRoot v-model="selectedFilters" type="multiple" nq-raw flex="~ gap-8">
-      <ToggleGroupItem value="openNow" bg="neutral-0 reka-on:blue" outline="~ 1.5 offset--1.5 neutral/10 reka-on:white/10" flex="~ items-center gap-4" py-3 rounded-full f-px-2xs>
-        <Icon name="i-tabler:clock" text="neutral-700 reka-on:white" scale-90 />
-        <span text="f-xs neutral-800 reka-on:white" font-medium>{{ t('filters.openNow') }}</span>
-      </ToggleGroupItem>
-      <ToggleGroupItem value="nearMe" bg="neutral-0 reka-on:blue" outline="~ 1.5 offset--1.5 neutral/10" flex="~ items-center gap-4" py-3 rounded-full f-px-2xs>
-        <Icon name="i-tabler:walk" text="neutral-700 reka-on:white" scale-90 />
-        <span text="f-xs neutral-800 reka-on:white" font-medium>{{ t('filters.nearMe') }}</span>
-      </ToggleGroupItem>
-    </ToggleGroupRoot>
+      <ToggleGroupRoot v-model="selectedFilters" type="multiple" nq-raw flex="~ gap-8">
+        <ToggleGroupItem value="openNow" bg="neutral-0 reka-on:blue" outline="~ 1.5 offset--1.5 neutral/10 reka-on:white/10" flex="~ items-center gap-4" py-3 rounded-full f-px-2xs>
+          <Icon name="i-tabler:clock" text="neutral-700 reka-on:white" scale-90 />
+          <span text="f-xs neutral-800 reka-on:white" font-medium>{{ t('filters.openNow') }}</span>
+        </ToggleGroupItem>
+        <ToggleGroupItem value="nearMe" bg="neutral-0 reka-on:blue" outline="~ 1.5 offset--1.5 neutral/10" flex="~ items-center gap-4" py-3 rounded-full f-px-2xs>
+          <Icon name="i-tabler:walk" text="neutral-700 reka-on:white" scale-90 />
+          <span text="f-xs neutral-800 reka-on:white" font-medium>{{ t('filters.nearMe') }}</span>
+        </ToggleGroupItem>
+      </ToggleGroupRoot>
+    </div>
   </div>
 </template>
