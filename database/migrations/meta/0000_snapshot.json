@@ -1,5 +1,5 @@
 {
-  "id": "c9f14de3-7e43-43b8-8529-9390705f60fd",
+  "id": "d45aaf9f-607a-426c-852c-1a806b56ed75",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -213,6 +213,12 @@
         },
         "rating": {
           "name": "rating",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rating_count": {
+          "name": "rating_count",
           "type": "double precision",
           "primaryKey": false,
           "notNull": false

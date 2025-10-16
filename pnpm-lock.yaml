@@ -29,7 +29,7 @@ catalogs:
       specifier: ^66.5.3
       version: 66.5.3
     dotenv:
-      specifier: ^17.2.3
+      specifier: catalog:dev
       version: 17.2.3
     eslint:
       specifier: ^9.37.0
