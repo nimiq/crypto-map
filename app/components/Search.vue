@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import type { ComboboxInput } from 'reka-ui'
-import type { SearchLocationResponse } from '../../shared/types'
-import { nextTick } from 'vue'
 
 type SearchItem
   = | { kind: 'location', uuid: string, name: string }

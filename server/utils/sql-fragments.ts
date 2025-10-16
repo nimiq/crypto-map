@@ -14,7 +14,6 @@
  * - Full TypeScript support with proper type inference
  */
 
-import type { LocationResponse } from '../../shared/types'
 import { sql } from 'drizzle-orm'
 import { tables } from './drizzle'
 

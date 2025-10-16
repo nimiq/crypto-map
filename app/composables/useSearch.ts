@@ -1,5 +1,3 @@
-import type { SearchLocationResponse } from '../../shared/types'
-
 export function useSearch() {
   const query = useState<string>('search-query', () => '')
   const category = useState<string | undefined>(

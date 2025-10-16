@@ -1,4 +1,3 @@
-import type { SearchLocationOptions, SearchLocationResponse } from '../../shared/types'
 import { and, eq, sql, tables, useDrizzle } from './drizzle'
 import { generateEmbeddingCached } from './embeddings'
 import {
