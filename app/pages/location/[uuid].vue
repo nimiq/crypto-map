@@ -9,7 +9,7 @@ const { addHistoryItem } = useSearchHistory()
 
 const uuid = computed(() => route.params.uuid as string)
 
-const { data: location, status } = useLazyFetch<LocationDetailResponse>(
+const { data: location, status, error } = useLazyFetch<LocationDetailResponse>(
   () => `/api/locations/${uuid.value}`,
   {
     watch: [uuid],
@@ -17,12 +17,13 @@ const { data: location, status } = useLazyFetch<LocationDetailResponse>(
 )
 
 watch(
-  () => [location.value, status.value],
+  () => [location.value, status.value, error.value],
   () => {
-    if (!location.value && status.value === 'success') {
+    // Handle error status from failed API calls
+    if (status.value === 'error' || (!location.value && status.value === 'success')) {
       throw createError({
-        statusCode: 404,
-        statusMessage: 'Location not found',
+        statusCode: error.value?.statusCode || 404,
+        statusMessage: error.value?.statusMessage || 'Location not found',
       })
     }
   },
