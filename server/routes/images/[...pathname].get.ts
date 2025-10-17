@@ -1,5 +1,18 @@
 import { consola } from 'consola'
 
+const MIN_VALID_IMAGE_BYTES = 1024
+const IMAGE_MIME_PATTERN = /^image\//i
+
+function isValidImage(contentType: string | null | undefined, buffer: ArrayBuffer | null): buffer is ArrayBuffer {
+  if (!buffer)
+    return false
+
+  if (!contentType || !IMAGE_MIME_PATTERN.test(contentType))
+    return false
+
+  return buffer.byteLength >= MIN_VALID_IMAGE_BYTES
+}
+
 async function fetchPhotoFromGoogle(placeId: string): Promise<{ data: ArrayBuffer | null, contentType: string | null, error: string | null }> {
   try {
     const config = useRuntimeConfig()
@@ -47,8 +60,19 @@ export default eventHandler(async (event) => {
 
     // Check if image exists in cache
     const existingImage = await blob.head(pathname).catch(() => null)
-    if (existingImage)
-      return blob.serve(event, pathname)
+    if (existingImage) {
+      const size = Number(existingImage.size ?? Number.NaN)
+      if (!Number.isNaN(size) && size < MIN_VALID_IMAGE_BYTES) {
+        event.waitUntil(
+          blob.delete(pathname).catch((error) => {
+            consola.warn(`Failed to delete invalid cached image for ${uuid}:`, error, { tag: 'image-proxy' })
+          }),
+        )
+      }
+      else {
+        return blob.serve(event, pathname)
+      }
+    }
 
     // Fetch image from database and external sources
     const db = useDrizzle()
@@ -69,8 +93,19 @@ export default eventHandler(async (event) => {
       try {
         const response = await fetch(location.photo)
         if (response.ok) {
-          imageBuffer = await response.arrayBuffer()
-          contentType = response.headers.get('content-type') || 'image/jpeg'
+          const fetchedBuffer = await response.arrayBuffer()
+          const fetchedContentType = response.headers.get('content-type') || 'image/jpeg'
+          if (isValidImage(fetchedContentType, fetchedBuffer)) {
+            imageBuffer = fetchedBuffer
+            contentType = fetchedContentType
+          }
+          else {
+            consola.warn(`Discarded invalid direct photo for ${uuid}`, {
+              tag: 'image-proxy',
+              contentType: fetchedContentType,
+              size: fetchedBuffer.byteLength,
+            })
+          }
         }
       }
       catch {
@@ -81,12 +116,25 @@ export default eventHandler(async (event) => {
     if (!imageBuffer && location.gmapsPlaceId) {
       const { data, contentType: gmapsContentType, error } = await fetchPhotoFromGoogle(location.gmapsPlaceId)
       if (!error && data) {
-        imageBuffer = data
-        contentType = gmapsContentType || 'image/jpeg'
+        const resolvedContentType = gmapsContentType || 'image/jpeg'
+        if (isValidImage(resolvedContentType, data)) {
+          imageBuffer = data
+          contentType = resolvedContentType
+        }
+        else {
+          consola.warn(`Discarded invalid Google photo for ${uuid}`, {
+            tag: 'image-proxy',
+            contentType: resolvedContentType,
+            size: data.byteLength,
+          })
+        }
+      }
+      else if (error) {
+        consola.warn(`Google photo fetch failed for ${uuid}: ${error}`, { tag: 'image-proxy' })
       }
     }
 
-    if (!imageBuffer)
+    if (!isValidImage(contentType, imageBuffer))
       throw createError({ statusCode: 404, message: 'No image available for this location' })
 
     // Cache in background (fire-and-forget)
