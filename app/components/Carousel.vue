@@ -26,7 +26,7 @@ const showSeeAll = computed(() => props.categories && props.categories.length > 
         <Icon name="i-tabler:chevron-right" size-16 />
       </button>
     </div>
-    <div snap="x mandatory" flex="~ gap-12" w-full of-x-auto f-mt-xs nq-hide-scrollbar children:snap-start scroll-pl="$f-px" scroll-pr="$f-px" scroll-px="$f-px">
+    <div snap="x mandatory" flex="~ gap-12" w-full of-x-auto f-mt-xs nq-hide-scrollbar children:snap-start scroll-pl="$f-px" scroll-pr="$f-px!" scroll-px="$f-px" first:children:ml="$f-px" last:children:mr="$f-px">
       <slot />
     </div>
   </div>

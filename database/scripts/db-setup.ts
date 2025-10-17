@@ -25,7 +25,7 @@ async function main() {
     process.exit(1)
   }
 
-  const sql = postgres(databaseUrl, { prepare: false })
+  const sql = postgres(databaseUrl, { prepare: false, idle_timeout: 60, statement_timeout: 60000 })
 
   try {
     consola.start('Setting up database...')
@@ -88,7 +88,10 @@ async function main() {
     for (const file of sqlFiles) {
       const sqlPath = join(sqlDir, file)
       const sqlContent = await readFile(sqlPath, 'utf-8')
+      // Suppress NOTICE messages for idempotent DROP POLICY IF EXISTS statements
+      await sql.unsafe('SET client_min_messages = WARNING')
       await sql.unsafe(sqlContent)
+      await sql.unsafe('SET client_min_messages = NOTICE')
       consola.info(`Applied: ${file}`)
     }
 

@@ -155,10 +155,10 @@ export async function searchLocationsByText(
   if (!sanitizedQuery)
     return []
 
-  const tsQuery = sanitizedQuery.split(/\s+/).join(' & ')
+  const tsQuery = sanitizedQuery.split(/\s+/).map(term => `${term}:*`).join(' & ')
   const singularQuery = sanitizedQuery.replace(/s\b/g, '').trim()
   const fallbackTsQuery = singularQuery && singularQuery !== sanitizedQuery
-    ? singularQuery.split(/\s+/).join(' & ')
+    ? singularQuery.split(/\s+/).map(term => `${term}:*`).join(' & ')
     : null
 
   const { origin, maxDistanceMeters, categories, fetchLimit, page = 1, limit: pageLimit = 20 } = options
