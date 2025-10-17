@@ -9,12 +9,12 @@ const { t } = useI18n()
 
 const is404 = computed(() => props.error.statusCode === 404)
 
-const title = computed(() => 
-  is404.value ? t('error.notFound.title') : t('error.general.title')
+const title = computed(() =>
+  is404.value ? t('error.notFound.title') : t('error.general.title'),
 )
 
 const message = computed(() =>
-  is404.value ? t('error.notFound.message') : t('error.general.message')
+  is404.value ? t('error.notFound.message') : t('error.general.message'),
 )
 
 function handleGoHome() {
@@ -23,15 +23,14 @@ function handleGoHome() {
 </script>
 
 <template>
-  <NuxtLayout>
-    <div flex="~ col items-center justify-center" min-h-screen f-px-md f-py-2xl>
+  <div flex="~ col items-center justify-center" min-h-screen f-px-md f-py-2xl>
     <div flex="~ col items-center gap-16" max-w-md text-center>
       <!-- Error Icon -->
-      <div 
-        flex="~ items-center justify-center" 
-        size-64 
-        rounded-full 
+      <div
+        flex="~ items-center justify-center"
         bg-neutral-200
+        size-64
+        rounded-full
       >
         <Icon 
           :name="is404 ? 'i-tabler:error-404' : 'i-tabler:alert-triangle'" 
@@ -77,6 +76,5 @@ function handleGoHome() {
         </button>
       </div>
     </div>
-    </div>
-  </NuxtLayout>
+  </div>
 </template>
