@@ -18,7 +18,6 @@ const emit = defineEmits<Emits>()
 
 const query = defineModel<string | undefined>('query')
 const category = defineModel<string | undefined>('category')
-const { t } = useI18n()
 
 // Use the composable's localSearchInput for autocomplete triggering
 const { localSearchInput, clearSearch } = useSearch()
@@ -89,17 +88,6 @@ function handleClearSearch() {
   clearSearch()
   query.value = undefined
   category.value = undefined
-}
-
-function formatCategoryLabel(category: string) {
-  const translationKey = `categories.${category}`
-  const translated = t(translationKey)
-  if (translated && translated !== translationKey)
-    return translated
-  return category
-    .split('_')
-    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ')
 }
 
 const { getQuickCategories } = useSearchHistory()
