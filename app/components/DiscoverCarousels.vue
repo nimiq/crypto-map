@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const { filteredRecentlyViewed } = useRecentlyViewed()
 const { contextualPrimaryLocations, contextualPrimaryMeta, contextualSecondaryLocations, contextualSecondaryMeta } = useContextualCarousels()
-const { setCategories, openNow, nearMe } = useSearch()
+const { setCategories } = useSearch()
 const { getLeafCategories } = useCategoryHierarchy()
 
 const showRecentlyViewed = computed(() => filteredRecentlyViewed.value && filteredRecentlyViewed.value.length > 0)

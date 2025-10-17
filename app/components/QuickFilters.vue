@@ -59,7 +59,7 @@ function removeCategory(categoryId: string) {
 <template>
   <div translate-x="[calc(-1*var(--f-px))]" w-screen>
     <div flex="~ gap-8" of-x-auto nq-hide-scrollbar px="$f-px">
-      <button v-for="catId in displayCategories" :key="catId" outline="~ 1.5 offset--1.5 white/10" flex="~ items-center gap-4" py-3 border-0 rounded-full bg-blue cursor-pointer f-px-2xs whitespace-nowrap @click="removeCategory(catId)">
+      <button v-for="catId in displayCategories" :key="catId" outline="~ 1.5 offset--1.5 white/10" flex="~ items-center gap-4" py-3 border-0 rounded-full bg-blue cursor-pointer whitespace-nowrap f-px-2xs @click="removeCategory(catId)">
         <Icon :name="getCategoryIcon(catId)" text-white scale-90 />
         <span text="f-xs white" font-medium whitespace-nowrap>{{ formatCategoryLabel(catId) }}</span>
         <Icon name="i-tabler:x" text-white op-70 />
