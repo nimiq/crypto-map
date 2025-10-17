@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import type { NuxtError } from '#app'
 
+// Don't use the default layout for error pages
+definePageMeta({
+  layout: false,
+})
+
 const props = defineProps<{
   error: NuxtError
 }>()
