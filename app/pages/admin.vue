@@ -33,7 +33,7 @@ const pagination = computed(() => data.value?.pagination)
 const hoveredPhoto = ref<string | null>(null)
 
 function getBlobImageSrc(uuid: string) {
-  return `location/${uuid}`
+  return `/blob/location/${uuid}`
 }
 
 function getBlobImageUrl(uuid: string) {

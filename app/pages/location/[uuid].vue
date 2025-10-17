@@ -45,7 +45,7 @@ watch(
 )
 
 const photoSrc = computed(() =>
-  location.value ? `location/${location.value.uuid}` : null,
+  location.value ? `/blob/location/${location.value.uuid}` : null,
 )
 
 const { status: openingStatus }

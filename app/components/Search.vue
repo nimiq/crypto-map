@@ -149,7 +149,7 @@ async function handleItemClick(item: SearchItem) {
     </ComboboxAnchor>
 
     <ComboboxPortal>
-      <ComboboxContent position="popper" :side-offset="8" nq-raw align="start" flex="~ col" bg-neutral-0 size-full z-50>
+      <ComboboxContent position="popper" :side-offset="8" nq-raw align="start" flex="~ col" bg-neutral-100 size-full z-50>
         <ComboboxViewport flex="~ col" h-full of-auto>
           <div flex="~ col" h-full f="$p-16/24" px="$f-p">
             <template v-if="showQuickCategories">
