@@ -159,7 +159,7 @@ async function handleItemClick(item: SearchItem) {
               </template>
             </template>
             <template v-else>
-              <Item v-if="searchQuery.trim().length > 0 && (!autocompleteResults || autocompleteResults.length === 0)" key="search-query" color="red" :item="{ kind: 'query', query: searchQuery }" :display-value="searchDisplayValue" icon="i-tabler:search" />
+              <Item v-if="searchQuery.trim().length > 0" key="search-query" color="red" :item="{ kind: 'query', query: searchQuery }" :display-value="searchDisplayValue" icon="i-tabler:search" />
               <ComboboxSeparator v-if="searchQuery.trim().length > 0 && autocompleteResults && autocompleteResults.length > 0" border="t-1 neutral-400" w="[calc(100%-60px+var(--f-p))]" ml-60 />
               <template v-for="({ uuid, name, address, icon }, i) in autocompleteResults" :key="uuid">
                 <Item :item="{ kind: 'location', uuid, name }" :icon="icon || 'i-tabler:map-pin'" :subline="address" />
