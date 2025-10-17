@@ -76,6 +76,17 @@ export default defineNuxtConfig({
       },
     ],
   },
+  image: {
+    provider: 'blob',
+    providers: {
+      blob: {
+        name: 'ipx',
+        options: {
+          baseURL: '/images/',
+        },
+      },
+    },
+  },
   i18n: {
     defaultLocale: 'en',
     locales: [

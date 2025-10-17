@@ -1,4 +1,43 @@
 {
+  "error": {
+    "notFound": {
+      "title": "Local não encontrado",
+      "message": "O local que você procura não existe ou foi removido."
+    },
+    "general": {
+      "title": "Algo deu errado",
+      "message": "Ocorreu um erro inesperado. Por favor, tente novamente mais tarde."
+    },
+    "backToHome": "Voltar ao início",
+    "goBack": "Voltar"
+  },
+  "carousel": {
+    "seeAll": "Ver tudo"
+  },
+  "days": {
+    "monday": "Segunda-feira",
+    "tuesday": "Terça-feira",
+    "wednesday": "Quarta-feira",
+    "thursday": "Quinta-feira",
+    "friday": "Sexta-feira",
+    "saturday": "Sábado",
+    "sunday": "Domingo"
+  },
+  "devConfig": {
+    "language": "Idioma",
+    "location": "Localização",
+    "useLuganoLocation": "Usar localização de Lugano",
+    "usingQueryParams": "Usando localização da URL"
+  },
+  "filters": {
+    "openNow": "Aberto agora",
+    "nearMe": "Perto de mim"
+  },
+  "location": {
+    "viewOnMaps": "Ver no Maps",
+    "categories": "Categorias",
+    "openingHours": "Horários de funcionamento"
+  },
   "hours": {
     "open": "Aberto agora",
     "closingSoon": "Fecha em breve",

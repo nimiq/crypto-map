@@ -1,4 +1,43 @@
 {
+  "error": {
+    "notFound": {
+      "title": "Ort nicht gefunden",
+      "message": "Der gesuchte Ort existiert nicht oder wurde entfernt."
+    },
+    "general": {
+      "title": "Etwas ist schief gelaufen",
+      "message": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es später erneut."
+    },
+    "backToHome": "Zurück zur Startseite",
+    "goBack": "Zurück"
+  },
+  "carousel": {
+    "seeAll": "Alle anzeigen"
+  },
+  "days": {
+    "monday": "Montag",
+    "tuesday": "Dienstag",
+    "wednesday": "Mittwoch",
+    "thursday": "Donnerstag",
+    "friday": "Freitag",
+    "saturday": "Samstag",
+    "sunday": "Sonntag"
+  },
+  "devConfig": {
+    "language": "Sprache",
+    "location": "Standort",
+    "useLuganoLocation": "Lugano-Standort verwenden",
+    "usingQueryParams": "Standort aus URL verwenden"
+  },
+  "filters": {
+    "openNow": "Jetzt geöffnet",
+    "nearMe": "In meiner Nähe"
+  },
+  "location": {
+    "viewOnMaps": "Auf Maps anzeigen",
+    "categories": "Kategorien",
+    "openingHours": "Öffnungszeiten"
+  },
   "hours": {
     "open": "Jetzt geöffnet",
     "closingSoon": "Schließt bald",

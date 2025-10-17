@@ -2,10 +2,10 @@
 const props = defineProps<{ location: any }>()
 const { t } = useI18n()
 
-const photoUrl = computed(() => {
+const photoSrc = computed(() => {
   if (!props.location.photo && !props.location.gmapsPlaceId)
     return null
-  return `/images/location/${props.location.uuid}`
+  return `location/${props.location.uuid}`
 })
 
 const secondaryInfo = computed(() => {
@@ -39,7 +39,17 @@ const secondaryInfo = computed(() => {
 <template>
   <NuxtLink :to="`/location/${location.uuid}`" :aria-label="`View ${location.name} details`" flex="~ col" group rounded-8 no-underline flex-shrink-0 w-140 of-hidden>
     <div aspect="4/3" rounded-4 bg-neutral-200 relative of-hidden>
-      <img v-if="photoUrl" :src="photoUrl" :alt="`Photo of ${location.name}`" loading="lazy" outline="1.5 offset--1.5 neutral-0/20" :style="{ viewTransitionName: `location-image-${location.uuid}` }" size-full object-cover f-text-2xs>
+      <NuxtImg
+        v-if="photoSrc"
+        :src="photoSrc"
+        :alt="`Photo of ${location.name}`"
+        loading="lazy"
+        outline="1.5 offset--1.5 neutral-0/20"
+        :style="{ viewTransitionName: `location-image-${location.uuid}` }"
+        size-full
+        object-cover
+        f-text-2xs
+      />
     </div>
     <div flex="~ col gap-4" p-4>
       <h3 text="f-sm neutral-900 left" font-semibold m-0 line-clamp-2>

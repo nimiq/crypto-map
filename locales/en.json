@@ -11,6 +11,33 @@
     "backToHome": "Back to Home",
     "goBack": "Go Back"
   },
+  "carousel": {
+    "seeAll": "See All"
+  },
+  "days": {
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday"
+  },
+  "devConfig": {
+    "language": "Language",
+    "location": "Location",
+    "useLuganoLocation": "Use Lugano location",
+    "usingQueryParams": "Using location from URL"
+  },
+  "filters": {
+    "openNow": "Open now",
+    "nearMe": "Near me"
+  },
+  "location": {
+    "viewOnMaps": "View on Maps",
+    "categories": "Categories",
+    "openingHours": "Opening Hours"
+  },
   "hours": {
     "open": "Open now",
     "closingSoon": "Closing soon",

@@ -32,6 +32,14 @@ const pagination = computed(() => data.value?.pagination)
 
 const hoveredPhoto = ref<string | null>(null)
 
+function getBlobImageSrc(uuid: string) {
+  return `location/${uuid}`
+}
+
+function getBlobImageUrl(uuid: string) {
+  return `/images/location/${uuid}`
+}
+
 const { copy } = useClipboard()
 
 function getSourceIcon(source: string) {
@@ -188,23 +196,20 @@ const variantClasses = {
                   <div
                     v-if="location.photo"
                     relative
-                    @mouseenter="
-                      hoveredPhoto = `/images/location/${location.uuid}`
-                    "
+                    @mouseenter="hoveredPhoto = getBlobImageSrc(location.uuid)"
                     @mouseleave="hoveredPhoto = null"
                   >
-                    <img
-                      :src="`/images/location/${location.uuid}`"
+                    <NuxtImg
+                      :src="getBlobImageSrc(location.uuid)"
                       :alt="location.name"
                       rounded-4
                       h-32
                       w-32
                       object-cover
-                    >
+                      loading="lazy"
+                    />
                     <div
-                      v-if="
-                        hoveredPhoto === `/images/location/${location.uuid}`
-                      "
+                      v-if="hoveredPhoto === getBlobImageSrc(location.uuid)"
                       p-8
                       rounded-8
                       bg-white
@@ -219,15 +224,16 @@ const variantClasses = {
                         transform: translate(-50%, -50%);
                       "
                     >
-                      <img
-                        :src="`/images/location/${location.uuid}`"
+                      <NuxtImg
+                        :src="getBlobImageSrc(location.uuid)"
                         :alt="location.name"
                         rounded-4
                         max-h-400
                         max-w-400
-                      >
+                        loading="lazy"
+                      />
                       <p text="f-xs neutral-600" font-mono mb-0 mt-4 break-all>
-                        /images/location/{{ location.uuid }}
+                        {{ getBlobImageUrl(location.uuid) }}
                       </p>
                     </div>
                   </div>

@@ -28,7 +28,8 @@ main {
   --uno: bg-neutral-100 transition-colors;
 }
 
-body:has([data-reka-popper-content-wrapper]) main {
+/* Commented out: Background color change when input is focused */
+/* body:has([data-reka-popper-content-wrapper]) main {
   --uno: bg-neutral-0;
-}
+} */
 </style>

@@ -44,8 +44,8 @@ watch(
   { immediate: true },
 )
 
-const photoUrl = computed(() =>
-  location.value ? `/images/location/${location.value.uuid}` : null,
+const photoSrc = computed(() =>
+  location.value ? `location/${location.value.uuid}` : null,
 )
 
 const { status: openingStatus }
@@ -164,16 +164,16 @@ function handleBack() {
       >
         <Icon name="i-tabler:arrow-left" text-20 text-neutral-0 />
       </button>
-      <img
-        v-if="photoUrl"
-        :src="photoUrl"
+      <NuxtImg
+        v-if="photoSrc"
+        :src="photoSrc"
         :alt="`Photo of ${location.name}`"
         rounded-12
         aspect="16/9"
         w-full
         object-cover
         :style="{ viewTransitionName: `location-image-${location.uuid}` }"
-      >
+      />
       <div v-else aspect="16/9" bg-neutral-200 w-full />
     </div>
 
@@ -226,7 +226,7 @@ function handleBack() {
         external
         nq-arrow
         nq-pill-blue
-        target="_blank"
+        target="_top"
       >
         <Icon name="i-nimiq:logos-gmaps-pin-mono" text-12 mr-4 />
         {{ t("location.viewOnMaps") }}
@@ -241,7 +241,7 @@ function handleBack() {
         bg-transparent
         after:op-90
         un-text="blue-1100 f-sm"
-        target="_blank"
+        target="_top"
         flex="~ items-center gap-8"
       >
         <Icon v-if="websiteInfo.icon" :name="websiteInfo.icon" text-14 />
