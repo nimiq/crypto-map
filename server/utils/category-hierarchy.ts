@@ -1,4 +1,4 @@
-import { inArray, sql } from 'drizzle-orm'
+import { and, inArray, sql } from 'drizzle-orm'
 
 /**
  * Finds the most specific (leaf) category from a list of category IDs.
@@ -28,8 +28,10 @@ export async function getMostSpecificCategory(categoryIds: string[]): Promise<st
     })
     .from(tables.categoryHierarchies)
     .where(
-      sql`${tables.categoryHierarchies.childId} = ANY(${categoryIds}::text[])
-          AND ${tables.categoryHierarchies.parentId} = ANY(${categoryIds}::text[])`,
+      and(
+        inArray(tables.categoryHierarchies.childId, categoryIds),
+        inArray(tables.categoryHierarchies.parentId, categoryIds),
+      ),
     )
 
   // Build a set of all parent IDs (categories that have children in this set)
