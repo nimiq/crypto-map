@@ -12,8 +12,7 @@ async function handleLoadMore(categories: string[]) {
   // Filter to only leaf categories (most specific ones)
   const leafCategories = await getLeafCategories(categories)
   setCategories(leafCategories)
-  openNow.value = true
-  nearMe.value = true
+  // Don't pre-enable filters, just make them available
 }
 </script>
 

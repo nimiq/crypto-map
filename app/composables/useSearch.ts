@@ -151,11 +151,16 @@ export function useSearch() {
   watch(
     [query, category],
     () => {
-      if (category.value) {
+      // Only populate input for single category, not multiple
+      if (category.value && !category.value.includes(',')) {
         localSearchInput.value = formatCategoryLabel(category.value)
       }
       else if (query.value) {
         localSearchInput.value = query.value
+      }
+      else if (category.value?.includes(',')) {
+        // Clear input when multiple categories are selected
+        localSearchInput.value = ''
       }
     },
   )

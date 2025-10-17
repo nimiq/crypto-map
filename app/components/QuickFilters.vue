@@ -5,9 +5,21 @@ interface Emits { (e: 'removeCategory', categoryId: string): void }
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 const { t } = useI18n()
+const { getLeafCategories } = useCategoryHierarchy()
 
 const openNow = defineModel<boolean>('openNow', { default: false })
 const nearMe = defineModel<boolean>('nearMe', { default: false })
+
+// Filter selected categories to only show leaf nodes (most specific)
+const displayCategories = ref<string[]>([])
+watchEffect(async () => {
+  if (props.selectedCategories && props.selectedCategories.length > 0) {
+    displayCategories.value = await getLeafCategories(props.selectedCategories)
+  }
+  else {
+    displayCategories.value = []
+  }
+})
 
 const selectedFilters = computed<string[]>({
   get: () => {
@@ -47,9 +59,9 @@ function removeCategory(categoryId: string) {
 <template>
   <div translate-x="[calc(-1*var(--f-px))]" w-screen>
     <div flex="~ gap-8" of-x-auto nq-hide-scrollbar px="$f-px">
-      <button v-for="catId in selectedCategories" :key="catId" outline="~ 1.5 offset--1.5 white/10" flex="~ items-center gap-4" py-3 border-0 rounded-full bg-blue cursor-pointer f-px-2xs @click="removeCategory(catId)">
+      <button v-for="catId in displayCategories" :key="catId" outline="~ 1.5 offset--1.5 white/10" flex="~ items-center gap-4" py-3 border-0 rounded-full bg-blue cursor-pointer f-px-2xs whitespace-nowrap @click="removeCategory(catId)">
         <Icon :name="getCategoryIcon(catId)" text-white scale-90 />
-        <span text="f-xs white" font-medium>{{ formatCategoryLabel(catId) }}</span>
+        <span text="f-xs white" font-medium whitespace-nowrap>{{ formatCategoryLabel(catId) }}</span>
         <Icon name="i-tabler:x" text-white op-70 />
       </button>
 
