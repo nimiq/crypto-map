@@ -24,17 +24,16 @@ function handleGoHome() {
 
 <template>
   <div flex="~ col items-center justify-center" min-h-screen f-px-md f-py-2xl>
-    <div flex="~ col items-center gap-16" max-w-md text-center>
+    <div flex="~ col items-center gap-16" text-center max-w-md>
       <!-- Error Icon -->
       <div
         flex="~ items-center justify-center"
-        bg-neutral-200
-        size-64
-        rounded-full
+
+        rounded-full bg-neutral-200 size-64
       >
-        <Icon 
-          :name="is404 ? 'i-tabler:error-404' : 'i-tabler:alert-triangle'" 
-          text-40 
+        <Icon
+          :name="is404 ? 'i-tabler:error-404' : 'i-tabler:alert-triangle'"
+          text-40
           text-neutral-700
         />
       </div>
@@ -62,7 +61,7 @@ function handleGoHome() {
           <Icon name="i-tabler:home" text-16 />
           {{ t('error.backToHome') }}
         </button>
-        
+
         <button
           v-if="!is404"
           nq-button-s

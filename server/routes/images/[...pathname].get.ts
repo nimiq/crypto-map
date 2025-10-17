@@ -95,6 +95,7 @@ export default eventHandler(async (event) => {
         if (response.ok) {
           const fetchedBuffer = await response.arrayBuffer()
           const fetchedContentType = response.headers.get('content-type') || 'image/jpeg'
+          const bufferSize = fetchedBuffer.byteLength
           if (isValidImage(fetchedContentType, fetchedBuffer)) {
             imageBuffer = fetchedBuffer
             contentType = fetchedContentType
@@ -103,7 +104,7 @@ export default eventHandler(async (event) => {
             consola.warn(`Discarded invalid direct photo for ${uuid}`, {
               tag: 'image-proxy',
               contentType: fetchedContentType,
-              size: fetchedBuffer.byteLength,
+              size: bufferSize,
             })
           }
         }
@@ -117,6 +118,7 @@ export default eventHandler(async (event) => {
       const { data, contentType: gmapsContentType, error } = await fetchPhotoFromGoogle(location.gmapsPlaceId)
       if (!error && data) {
         const resolvedContentType = gmapsContentType || 'image/jpeg'
+        const dataSize = data.byteLength
         if (isValidImage(resolvedContentType, data)) {
           imageBuffer = data
           contentType = resolvedContentType
@@ -125,7 +127,7 @@ export default eventHandler(async (event) => {
           consola.warn(`Discarded invalid Google photo for ${uuid}`, {
             tag: 'image-proxy',
             contentType: resolvedContentType,
-            size: data.byteLength,
+            size: dataSize,
           })
         }
       }

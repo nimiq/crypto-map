@@ -1,4 +1,4 @@
-import { and, inArray, sql } from 'drizzle-orm'
+import { and, inArray } from 'drizzle-orm'
 
 /**
  * Finds the most specific (leaf) category from a list of category IDs.
