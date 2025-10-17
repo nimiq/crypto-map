@@ -1,11 +1,6 @@
 <script setup lang="ts">
 import type { NuxtError } from '#app'
 
-// Don't use the default layout for error pages
-definePageMeta({
-  layout: false,
-})
-
 const props = defineProps<{
   error: NuxtError
 }>()
@@ -28,7 +23,8 @@ function handleGoHome() {
 </script>
 
 <template>
-  <div flex="~ col items-center justify-center" min-h-screen f-px-md f-py-2xl>
+  <NuxtLayout>
+    <div flex="~ col items-center justify-center" min-h-screen f-px-md f-py-2xl>
     <div flex="~ col items-center gap-16" max-w-md text-center>
       <!-- Error Icon -->
       <div 
@@ -81,5 +77,6 @@ function handleGoHome() {
         </button>
       </div>
     </div>
-  </div>
+    </div>
+  </NuxtLayout>
 </template>
