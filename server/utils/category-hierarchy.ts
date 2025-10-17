@@ -28,8 +28,8 @@ export async function getMostSpecificCategory(categoryIds: string[]): Promise<st
     })
     .from(tables.categoryHierarchies)
     .where(
-      sql`${tables.categoryHierarchies.childId} = ANY(${categoryIds})
-          AND ${tables.categoryHierarchies.parentId} = ANY(${categoryIds})`,
+      sql`${tables.categoryHierarchies.childId} = ANY(${sql.array(categoryIds)})
+          AND ${tables.categoryHierarchies.parentId} = ANY(${sql.array(categoryIds)})`,
     )
 
   // Build a set of all parent IDs (categories that have children in this set)
