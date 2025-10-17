@@ -1,4 +1,16 @@
 {
+  "error": {
+    "notFound": {
+      "title": "Location Not Found",
+      "message": "The location you're looking for doesn't exist or has been removed."
+    },
+    "general": {
+      "title": "Something Went Wrong",
+      "message": "An unexpected error occurred. Please try again later."
+    },
+    "backToHome": "Back to Home",
+    "goBack": "Go Back"
+  },
   "hours": {
     "open": "Open now",
     "closingSoon": "Closing soon",
