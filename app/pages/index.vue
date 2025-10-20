@@ -1,9 +1,21 @@
 <script setup lang="ts">
 const { t } = useI18n()
-const { categories, openNow, nearMe, searchResults: locations, status, hasMore, loadMore, hasSearchParams, removeCategory } = useSearch()
+const {
+  categories,
+  openNow,
+  nearMe,
+  searchResults: locations,
+  status,
+  hasMore,
+  loadMore,
+  hasSearchParams,
+  removeCategory,
+} = useSearch()
 const { data: categoriesData } = useFetch('/api/categories')
 
-const showEmptyState = computed(() => !locations.value || locations.value.length === 0)
+const showEmptyState = computed(
+  () => !locations.value || locations.value.length === 0,
+)
 </script>
 
 <template>
@@ -11,12 +23,35 @@ const showEmptyState = computed(() => !locations.value || locations.value.length
     <DiscoverCarousels v-if="!hasSearchParams" />
 
     <template v-else>
-      <QuickFilters v-model:open-now="openNow" v-model:near-me="nearMe" f-mt-2xs f-mb-md :selected-categories="categories" :categories="categoriesData" @remove-category="removeCategory" />
-      <div v-if="status === 'pending'" grid="~ cols-3 gap-x-16 gap-y-20">
-        <div v-for="n in 9" :key="n" rounded-8 bg-neutral-300 h-158 w-full animate-pulse />
+      <QuickFilters
+        v-model:open-now="openNow"
+        v-model:near-me="nearMe"
+        f-mt-2xs
+        f-mb-md
+        :selected-categories="categories"
+        :categories="categoriesData"
+        @remove-category="removeCategory"
+      />
+      <div
+        v-if="status === 'pending'"
+        grid="~ cols-[repeat(auto-fit,minmax(140px,220px))] gap-x-16 gap-y-20"
+      >
+        <div
+          v-for="n in 9"
+          :key="n"
+          rounded-8
+          bg-neutral-300
+          h-158
+          w-full
+          animate-pulse
+        />
       </div>
 
-      <div v-else-if="showEmptyState" flex="~ col items-center justify-center" text-center>
+      <div
+        v-else-if="showEmptyState"
+        flex="~ col items-center justify-center"
+        text-center
+      >
         <div outline="neutral-400 ~ 3" stack rounded-4 size-96 f-mb-sm>
           <Icon name="i-nimiq:duotone-cactus" text-64 text-neutral-500 />
         </div>
@@ -32,7 +67,12 @@ const showEmptyState = computed(() => !locations.value || locations.value.length
         </NuxtLink>
       </div>
 
-      <LocationGrid v-else :locations="locations || []" :has-more @load-more="loadMore" />
+      <LocationGrid
+        v-else
+        :locations="locations || []"
+        :has-more
+        @load-more="loadMore"
+      />
     </template>
   </div>
 </template>
