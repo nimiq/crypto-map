@@ -2,7 +2,7 @@
 const { locale, locales, t } = useI18n()
 const router = useRouter()
 const switchLocalePath = useSwitchLocalePath()
-const { useLuganoLocation, isFromQueryParams } = useUserLocation()
+const { useLuganoLocation, hasQueryParams } = useUserLocation()
 
 const availableLocales = computed(
   () => locales.value as { code: string, name: string }[],
@@ -29,7 +29,7 @@ const flags = {
 </script>
 
 <template>
-  <div bottom-16 right-16 fixed z-50>
+  <div v-if="!hasQueryParams" bottom-16 right-16 fixed z-50>
     <PopoverRoot>
       <PopoverTrigger as-child>
         <button
@@ -100,14 +100,6 @@ const flags = {
             </span>
             <input v-model="useLuganoLocation" type="checkbox" nq-switch>
           </label>
-          <p
-            v-if="!useLuganoLocation && isFromQueryParams"
-            text="f-xs neutral-600"
-            m-0
-            f-mt-xs
-          >
-            {{ t("devConfig.usingQueryParams") }}
-          </p>
         </div>
       </PopoverContent>
     </PopoverRoot>

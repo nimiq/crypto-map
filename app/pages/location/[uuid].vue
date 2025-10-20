@@ -9,18 +9,22 @@ const { addHistoryItem } = useSearchHistory()
 
 const uuid = computed(() => route.params.uuid as string)
 
-const { data: location, status, error } = useLazyFetch<LocationDetailResponse>(
-  () => `/api/locations/${uuid.value}`,
-  {
-    watch: [uuid],
-  },
-)
+const {
+  data: location,
+  status,
+  error,
+} = useLazyFetch<LocationDetailResponse>(() => `/api/locations/${uuid.value}`, {
+  watch: [uuid],
+})
 
 watch(
   () => [location.value, status.value, error.value],
   () => {
     // Handle error status from failed API calls
-    if (status.value === 'error' || (!location.value && status.value === 'success')) {
+    if (
+      status.value === 'error'
+      || (!location.value && status.value === 'success')
+    ) {
       throw createError({
         statusCode: error.value?.statusCode || 404,
         statusMessage: error.value?.statusMessage || 'Location not found',
@@ -168,6 +172,7 @@ function handleBack() {
         v-if="photoSrc"
         :src="photoSrc"
         :alt="`Photo of ${location.name}`"
+        provider="cloudflareOnProd"
         rounded-12
         aspect="16/9"
         w-full

@@ -28,9 +28,23 @@ pnpm run typecheck        # Run TypeScript type checking
 
 ## Architecture
 
+### Image Proxying System
+
+Location photos are proxied through `/blob/location/{uuid}` to reduce Google Maps API costs and improve performance:
+
+1. **Cache Check** - NuxtHub Blob storage checked first
+2. **Database Lookup** - Fetch `photo` URL and `gmapsPlaceId` from locations table
+3. **External Fetch** - Try direct photo URL first (if available)
+4. **Google Maps Fallback** - Use Places API with `gmapsPlaceId` to fetch photo_reference, then fetch actual photo (800px max width)
+5. **Validation** - Images must be valid (1KB+ size, proper MIME type starting with `image/`)
+6. **Background Caching** - Store in Blob with correct content type using `event.waitUntil()` (fire-and-forget)
+7. **Serve** - Return image with `Cache-Control: public, max-age=31536000, immutable`
+
+Invalid cached images (< 1KB) are automatically deleted and refetched. Frontend uses this via `NuxtImg` component with `cloudflareOnProd` provider (Cloudflare Image Resizing in production, no transformation in dev).
+
 ### Database Architecture
 
-The app uses **PostgreSQL with PostGIS and pgvector** and a normalized relational schema with three tables:
+The app uses **PostgreSQL with PostGIS and pgvector** and a normalized relational schema with four tables:
 
 1. **`categories`** - Stores all unique Google Maps category types with vector embeddings
    - Schema: `id` (text, PK), `name` (text), `icon` (text), `embedding` (vector(1536)), `createdAt` (timestamp)
@@ -42,7 +56,8 @@ The app uses **PostgreSQL with PostGIS and pgvector** and a normalized relationa
    - Primary key: auto-generated UUID
    - **Uses PostGIS `geometry(point, 4326)` for location** instead of separate lat/lng columns
    - GIST spatial index on `location` column for efficient proximity queries
-   - Schema: `uuid`, `name`, `address`, `location` (geometry point), `rating`, `photo`, `gmapsPlaceId` (unique), `gmapsUrl`, `website`, `source`, `timezone`, `openingHours`, `createdAt`, `updatedAt`
+   - Schema: `uuid`, `name`, `street`, `city`, `postalCode`, `region`, `country`, `location` (geometry point), `rating`, `ratingCount`, `photo`, `gmapsPlaceId` (unique), `gmapsUrl`, `website`, `source`, `timezone`, `openingHours`, `createdAt`, `updatedAt`
+   - Address broken into structured fields: `street`, `city`, `postalCode`, `region`, `country`
    - `timezone`: IANA timezone identifier (e.g., "Europe/Zurich")
    - `openingHours`: JSON string with weekly opening hours
    - Extract coordinates using `ST_X(location)` for longitude and `ST_Y(location)` for latitude
@@ -51,6 +66,12 @@ The app uses **PostgreSQL with PostGIS and pgvector** and a normalized relationa
    - Links locations to categories via foreign keys with cascade delete
    - Composite primary key on (locationUuid, categoryId)
    - Indexed on both foreign keys for efficient joins
+
+4. **`category_hierarchies`** - Category parent-child relationships
+   - Schema: `childId` (text, FK), `parentId` (text, FK), `createdAt` (timestamp)
+   - Enables hierarchical category organization (e.g., "italian_restaurant" → "restaurant")
+   - Composite primary key on (childId, parentId)
+   - Indexed on both childId and parentId for efficient traversal
 
 **Important**: When adding locations:
 
@@ -138,6 +159,31 @@ The app implements **hybrid search** combining two approaches:
 - Uses `searchLocationsByText()` with PostgreSQL FTS
 - Returns: Same as search endpoint but includes `highlightedName` field with `<mark>` tags
 
+### Performance & Caching
+
+**Route Rules** (defined in `nuxt.config.ts`):
+
+- `/api/categories`: 1h browser cache + 12h stale-while-revalidate (low variance, recalculated counts)
+- `/api/locations/*` (single location): 15min cache + 15min SWR (frequently accessed)
+- `/api/locations` (list): No caching (high variance due to filters and open/closed state)
+- All other routes follow default caching behavior
+
+**Embedding Cache**: NuxtHub KV with permanent storage (no TTL) for OpenAI embeddings, keyed by normalized query text.
+
+**Image Caching**: NuxtHub Blob storage with immutable cache headers (1 year), auto-refetch on invalid images.
+
+### Internationalization
+
+The app supports 5 languages via `@nuxtjs/i18n`:
+
+- English (en) - default
+- Español (es)
+- Deutsch (de)
+- Français (fr)
+- Português (pt)
+
+Translation files are stored in `locales/` directory as JSON files. The module is configured with `defaultLocale: 'en'` and `langDir: 'locales'`.
+
 ### Styling System
 
 The app uses **UnoCSS with Nimiq presets**:
@@ -147,6 +193,7 @@ The app uses **UnoCSS with Nimiq presets**:
 - Utilities are applied via **attributify syntax** directly on elements (e.g., `flex="~ col gap-16"`)
 - Nimiq CSS provides the `f-` prefix utilities for consistent spacing/typography
 - Custom utility examples: `f-mb-lg`, `f-py-xl`, `f-px-md`, `text="neutral-900 f-lg"`
+- Use `size-X` instead of `w-X h-X` for squares (per UnoCSS/TailwindCSS best practices)
 
 ### UI Components
 
@@ -154,6 +201,7 @@ The app uses **UnoCSS with Nimiq presets**:
 - Auto-imported via `reka-ui/nuxt` module in nuxt.config.ts
 - Example: `ToggleGroupRoot` + `ToggleGroupItem` for category filters
 - Must use the `Root` component (e.g., `ToggleGroupRoot`, not `ToggleGroup`)
+- **Note**: When using attributify mode with `NuxtLink` or `a` tags, prefix text utilities with `un-` (e.g., `un-text="neutral-800"`) due to HTML attribute conflicts
 
 ### Type Safety
 
@@ -247,18 +295,26 @@ The app uses **UnoCSS with Nimiq presets**:
 - Currently location is retrieved but NOT used for distance sorting
 - Future: Use `ST_Distance()` for proximity-based sorting
 
+### Custom Providers
+
+**Image Provider** (`app/providers/cloudflareOnProd.ts`):
+
+- Conditionally uses Cloudflare Image Resizing in production only
+- In development, uses `none` provider (no transformation)
+- Configured in `nuxt.config.ts` as `cloudflareOnProd` provider
+
 ## Configuration Files
 
-- **`nuxt.config.ts`** - Nuxt config with NuxtHub, UnoCSS, Reka UI modules, PostgreSQL runtime config
+- **`nuxt.config.ts`** - Nuxt config with NuxtHub, UnoCSS, Reka UI, i18n modules, route rules, runtime config validation
 - **`drizzle.config.ts`** - PostgreSQL dialect, schema at `database/schema.ts`, migrations output to `database/migrations/`
 - **`uno.config.ts`** - UnoCSS with Nimiq presets
 - **`eslint.config.mjs`** - Antfu's ESLint config with Nuxt integration
-- **`database/docker-compose.yml`** - Docker Compose setup for local PostgreSQL development
-- **`database/init.sh`** - Initializes PostGIS extensions and permissions
-- **`database/run-migrations.sh`** - Runs Drizzle migrations on container start
-- **`database/rls-policies.sql`** - Row Level Security policies
-- **`database/seeds/categories.sql`** - All Google Maps categories with icons
-- **`database/seeds/sources/dummy.sql`** - Dummy location data
+- **`database/schema.ts`** - Drizzle schema with custom vector type and HNSW index for pgvector
+- **`database/scripts/db-setup.ts`** - Database setup script (migrations + seeding)
+- **`database/scripts/generate-category-embeddings.ts`** - Generates OpenAI embeddings for categories
+- **`database/scripts/categories.json`** - 301 Google Maps categories with pre-generated 1536-dim embeddings
+- **`database/sql/1.rls-policies.sql`** - Row Level Security policies
+- **`database/sql/2.locations.sql`** - Dummy location seed data
 
 ## Environment Variables
 

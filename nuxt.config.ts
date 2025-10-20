@@ -43,6 +43,11 @@ export default defineNuxtConfig({
     openaiApiKey: process.env.OPENAI_API_KEY || '',
     databaseUrl: process.env.DATABASE_URL || '',
     hyperdriveId: process.env.HYPERDRIVE_ID || '',
+    public: {
+      siteURL: import.meta.dev
+        ? ' http://localhost:3000'
+        : 'https://crypto-map-next.je-cf9.workers.dev/',
+    },
   },
   safeRuntimeConfig: {
     $schema: v.object({
@@ -59,6 +64,10 @@ export default defineNuxtConfig({
         v.minLength(1, 'DATABASE_URL is required'),
       ),
       hyperdriveId: v.optional(v.string()),
+
+      public: v.object({
+        siteURL: v.url(),
+      }),
     }),
   },
   icon: {
@@ -77,8 +86,13 @@ export default defineNuxtConfig({
     ],
   },
   image: {
-    alias: {
-      blob: '/images',
+    providers: {
+      cloudflareOnProd: {
+        provider: '~/providers/cloudflareOnProd.ts',
+        options: {
+          prodSiteURL: 'https://crypto-map-next.je-cf9.workers.dev/',
+        },
+      },
     },
   },
   i18n: {

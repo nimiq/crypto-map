@@ -1,4 +1,4 @@
-<script setup lang='ts'>
+<script setup lang="ts">
 const props = defineProps<{ location: any }>()
 const { t } = useI18n()
 
@@ -37,12 +37,23 @@ const secondaryInfo = computed(() => {
 </script>
 
 <template>
-  <NuxtLink :to="`/location/${location.uuid}`" :aria-label="`View ${location.name} details`" flex="~ col" group rounded-8 no-underline flex-shrink-0 w-140 of-hidden>
+  <NuxtLink
+    :to="`/location/${location.uuid}`"
+    :aria-label="`View ${location.name} details`"
+    flex="~ col"
+    group
+    rounded-8
+    no-underline
+    flex-shrink-0
+    w-140
+    of-hidden
+  >
     <div aspect="4/3" rounded-4 bg-neutral-200 relative of-hidden>
       <NuxtImg
         v-if="photoSrc"
         :src="photoSrc"
         :alt="`Photo of ${location.name}`"
+        provider="cloudflareOnProd"
         loading="lazy"
         outline="1.5 offset--1.5 neutral-0/20"
         :style="{ viewTransitionName: `location-image-${location.uuid}` }"
@@ -55,10 +66,34 @@ const secondaryInfo = computed(() => {
       <h3 text="f-sm neutral-900 left" font-semibold m-0 line-clamp-2>
         {{ location.name }}
       </h3>
-      <div v-if="(location.primaryCategory || location.categories?.[0]) || secondaryInfo" flex="~ items-center gap-4 wrap" text="f-xs" lh-none>
-        <span v-if="location.primaryCategory || location.categories?.[0]" text-neutral-700>{{ t(`categories.${(location.primaryCategory || location.categories[0]).id}`) }}</span>
-        <span v-if="(location.primaryCategory || location.categories?.[0]) && secondaryInfo" text-neutral-700>•</span>
-        <span v-if="secondaryInfo" :class="secondaryInfo.color" whitespace-nowrap>{{ secondaryInfo.text }}</span>
+      <div
+        v-if="
+          location.primaryCategory || location.categories?.[0] || secondaryInfo
+        "
+        flex="~ items-center gap-4 wrap"
+        text="f-xs"
+        lh-none
+      >
+        <span
+          v-if="location.primaryCategory || location.categories?.[0]"
+          text-neutral-700
+        >{{
+          t(
+            `categories.${(location.primaryCategory || location.categories[0]).id}`,
+          )
+        }}</span>
+        <span
+          v-if="
+            (location.primaryCategory || location.categories?.[0])
+              && secondaryInfo
+          "
+          text-neutral-700
+        >•</span>
+        <span
+          v-if="secondaryInfo"
+          :class="secondaryInfo.color"
+          whitespace-nowrap
+        >{{ secondaryInfo.text }}</span>
       </div>
     </div>
   </NuxtLink>

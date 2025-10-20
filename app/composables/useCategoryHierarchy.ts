@@ -17,18 +17,18 @@ export function useCategoryHierarchy() {
       return categoryIds
 
     try {
-      // Fetch hierarchy relationships for the given categories
-      const { data } = await useFetch('/api/categories/hierarchy', {
+      // Use $fetch for client-side fetching in event handlers
+      const data = await $fetch('/api/categories/hierarchy', {
         query: { categories: categoryIds.join(',') },
       })
 
-      if (!data.value?.hierarchies) {
+      if (!data?.hierarchies) {
         return categoryIds
       }
 
       // Build a set of parent IDs (categories that have children in this set)
       const parentIds = new Set(
-        data.value.hierarchies
+        data.hierarchies
           .filter(h => categoryIds.includes(h.childId))
           .map(h => h.parentId),
       )

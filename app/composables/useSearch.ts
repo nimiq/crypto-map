@@ -14,19 +14,17 @@ export function useSearch() {
     maxWait: 1000,
   })
 
-  const { execute: fetchAutocomplete, data: autocompleteResults } = useFetch<
-    SearchLocationResponse[]
-  >('/api/search/autocomplete', {
-    query: { q: debouncedSearchQuery },
-    immediate: false,
-    server: false,
-    watch: false,
-    default: () => [],
-  })
+  const autocompleteResults = ref<SearchLocationResponse[]>([])
+  let abortController: AbortController | null = null
 
   // Skip autocomplete fetch when input matches current category to avoid unnecessary requests
-  watch(debouncedSearchQuery, (newQuery) => {
+  watch(debouncedSearchQuery, async (newQuery) => {
     const trimmed = newQuery?.trim() ?? ''
+
+    // Cancel previous request if still pending
+    if (abortController) {
+      abortController.abort()
+    }
 
     if (trimmed.length < 2) {
       autocompleteResults.value = []
@@ -45,7 +43,20 @@ export function useSearch() {
       }
     }
 
-    fetchAutocomplete()
+    abortController = new AbortController()
+
+    try {
+      autocompleteResults.value = await $fetch('/api/search/autocomplete', {
+        query: { q: trimmed },
+        signal: abortController.signal,
+      })
+    }
+    catch (error: any) {
+      if (error.name !== 'AbortError') {
+        console.error('Autocomplete fetch failed:', error)
+        autocompleteResults.value = []
+      }
+    }
   })
 
   const hasSearchParams = computed(() => !!query.value || !!category.value)
@@ -148,22 +159,19 @@ export function useSearch() {
 
   // Keep search input in sync with query/category state
   // Only sync when they're explicitly set, not when empty (to preserve typing)
-  watch(
-    [query, category],
-    () => {
-      // Only populate input for single category, not multiple
-      if (category.value && !category.value.includes(',')) {
-        localSearchInput.value = formatCategoryLabel(category.value)
-      }
-      else if (query.value) {
-        localSearchInput.value = query.value
-      }
-      else if (category.value?.includes(',')) {
-        // Clear input when multiple categories are selected
-        localSearchInput.value = ''
-      }
-    },
-  )
+  watch([query, category], () => {
+    // Only populate input for single category, not multiple
+    if (category.value && !category.value.includes(',')) {
+      localSearchInput.value = formatCategoryLabel(category.value)
+    }
+    else if (query.value) {
+      localSearchInput.value = query.value
+    }
+    else if (category.value?.includes(',')) {
+      // Clear input when multiple categories are selected
+      localSearchInput.value = ''
+    }
+  })
 
   function updateQuery(value: string | undefined) {
     query.value = value || ''
