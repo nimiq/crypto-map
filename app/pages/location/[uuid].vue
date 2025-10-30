@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { toZonedTime } from 'date-fns-tz'
 
+definePageMeta({
+  layout: 'default',
+})
+
 const route = useRoute()
 const router = useRouter()
 const { t, locale } = useI18n()

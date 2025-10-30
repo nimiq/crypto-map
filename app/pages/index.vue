@@ -1,4 +1,8 @@
 <script setup lang="ts">
+definePageMeta({
+  layout: 'default',
+})
+
 const { t } = useI18n()
 const {
   categories,

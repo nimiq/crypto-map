@@ -8,7 +8,7 @@ export function useSearch() {
   const openNow = useState<boolean>('filter-open-now', () => false)
   const nearMe = useState<boolean>('filter-near-me', () => false)
 
-  const { lat, lng } = useUserLocation()
+  const { point } = useUserLocation()
 
   const debouncedSearchQuery = refDebounced(localSearchInput, 300, {
     maxWait: 1000,
@@ -83,8 +83,8 @@ export function useSearch() {
     categories: categories.value,
     openNow: openNow.value || undefined,
     nearMe: nearMe.value || undefined,
-    lat: lat.value ?? undefined,
-    lng: lng.value ?? undefined,
+    lat: point.value.lat,
+    lng: point.value.lng,
     page: currentPage.value,
     limit: 20,
   }))
@@ -130,7 +130,7 @@ export function useSearch() {
     }
   })
 
-  watch([query, category, openNow, nearMe, lat, lng], async () => {
+  watch([query, category, openNow, nearMe, point], async () => {
     currentPage.value = 1
     allResults.value = []
     if (hasSearchParams.value)

@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { toast, Toaster } from 'vue-sonner'
 
+definePageMeta({
+  layout: 'default',
+})
+
 const page = ref(1)
 const limit = ref(50)
 

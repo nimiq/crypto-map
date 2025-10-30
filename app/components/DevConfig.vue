@@ -2,7 +2,7 @@
 const { locale, locales, t } = useI18n()
 const router = useRouter()
 const switchLocalePath = useSwitchLocalePath()
-const { useLuganoLocation, hasQueryParams } = useUserLocation()
+const { shouldUseLugano, hasQueryParams } = useUserLocation()
 
 const availableLocales = computed(
   () => locales.value as { code: string, name: string }[],
@@ -98,7 +98,7 @@ const flags = {
             <span text="f-sm neutral-800">
               {{ t("devConfig.useLuganoLocation") }}
             </span>
-            <input v-model="useLuganoLocation" type="checkbox" nq-switch>
+            <input v-model="shouldUseLugano" type="checkbox" nq-switch>
           </label>
         </div>
       </PopoverContent>

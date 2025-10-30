@@ -114,5 +114,10 @@ export default defineNuxtConfig({
     '/api/locations': { cache: false },
     '/api/locations/*': { cache: { maxAge: 900, swr: true, staleMaxAge: 900 } },
   },
+  vite: {
+    optimizeDeps: {
+      include: ['maplibre-gl'],
+    },
+  },
   compatibilityDate: '2025-10-01',
 })
