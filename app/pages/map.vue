@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { MapLibreEvent } from 'maplibre-gl'
+
 definePageMeta({
   layout: false,
 })
@@ -10,10 +12,21 @@ async function handleNavigate(uuid: string) {
   await navigateTo(`/location/${uuid}`)
 }
 
-function onMapLoad(event: any) {
+async function onMapLoad(event: MapLibreEvent) {
   const map = event.target
-  if (map)
-    setMapInstance(map)
+  if (!map)
+    return
+
+  // Load Naka logo for markers
+  const img = new Image(32, 32)
+  img.src = '/providers/naka.svg'
+  await new Promise((resolve, reject) => {
+    img.onload = () => resolve()
+    img.onerror = reject
+  })
+  map.addImage('naka-logo', img)
+
+  setMapInstance(map)
 }
 </script>
 
