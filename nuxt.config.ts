@@ -113,6 +113,7 @@ export default defineNuxtConfig({
     },
     '/api/locations': { cache: false },
     '/api/locations/*': { cache: { maxAge: 900, swr: true, staleMaxAge: 900 } },
+    '/api/tiles/**': { cache: { maxAge: 86400, swr: true, staleMaxAge: 604800 } },
   },
   vite: {
     optimizeDeps: {
