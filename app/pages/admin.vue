@@ -1,66 +1,66 @@
 <script setup lang="ts">
-import { toast, Toaster } from "vue-sonner";
+import { toast, Toaster } from 'vue-sonner'
 
-const page = ref(1);
-const limit = ref(50);
+const page = ref(1)
+const limit = ref(50)
 
-const { data, pending } = useFetch("/api/locations", {
+const { data, pending } = useFetch('/api/locations', {
   query: { page, limit },
-});
+})
 
 type LocationWithStatus = NonNullable<
   typeof data.value
->["locations"][number] & {
+>['locations'][number] & {
   hoursStatus?: {
-    status: ReturnType<typeof getOpeningHoursStatus>;
-    formattedHours: ReturnType<typeof formatOpeningHours>;
-  };
-};
+    status: ReturnType<typeof getOpeningHoursStatus>
+    formattedHours: ReturnType<typeof formatOpeningHours>
+  }
+}
 
 const locations = computed<LocationWithStatus[]>(() => {
-  const locs = data.value?.locations || [];
+  const locs = data.value?.locations || []
   return locs.map((loc): LocationWithStatus => {
     if (loc.openingHours && loc.timezone) {
-      const status = getOpeningHoursStatus(loc);
-      const formattedHours = formatOpeningHours(loc.openingHours);
-      return { ...loc, hoursStatus: { status, formattedHours } };
+      const status = getOpeningHoursStatus(loc)
+      const formattedHours = formatOpeningHours(loc.openingHours)
+      return { ...loc, hoursStatus: { status, formattedHours } }
     }
-    return loc;
-  });
-});
-const pagination = computed(() => data.value?.pagination);
+    return loc
+  })
+})
+const pagination = computed(() => data.value?.pagination)
 
-const hoveredPhoto = ref<string | null>(null);
+const hoveredPhoto = ref<string | null>(null)
 
 function getBlobImageSrc(uuid: string) {
-  return `/blob/location/${uuid}`;
+  return `/blob/location/${uuid}`
 }
 
 function getBlobImageUrl(uuid: string) {
-  return `/images/location/${uuid}`;
+  return `/images/location/${uuid}`
 }
 
-const { copy } = useClipboard();
+const { copy } = useClipboard()
 
 function getSourceIcon(source: string) {
   const icons: Record<string, string> = {
-    naka: "i-providers:naka",
-    bluecode: "i-providers:bluecode",
-  };
-  return icons[source.toLowerCase()] || null;
+    naka: 'i-providers:naka',
+    bluecode: 'i-providers:bluecode',
+  }
+  return icons[source.toLowerCase()] || null
 }
 
 function copyToClipboard(text: string, message: string) {
-  copy(text);
-  toast.success(message);
+  copy(text)
+  toast.success(message)
 }
 
 const variantClasses = {
-  open: "bg-neutral-400 text-neutral-800 outline-neutral-600",
-  "closing-soon": "bg-orange-400 text-orange-1100 outline-orange-600",
-  closed: "bg-red-400 text-red-1100 outline-red-600",
-  unavailable: "bg-neutral-200 text-neutral-600 outline-neutral-400",
-};
+  'open': 'bg-neutral-400 text-neutral-800 outline-neutral-600',
+  'closing-soon': 'bg-orange-400 text-orange-1100 outline-orange-600',
+  'closed': 'bg-red-400 text-red-1100 outline-red-600',
+  'unavailable': 'bg-neutral-200 text-neutral-600 outline-neutral-400',
+}
 </script>
 
 <template>
@@ -71,7 +71,9 @@ const variantClasses = {
     <TooltipProvider>
       <div p-0 bg-neutral-50 min-h-screen>
         <div border-b="1 neutral-200" px-16 py-12 bg-white shadow-sm>
-          <h1 text="neutral-900 f-xl" font-bold m-0>All Locations</h1>
+          <h1 text="neutral-900 f-xl" font-bold m-0>
+            All Locations
+          </h1>
           <p v-if="pagination" text="neutral-600 f-sm" m-0 mt-4>
             Showing {{ locations.length }} of {{ pagination.total }} locations
             (Page {{ pagination.page }} of {{ pagination.totalPages }})
@@ -79,7 +81,9 @@ const variantClasses = {
         </div>
 
         <div v-if="pending" flex="~ items-center justify-center" p-32>
-          <div text="neutral-500 f-md">Loading...</div>
+          <div text="neutral-500 f-md">
+            Loading...
+          </div>
         </div>
 
         <div v-else overflow-x-auto>
@@ -342,8 +346,7 @@ const variantClasses = {
                     py-2
                     rounded-4
                     text-f-xs
-                    >{{ location.source }}</span
-                  >
+                  >{{ location.source }}</span>
                 </td>
                 <td text="10px" font-mono px-8 py-8 whitespace-nowrap>
                   {{ location.timezone }}

@@ -17,6 +17,7 @@ export default defineNuxtConfig({
     'reka-ui/nuxt',
     '@nuxt/image',
     '@nuxtjs/i18n',
+    'nuxt-maplibre',
   ],
   experimental: {
     viewTransition: true,
