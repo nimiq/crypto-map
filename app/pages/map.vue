@@ -8,8 +8,22 @@ definePageMeta({
 const { query, category, autocompleteResults } = useSearch()
 const { center, zoom, setMapInstance } = useMapControls()
 
+const selectedLocationUuid = ref<string | null>(null)
+const isDrawerOpen = ref(false)
+
+const { data: selectedLocation } = useFetch(() => `/api/locations/${selectedLocationUuid.value}`, {
+  lazy: true,
+  immediate: false,
+  watch: [selectedLocationUuid],
+})
+
 async function handleNavigate(uuid: string) {
   await navigateTo(`/location/${uuid}`)
+}
+
+function handleMarkerClick(uuid: string) {
+  selectedLocationUuid.value = uuid
+  isDrawerOpen.value = true
 }
 
 async function onMapLoad(event: MapLibreEvent) {
@@ -26,6 +40,25 @@ async function onMapLoad(event: MapLibreEvent) {
   })
   map.addImage('naka-logo', img)
 
+  // Handle marker clicks
+  map.on('click', 'locations', (e) => {
+    if (e.features && e.features.length > 0) {
+      const feature = e.features[0]
+      const uuid = feature.properties?.uuid
+      if (uuid) {
+        handleMarkerClick(uuid)
+      }
+    }
+  })
+
+  // Change cursor on hover
+  map.on('mouseenter', 'locations', () => {
+    map.getCanvas().style.cursor = 'pointer'
+  })
+  map.on('mouseleave', 'locations', () => {
+    map.getCanvas().style.cursor = ''
+  })
+
   setMapInstance(map)
 }
 </script>
@@ -41,6 +74,23 @@ async function onMapLoad(event: MapLibreEvent) {
       </div>
     </ClientOnly>
     <MapControls />
+
+    <Drawer v-model:open="isDrawerOpen">
+      <DrawerContent v-if="selectedLocation">
+        <DrawerClose />
+        <div f-px-md f-py-lg>
+          <h2 text="neutral-900 f-lg" font-bold m-0 f-mb-xs>
+            {{ selectedLocation.name }}
+          </h2>
+          <p text="neutral-700 f-sm" m-0 f-mb-md>
+            {{ selectedLocation.address }}
+          </p>
+          <NuxtLink :to="`/location/${selectedLocationUuid}`" nq-arrow nq-pill-blue>
+            View details
+          </NuxtLink>
+        </div>
+      </DrawerContent>
+    </Drawer>
   </main>
 </template>
 
