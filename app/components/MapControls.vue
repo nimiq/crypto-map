@@ -12,7 +12,7 @@ function handleLocateMe() {
 </script>
 
 <template>
-  <div flex="~ col gap-8" bottom-16 right-16 absolute z-10>
+  <div flex="~ col gap-8" bottom="12 md:16" right="12 md:16" absolute z-10>
     <DevConfig />
     <template v-if="hasPointer">
       <button stack outline="~ 1.5 neutral-200 hocus:neutral-900" rounded-full bg="neutral-0 hocus:neutral-50" size-40 cursor-pointer shadow transition-colors @click="zoomIn">
@@ -23,7 +23,7 @@ function handleLocateMe() {
       </button>
     </template>
     <button stack outline="~ 1.5 neutral-200 hocus:neutral-900" rounded-full bg="neutral-0 hocus:neutral-50" size-40 cursor-pointer shadow transition-colors disabled:op-50 :disabled="isLocating" @click="handleLocateMe">
-      <Icon :name="isLocating ? 'i-nimiq:loading' : 'i-tabler:current-location'" text-neutral size-20 />
+      <Icon :name="isLocating ? 'i-nimiq:spinner' : 'i-tabler:current-location'" text-neutral size-20 />
     </button>
   </div>
 </template>

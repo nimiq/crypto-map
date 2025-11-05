@@ -1,3 +1,7 @@
+import { consola } from 'consola'
+
+const logger = consola.withTag('search')
+
 export function useSearch() {
   const query = useState<string>('search-query', () => '')
   const category = useState<string | undefined>(
@@ -53,7 +57,7 @@ export function useSearch() {
     }
     catch (error: any) {
       if (error.name !== 'AbortError') {
-        console.error('Autocomplete fetch failed:', error)
+        logger.error('Autocomplete fetch failed:', error)
         autocompleteResults.value = []
       }
     }

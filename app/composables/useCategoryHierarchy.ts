@@ -1,3 +1,7 @@
+import { consola } from 'consola'
+
+const logger = consola.withTag('categories')
+
 /**
  * Filters an array of categories to return only the leaf nodes (most specific categories).
  * Removes any parent categories if their children are present in the array.
@@ -37,7 +41,7 @@ export function useCategoryHierarchy() {
       return categoryIds.filter(id => !parentIds.has(id))
     }
     catch (error) {
-      console.error('Failed to fetch category hierarchies:', error)
+      logger.error('Failed to fetch category hierarchies:', error)
       return categoryIds
     }
   }

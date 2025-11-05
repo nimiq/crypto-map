@@ -1,3 +1,4 @@
+import { consola } from 'consola'
 import { and, eq, sql, tables, useDrizzle } from './drizzle'
 import { generateEmbeddingCached } from './embeddings'
 import {
@@ -6,6 +7,8 @@ import {
   distance,
   withinDistance,
 } from './sql-fragments'
+
+const logger = consola.withTag('search')
 
 // Lower threshold means more results, higher means more precise matches
 const SIMILARITY_THRESHOLD = 0.3
@@ -84,7 +87,7 @@ export async function searchLocationsBySimilarCategories(
   catch (error) {
     // If semantic search fails (e.g., missing OpenAI key), fall back to empty results
     // Text search will still work independently
-    console.error('Semantic search failed:', error)
+    logger.error('Semantic search failed:', error)
     return []
   }
 }

@@ -25,7 +25,6 @@ export default defineNuxtConfig({
   hub: {
     blob: true,
     kv: true,
-    cache: true,
     ...(process.env.HYPERDRIVE_ID && {
       bindings: {
         hyperdrive: {
@@ -112,8 +111,12 @@ export default defineNuxtConfig({
       cache: { maxAge: 3600, swr: true, staleMaxAge: 43200 },
     },
     '/api/locations': { cache: false },
-    '/api/locations/*': { cache: { maxAge: 900, swr: true, staleMaxAge: 900 } },
-    '/api/tiles/**': { cache: { maxAge: 86400, swr: true, staleMaxAge: 604800 } },
+    '/api/locations/*': {
+      cache: { maxAge: 900, swr: true, staleMaxAge: 900 },
+    },
+    '/api/tiles/**': {
+      cache: { maxAge: 86400, swr: true, staleMaxAge: 604800 },
+    },
   },
   vite: {
     optimizeDeps: {
