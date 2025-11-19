@@ -1,12 +1,26 @@
-import type { ProviderGetImage } from '@nuxt/image'
-import { getImage as getImageWithCloudflare } from '#image/providers/cloudflare'
-import { getImage as getImageWithNone } from '#image/providers/none'
+export default defineImageProvider({
+  getImage(src, { modifiers }) {
+    const config = useRuntimeConfig()
+    const isProduction = config.public.siteURL !== 'http://localhost:3000'
 
-export const getImage: ProviderGetImage = (src, options, ctx) => {
-  if (useRuntimeConfig().public.siteURL === options.prodSiteURL) {
-    return getImageWithCloudflare(src, options, ctx)
-  }
-  else {
-    return getImageWithNone(src, options, ctx)
-  }
-}
+    if (isProduction) {
+      // Use Cloudflare Image Resizing in production
+      const params = []
+      const { width, height, fit = 'cover', quality = 85, format } = modifiers
+
+      if (width) params.push(`width=${width}`)
+      if (height) params.push(`height=${height}`)
+      if (fit) params.push(`fit=${fit}`)
+      params.push(`quality=${quality}`)
+      if (format) params.push(`format=${format}`)
+
+      return {
+        url: `/cdn-cgi/image/${params.join(',')}${src}`,
+      }
+    }
+    else {
+      // Dev: no transformation
+      return { url: src }
+    }
+  },
+})

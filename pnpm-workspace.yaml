@@ -1,55 +1,55 @@
 catalogs:
   database:
-    drizzle-kit: ^0.31.5
-    drizzle-orm: ^0.44.6
+    drizzle-kit: ^0.31.7
+    drizzle-orm: ^0.44.7
     postgres: ^3.4.7
   dev:
-    '@antfu/eslint-config': ^5.4.1
+    '@antfu/eslint-config': ^6.2.0
     '@iconify-json/tabler': ^1.2.23
-    '@nuxt/eslint': ^1.9.0
-    '@unocss/eslint-plugin': ^66.5.3
-    dotenv: ^16.4.5
-    eslint: ^9.37.0
+    '@nuxt/eslint': ^1.10.0
+    '@unocss/eslint-plugin': ^66.5.6
+    dotenv: ^17.2.3
+    eslint: ^9.39.1
     eslint-plugin-format: ^1.0.2
     tsx: ^4.20.6
     typescript: ^5.9.3
-    wrangler: ^4.42.2
+    wrangler: ^4.47.0
   framework:
-    '@nuxt/fonts': ^0.11.4
-    '@nuxt/icon': ^2.0.0
-    '@nuxt/image': ^1.11.0
+    '@nuxt/fonts': ^0.12.1
+    '@nuxt/icon': ^2.1.0
+    '@nuxt/image': ^2.0.0
     '@nuxthub/core': ^0.9.0
-    '@nuxtjs/i18n': ^10.1.0
-    '@vueuse/nuxt': ^13.9.0
-    '@vueuse/router': ^13.9.0
-    nuxt: ^4.1.3
-    nuxt-maplibre: ^1.1.1
-    nuxt-safe-runtime-config: ^0.0.3
+    '@nuxtjs/i18n': ^10.2.1
+    '@vueuse/nuxt': ^13.0.0
+    '@vueuse/router': ^13.0.0
+    nuxt: ^4.2.1
+    nuxt-maplibre: ^1.2.0
+    nuxt-safe-runtime-config: ^0.0.9
   test:
-    '@nuxt/test-utils': ^3.19.2
+    '@nuxt/test-utils': ^3.20.1
     '@vue/test-utils': ^2.4.6
-    happy-dom: ^20.0.0
-    playwright-core: ^1.56.0
-    vitest: ^3.2.4
+    happy-dom: ^20.0.10
+    playwright-core: ^1.56.1
+    vitest: ^4.0.10
   ui:
-    '@unocss/nuxt': ^66.5.3
-    maplibre-gl: ^5.10.0
-    motion-v: ^1.7.2
-    nimiq-css: ^1.0.0-beta.133
-    nimiq-flags: ^1.0.0-beta.133
-    nimiq-icons: ^1.0.0-beta.133
-    reka-ui: ^2.5.1
-    unocss: ^66.5.3
-    unocss-preset-onmax: 1.0.0-beta.48
+    '@unocss/nuxt': ^66.5.6
+    maplibre-gl: ^5.13.0
+    motion-v: ^1.7.4
+    nimiq-css: ^1.0.0-beta.146
+    nimiq-flags: ^1.0.0-beta.146
+    nimiq-icons: ^1.0.0-beta.146
+    reka-ui: ^2.6.0
+    unocss: ^66.5.6
+    unocss-preset-onmax: 1.0.0-beta.52
     vaul-vue: ^0.4.1
     vue-sonner: ^2.0.9
   utils:
-    '@ai-sdk/openai': ^2.0.52
-    ai: ^5.0.70
+    '@ai-sdk/openai': ^2.0.68
+    ai: ^5.0.93
     consola: ^3.4.2
     date-fns: ^4.1.0
     date-fns-tz: ^3.2.0
-    opening_hours: ^4.1.0
+    opening_hours: ^3.9.0
     pathe: ^2.0.3
     valibot: ^1.1.0
 

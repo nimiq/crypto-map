@@ -49,21 +49,21 @@ watch([searchResults, mapInstance], ([results, map]) => {
     return
 
   try {
-    const iconLayer = map.getLayer('location-icons')
-    if (!iconLayer)
+    const dotLayer = map.getLayer('location-dot')
+    if (!dotLayer)
       return
 
     if (!results || !Array.isArray(results) || results.length === 0) {
       // No search - show all locations
-      map.setFilter('location-icons', null)
-      map.setFilter('location-labels', null)
+      map.setFilter('location-ring', null)
+      map.setFilter('location-dot', null)
     }
     else {
       // Filter to show only search result UUIDs
       const uuids = results.map((r: SearchLocationResponse) => r.uuid)
       const filter = ['in', ['get', 'uuid'], ['literal', uuids]]
-      map.setFilter('location-icons', filter)
-      map.setFilter('location-labels', filter)
+      map.setFilter('location-ring', filter)
+      map.setFilter('location-dot', filter)
     }
   }
   catch (error) {
@@ -91,20 +91,13 @@ async function onMapLoad(event: { map: Map }) {
       return
     }
 
-    const { initializeLayers, loadIconifyIcon } = useMapIcons()
+    const { initializeLayers } = useMapIcons()
 
     // Initialize layers immediately
     initializeLayers(map)
 
-    // Load missing icons on-demand via styleimagemissing event
-    map.on('styleimagemissing', async (e) => {
-      const iconName = e.id
-      logger.info('Missing icon detected:', iconName)
-      await loadIconifyIcon(map, iconName)
-    })
-
-    // Add click handler to location icons layer
-    map.on('click', 'location-icons', (e) => {
+    // Add click handler to location dots layer
+    map.on('click', 'location-dot', (e) => {
       if (!e.features || e.features.length === 0)
         return
 
@@ -117,11 +110,11 @@ async function onMapLoad(event: { map: Map }) {
     })
 
     // Change cursor on hover
-    map.on('mouseenter', 'location-icons', () => {
+    map.on('mouseenter', 'location-dot', () => {
       map.getCanvas().style.cursor = 'pointer'
     })
 
-    map.on('mouseleave', 'location-icons', () => {
+    map.on('mouseleave', 'location-dot', () => {
       map.getCanvas().style.cursor = ''
     })
 
@@ -161,12 +154,12 @@ async function onMapLoad(event: { map: Map }) {
       </div>
     </ClientOnly>
     <MapControls />
+    <LocationCounter />
 
     <DrawerRoot v-model:open="isDrawerOpen">
       <DrawerPortal>
-        <DrawerOverlay bg="black/40" inset-0 fixed z-40 />
-        <DrawerContent v-if="selectedLocation" rounded-t-xl bg-white bottom-0 left-0 right-0 fixed z-50>
-          <div f-px-md f-py-lg>
+        <DrawerContent rounded-t-xl bg-white bottom-0 left-0 right-0 fixed z-50 @pointer-down-outside.prevent>
+          <div v-if="selectedLocation" f-px-md f-py-lg>
             <button cursor-pointer right-8 top-8 absolute aria-label="Close" @click="isDrawerOpen = false">
               <Icon name="i-tabler:x" text-neutral-600 size-24 />
             </button>

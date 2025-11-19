@@ -89,9 +89,6 @@ export default defineNuxtConfig({
     providers: {
       cloudflareOnProd: {
         provider: '~/providers/cloudflareOnProd.ts',
-        options: {
-          prodSiteURL: 'https://crypto-map-next.je-cf9.workers.dev/',
-        },
       },
     },
   },
@@ -114,9 +111,7 @@ export default defineNuxtConfig({
     '/api/locations/*': {
       cache: { maxAge: 900, swr: true, staleMaxAge: 900 },
     },
-    '/api/tiles/**': {
-      cache: { maxAge: 86400, swr: true, staleMaxAge: 604800 },
-    },
+    '/api/tiles/**': { cache: false },
   },
   vite: {
     optimizeDeps: {

@@ -1,22 +1,35 @@
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import { consola } from 'consola'
-import { sql } from 'drizzle-orm'
+import { readFile } from 'node:fs/promises'
+import { drizzle } from 'drizzle-orm/postgres-js'
+import postgres from 'postgres'
+import { config } from 'dotenv'
+
+config()
 
 const logger = consola.withTag('update-mvt')
 
 async function updateMvtFunction() {
-  try {
-    const db = useDrizzle()
-    const sqlContent = readFileSync(join(process.cwd(), 'database/functions/get_tile_mvt.sql'), 'utf8')
-
-    logger.info('Updating get_tile_mvt function...')
-    await db.execute(sql.raw(sqlContent))
-    logger.success('✓ Function updated successfully')
-  }
-  catch (error) {
-    logger.error('Failed to update function:', error)
+  if (!process.env.DATABASE_URL) {
+    logger.error('DATABASE_URL not set')
     process.exit(1)
+  }
+
+  const client = postgres(process.env.DATABASE_URL)
+  const db = drizzle(client)
+
+  try {
+    logger.info('Reading MVT function SQL...')
+    const sql = await readFile('database/functions/get_tile_mvt.sql', 'utf-8')
+    
+    logger.info('Updating get_tile_mvt function...')
+    await db.execute(sql)
+    
+    logger.success('MVT function updated successfully!')
+  } catch (error) {
+    logger.error('Failed to update MVT function:', error)
+    process.exit(1)
+  } finally {
+    await client.end()
   }
 }
 

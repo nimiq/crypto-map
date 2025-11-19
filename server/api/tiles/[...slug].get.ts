@@ -37,7 +37,13 @@ export default defineEventHandler(async (event) => {
     logger.info(`Tile request: ${z}/${x}/${y}`);
 
     try {
-        const mvt = await getTileMvt(z, x, y);
+        let mvt = await getTileMvt(z, x, y);
+
+        // Failsafe: Handle JSON-serialized Buffer if it leaked through
+        if (mvt && typeof mvt === 'object' && 'type' in mvt && (mvt as any).type === 'Buffer' && 'data' in mvt) {
+             logger.warn("Detected JSON-serialized Buffer in API handler, converting...");
+             mvt = Buffer.from((mvt as any).data);
+        }
 
         logger.info("MVT result:", {
             exists: !!mvt,
@@ -45,6 +51,7 @@ export default defineEventHandler(async (event) => {
             length: mvt?.length,
             type: typeof mvt,
             constructor: mvt?.constructor?.name,
+            firstBytes: Buffer.isBuffer(mvt) ? mvt.slice(0, 20).toString('hex') : 'not-buffer',
         });
 
         if (!mvt || mvt.length === 0) {
@@ -59,8 +66,8 @@ export default defineEventHandler(async (event) => {
         );
         setResponseHeader(event, "Cache-Control", "public, max-age=86400");
 
-        // Return as Uint8Array to prevent JSON serialization
-        return new Uint8Array(mvt);
+        // Use send() to prevent JSON serialization
+        return send(event, Buffer.from(mvt));
     } catch (error) {
         logger.error("Error generating MVT tile:", error);
         setResponseStatus(event, 500);

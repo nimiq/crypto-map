@@ -2,7 +2,7 @@
   "name": "pay-app",
   "type": "module",
   "private": true,
-  "packageManager": "pnpm@10.18.2",
+  "packageManager": "pnpm@10.22.0",
   "scripts": {
     "dev": "nuxt dev",
     "dev:remote": "nuxt dev --remote",
@@ -46,7 +46,7 @@
     "opening_hours": "catalog:utils",
     "pathe": "catalog:utils",
     "postgres": "catalog:database",
-    "reka-ui": "catalog:ui",
+    "reka-ui": "^2.6.0",
     "valibot": "catalog:utils",
     "vaul-vue": "catalog:ui",
     "vue-sonner": "catalog:ui"

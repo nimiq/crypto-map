@@ -8,9 +8,9 @@ async function inspectTile() {
   const sql = postgres(process.env.DATABASE_URL!)
 
   try {
-    logger.info('Calling get_tile_mvt(13, 4299, 2913)...')
+    logger.info('Calling get_tile_mvt(13, 4300, 2914)...')
 
-    const result = await sql`SELECT get_tile_mvt(13, 4299, 2913) as tile`
+    const result = await sql`SELECT get_tile_mvt(13, 4300, 2914) as tile`
 
     const tile = result[0]?.tile
 
@@ -26,8 +26,22 @@ async function inspectTile() {
       firstBytes: tile?.slice(0, 20).toString('hex'),
     })
 
-    // Try to decode the MVT to see what's inside
-    logger.info('First 100 bytes (hex):', tile.slice(0, 100).toString('hex'))
+    // List locations in the tile
+    logger.info('Listing locations in tile 13/4300/2914...')
+    const locations = await sql`
+      WITH bounds AS (
+        SELECT ST_TileEnvelope(13, 4300, 2914) AS geom
+      )
+      SELECT 
+        l.uuid, 
+        l.name, 
+        ST_AsText(l.location) as wkt,
+        ST_X(ST_Transform(l.location, 3857)) as x_3857,
+        ST_Y(ST_Transform(l.location, 3857)) as y_3857
+      FROM locations l, bounds
+      WHERE ST_Intersects(l.location, ST_Transform(bounds.geom, 4326))
+    `
+    console.log(locations)
   }
   catch (error) {
     logger.error('Failed:', error)
