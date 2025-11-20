@@ -11,14 +11,32 @@ export function useMapIcons() {
    */
   async function loadIcons(map: Map) {
     const icons = [
-      'airport', 'aquarium', 'atm', 'bank', 'bar', 'bus', 'cafe',
-      'gas', 'golf', 'grocery', 'historic', 'lodging', 'misc',
-      'movie', 'museum', 'pharmacy', 'post_office', 'restaurant',
-      'shopping', 'theater', 'train'
+      'airport',
+      'aquarium',
+      'atm',
+      'bank',
+      'bar',
+      'bus',
+      'cafe',
+      'gas',
+      'golf',
+      'grocery',
+      'historic',
+      'lodging',
+      'misc',
+      'movie',
+      'museum',
+      'pharmacy',
+      'post_office',
+      'restaurant',
+      'shopping',
+      'theater',
+      'train',
     ]
 
     const promises = icons.map(async (icon) => {
-      if (map.hasImage(icon)) return
+      if (map.hasImage(icon))
+        return
 
       try {
         const img = new Image()
@@ -28,7 +46,8 @@ export function useMapIcons() {
           img.onerror = reject
         })
         map.addImage(icon, img, { sdf: true })
-      } catch (e) {
+      }
+      catch (e) {
         logger.error(`Failed to load icon: ${icon}`, e)
       }
     })
@@ -95,7 +114,6 @@ export function useMapIcons() {
       logger.info('Added location-icon layer')
     }
   }
-
 
   /**
    * Build MapLibre color match expression from category patterns

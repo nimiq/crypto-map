@@ -62,8 +62,21 @@ export function useUserLocation() {
     return LUGANO_LOCATION
   })
 
+  const source = computed<'gps' | 'query' | 'lugano' | 'geoip' | 'fallback'>(() => {
+    if (gpsPoint.value)
+      return 'gps'
+    if (hasQueryParams)
+      return 'query'
+    if (shouldUseLugano.value)
+      return 'lugano'
+    if (geoIpData.value?.location?.latitude && geoIpData.value?.location?.longitude)
+      return 'geoip'
+    return 'fallback'
+  })
+
   return {
     point,
+    source,
     shouldUseLugano,
     hasQueryParams,
     isLocating,

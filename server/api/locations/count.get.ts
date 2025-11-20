@@ -1,5 +1,5 @@
-import { z } from 'zod'
 import { sql } from 'drizzle-orm'
+import { z } from 'zod'
 
 const querySchema = z.object({
   min_lat: z.coerce.number(),
@@ -32,7 +32,8 @@ export default defineEventHandler(async (event) => {
     return {
       count: Number(result[0]?.count || 0),
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Error counting locations:', error)
     throw createError({
       statusCode: 500,

@@ -1,4 +1,6 @@
-export default defineImageProvider({
+import { defineProvider } from '@nuxt/image/runtime'
+
+export default defineProvider({
   getImage(src, { modifiers }) {
     const config = useRuntimeConfig()
     const isProduction = config.public.siteURL !== 'http://localhost:3000'
@@ -8,11 +10,15 @@ export default defineImageProvider({
       const params = []
       const { width, height, fit = 'cover', quality = 85, format } = modifiers
 
-      if (width) params.push(`width=${width}`)
-      if (height) params.push(`height=${height}`)
-      if (fit) params.push(`fit=${fit}`)
+      if (width)
+        params.push(`width=${width}`)
+      if (height)
+        params.push(`height=${height}`)
+      if (fit)
+        params.push(`fit=${fit}`)
       params.push(`quality=${quality}`)
-      if (format) params.push(`format=${format}`)
+      if (format)
+        params.push(`format=${format}`)
 
       return {
         url: `/cdn-cgi/image/${params.join(',')}${src}`,

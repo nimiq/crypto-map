@@ -1,8 +1,8 @@
-import { consola } from 'consola'
 import { readFile } from 'node:fs/promises'
+import { consola } from 'consola'
+import { config } from 'dotenv'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
-import { config } from 'dotenv'
 
 config()
 
@@ -20,15 +20,17 @@ async function updateMvtFunction() {
   try {
     logger.info('Reading MVT function SQL...')
     const sql = await readFile('database/functions/get_tile_mvt.sql', 'utf-8')
-    
+
     logger.info('Updating get_tile_mvt function...')
     await db.execute(sql)
-    
+
     logger.success('MVT function updated successfully!')
-  } catch (error) {
+  }
+  catch (error) {
     logger.error('Failed to update MVT function:', error)
     process.exit(1)
-  } finally {
+  }
+  finally {
     await client.end()
   }
 }

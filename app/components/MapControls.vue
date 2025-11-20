@@ -13,7 +13,6 @@ function handleLocateMe() {
 
 <template>
   <div flex="~ col gap-8" bottom="12 md:16" right="12 md:16" absolute z-10>
-    <DevConfig />
     <template v-if="hasPointer">
       <button stack outline="~ 1.5 neutral-200 hocus:neutral-900" rounded-full bg="neutral-0 hocus:neutral-50" size-40 cursor-pointer shadow transition-colors @click="zoomIn">
         <Icon name="i-tabler:plus" text-neutral size-20 />

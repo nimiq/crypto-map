@@ -39,11 +39,13 @@ export async function getTileMvt(z: number, x: number, y: number): Promise<Buffe
 
   // Debug log the raw mvtData structure to understand why previous check might have failed
   if (mvtData && typeof mvtData === 'object') {
-      console.log('[getTileMvt] mvtData keys:', Object.keys(mvtData))
-      // @ts-ignore
-      if ('type' in mvtData) console.log('[getTileMvt] mvtData.type:', mvtData.type)
-      // @ts-ignore
-      if ('data' in mvtData) console.log('[getTileMvt] mvtData.data length:', mvtData.data?.length)
+    console.log('[getTileMvt] mvtData keys:', Object.keys(mvtData))
+    // @ts-ignore
+    if ('type' in mvtData)
+      console.log('[getTileMvt] mvtData.type:', mvtData.type)
+    // @ts-ignore
+    if ('data' in mvtData)
+      console.log('[getTileMvt] mvtData.data length:', mvtData.data?.length)
   }
 
   // Check for JSON-serialized Buffer structure { type: 'Buffer', data: [...] }
@@ -60,19 +62,19 @@ export async function getTileMvt(z: number, x: number, y: number): Promise<Buffe
     finalMvt = Buffer.from(hex, 'hex')
   }
   else if (Buffer.isBuffer(mvtData)) {
-      finalMvt = mvtData
+    finalMvt = mvtData
   }
   else {
-      console.warn('[getTileMvt] Unknown mvtData type:', typeof mvtData)
-      // Fallback: try to return as is, but it might be the issue
-      finalMvt = mvtData as Buffer
+    console.warn('[getTileMvt] Unknown mvtData type:', typeof mvtData)
+    // Fallback: try to return as is, but it might be the issue
+    finalMvt = mvtData as Buffer
   }
 
   if (finalMvt && Buffer.isBuffer(finalMvt)) {
-     console.log('[getTileMvt] Final Buffer check:', {
-       length: finalMvt.length,
-       start: finalMvt.slice(0, 10).toString('hex')
-     })
+    console.log('[getTileMvt] Final Buffer check:', {
+      length: finalMvt.length,
+      start: finalMvt.slice(0, 10).toString('hex'),
+    })
   }
 
   console.log('[getTileMvt] Returning processed MVT')

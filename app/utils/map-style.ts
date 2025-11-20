@@ -55,23 +55,23 @@ export function getMapStyle(origin: string): StyleSpecification {
 
       // Land cover
       {
-        id: 'landcover_grass',
-        type: 'fill',
-        source: 'openmaptiles',
+        'id': 'landcover_grass',
+        'type': 'fill',
+        'source': 'openmaptiles',
         'source-layer': 'landcover',
-        filter: ['==', 'class', 'grass'],
-        paint: {
+        'filter': ['==', 'class', 'grass'],
+        'paint': {
           'fill-color': NIMIQ_COLORS.green400,
           'fill-opacity': 0.3,
         },
       },
       {
-        id: 'landcover_wood',
-        type: 'fill',
-        source: 'openmaptiles',
+        'id': 'landcover_wood',
+        'type': 'fill',
+        'source': 'openmaptiles',
         'source-layer': 'landcover',
-        filter: ['==', 'class', 'wood'],
-        paint: {
+        'filter': ['==', 'class', 'wood'],
+        'paint': {
           'fill-color': NIMIQ_COLORS.green500,
           'fill-opacity': 0.4,
         },
@@ -79,11 +79,11 @@ export function getMapStyle(origin: string): StyleSpecification {
 
       // Parks
       {
-        id: 'park',
-        type: 'fill',
-        source: 'openmaptiles',
+        'id': 'park',
+        'type': 'fill',
+        'source': 'openmaptiles',
         'source-layer': 'park',
-        paint: {
+        'paint': {
           'fill-color': NIMIQ_COLORS.green600,
           'fill-opacity': 0.3,
         },
@@ -91,53 +91,53 @@ export function getMapStyle(origin: string): StyleSpecification {
 
       // Land use
       {
-        id: 'landuse_residential',
-        type: 'fill',
-        source: 'openmaptiles',
+        'id': 'landuse_residential',
+        'type': 'fill',
+        'source': 'openmaptiles',
         'source-layer': 'landuse',
-        filter: ['in', 'class', 'residential', 'suburbs', 'neighbourhood'],
-        paint: {
+        'filter': ['in', 'class', 'residential', 'suburbs', 'neighbourhood'],
+        'paint': {
           'fill-color': NIMIQ_COLORS.neutral200,
           'fill-opacity': 0.4,
         },
       },
       {
-        id: 'landuse_hospital',
-        type: 'fill',
-        source: 'openmaptiles',
+        'id': 'landuse_hospital',
+        'type': 'fill',
+        'source': 'openmaptiles',
         'source-layer': 'landuse',
-        filter: ['==', 'class', 'hospital'],
-        paint: {
+        'filter': ['==', 'class', 'hospital'],
+        'paint': {
           'fill-color': NIMIQ_COLORS.red400,
         },
       },
       {
-        id: 'landuse_school',
-        type: 'fill',
-        source: 'openmaptiles',
+        'id': 'landuse_school',
+        'type': 'fill',
+        'source': 'openmaptiles',
         'source-layer': 'landuse',
-        filter: ['==', 'class', 'school'],
-        paint: {
+        'filter': ['==', 'class', 'school'],
+        'paint': {
           'fill-color': NIMIQ_COLORS.gold400,
         },
       },
 
       // Water
       {
-        id: 'water',
-        type: 'fill',
-        source: 'openmaptiles',
+        'id': 'water',
+        'type': 'fill',
+        'source': 'openmaptiles',
         'source-layer': 'water',
-        paint: {
+        'paint': {
           'fill-color': NIMIQ_COLORS.blue400,
         },
       },
       {
-        id: 'waterway',
-        type: 'line',
-        source: 'openmaptiles',
+        'id': 'waterway',
+        'type': 'line',
+        'source': 'openmaptiles',
         'source-layer': 'waterway',
-        paint: {
+        'paint': {
           'line-color': NIMIQ_COLORS.blue400,
           'line-width': ['interpolate', ['exponential', 1.3], ['zoom'], 13, 0.5, 20, 6],
         },
@@ -145,12 +145,12 @@ export function getMapStyle(origin: string): StyleSpecification {
 
       // Buildings
       {
-        id: 'building',
-        type: 'fill',
-        source: 'openmaptiles',
+        'id': 'building',
+        'type': 'fill',
+        'source': 'openmaptiles',
         'source-layer': 'building',
-        minzoom: 13,
-        paint: {
+        'minzoom': 13,
+        'paint': {
           'fill-color': NIMIQ_COLORS.neutral300,
           'fill-opacity': 0.4,
           'fill-outline-color': NIMIQ_COLORS.neutral400,
@@ -159,40 +159,39 @@ export function getMapStyle(origin: string): StyleSpecification {
 
       // Roads
       {
-        id: 'road_minor',
-        type: 'line',
-        source: 'openmaptiles',
+        'id': 'road_minor',
+        'type': 'line',
+        'source': 'openmaptiles',
         'source-layer': 'transportation',
-        filter: ['in', 'class', 'minor', 'service'],
-        paint: {
+        'filter': ['in', 'class', 'minor', 'service'],
+        'paint': {
           'line-color': NIMIQ_COLORS.white,
           'line-width': ['interpolate', ['exponential', 1.2], ['zoom'], 13, 1, 20, 8],
         },
       },
       {
-        id: 'road_major',
-        type: 'line',
-        source: 'openmaptiles',
+        'id': 'road_major',
+        'type': 'line',
+        'source': 'openmaptiles',
         'source-layer': 'transportation',
-        filter: ['in', 'class', 'primary', 'secondary', 'tertiary'],
-        paint: {
+        'filter': ['in', 'class', 'primary', 'secondary', 'tertiary'],
+        'paint': {
           'line-color': NIMIQ_COLORS.gold500,
           'line-width': ['interpolate', ['exponential', 1.2], ['zoom'], 8, 0.5, 20, 13],
         },
       },
       {
-        id: 'road_motorway',
-        type: 'line',
-        source: 'openmaptiles',
+        'id': 'road_motorway',
+        'type': 'line',
+        'source': 'openmaptiles',
         'source-layer': 'transportation',
-        filter: ['==', 'class', 'motorway'],
-        minzoom: 5,
-        paint: {
+        'filter': ['==', 'class', 'motorway'],
+        'minzoom': 5,
+        'paint': {
           'line-color': NIMIQ_COLORS.orange500,
           'line-width': ['interpolate', ['exponential', 1.2], ['zoom'], 5, 0, 7, 1, 20, 18],
         },
       },
-
 
     ],
   }
