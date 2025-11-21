@@ -67,86 +67,12 @@ export function useSearch() {
   const categories = computed(() => {
     if (!category.value)
       return undefined
-    // Handle comma-separated categories (from carousel load-more)
+    // Handle comma-separated categories
     if (category.value.includes(',')) {
       return category.value.split(',').map(c => c.trim())
     }
     return [category.value]
   })
-
-  const currentPage = ref(1)
-  const allResults = ref<SearchLocationResponse[]>([])
-  const hasMore = ref(false)
-  const total = ref(0)
-
-  const queryParams = computed(() => ({
-    q:
-      typeof query.value === 'string' && query.value.trim().length > 0
-        ? query.value
-        : undefined,
-    categories: categories.value,
-    openNow: openNow.value || undefined,
-    nearMe: nearMe.value || undefined,
-    lat: point.value.lat,
-    lng: point.value.lng,
-    page: currentPage.value,
-    limit: 20,
-  }))
-
-  const {
-    data: apiResponse,
-    status,
-    refresh: refreshSearch,
-  } = useFetch('/api/search', {
-    query: queryParams,
-    immediate: hasSearchParams.value,
-    watch: false,
-  })
-
-  const searchResults = computed(() => {
-    if (!apiResponse.value)
-      return []
-    return allResults.value
-  })
-
-  // Accumulate results for infinite scroll
-  watchEffect(() => {
-    if (apiResponse.value) {
-      const response = apiResponse.value as any
-      const results = response.results || []
-
-      if (currentPage.value === 1) {
-        allResults.value = results.map((loc: any) => ({
-          ...loc,
-          hoursStatus: getOpeningHoursStatus(loc),
-        }))
-      }
-      else {
-        allResults.value.push(
-          ...results.map((loc: any) => ({
-            ...loc,
-            hoursStatus: getOpeningHoursStatus(loc),
-          })),
-        )
-      }
-      hasMore.value = response.hasMore || false
-      total.value = response.total || 0
-    }
-  })
-
-  watch([query, category, openNow, nearMe, point], async () => {
-    currentPage.value = 1
-    allResults.value = []
-    if (hasSearchParams.value)
-      await refreshSearch()
-  })
-
-  async function loadMore() {
-    if (hasMore.value && status.value !== 'pending') {
-      currentPage.value++
-      await refreshSearch()
-    }
-  }
 
   const { t } = useI18n()
 
@@ -164,16 +90,20 @@ export function useSearch() {
   // Keep search input in sync with query/category state
   // Only sync when they're explicitly set, not when empty (to preserve typing)
   watch([query, category], () => {
+    logger.info('[useSearch] Query/category changed:', { query: query.value, category: category.value })
     // Only populate input for single category, not multiple
     if (category.value && !category.value.includes(',')) {
       localSearchInput.value = formatCategoryLabel(category.value)
+      logger.info('[useSearch] Set input to category label:', localSearchInput.value)
     }
     else if (query.value) {
       localSearchInput.value = query.value
+      logger.info('[useSearch] Set input to query:', localSearchInput.value)
     }
     else if (category.value?.includes(',')) {
       // Clear input when multiple categories are selected
       localSearchInput.value = ''
+      logger.info('[useSearch] Cleared input (multiple categories)')
     }
   })
 
@@ -210,13 +140,7 @@ export function useSearch() {
     openNow,
     nearMe,
     autocompleteResults,
-    searchResults,
-    status,
-    hasMore,
-    total,
     hasSearchParams,
-    loadMore,
-    refreshSearch,
     formatCategoryLabel,
     updateQuery,
     updateCategory,

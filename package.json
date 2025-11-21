@@ -23,7 +23,8 @@
     "lint": "eslint . --cache",
     "lint:fix": "eslint . --fix --cache",
     "test": "vitest run",
-    "typecheck": "nuxt typecheck"
+    "typecheck": "nuxt typecheck",
+    "db:validate-google-raw": "tsx database/scripts/validate-google-raw.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "catalog:utils",

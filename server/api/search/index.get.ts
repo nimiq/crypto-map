@@ -8,19 +8,17 @@ const querySchema = v.object({
   categories: v.optional(v.union([v.string(), v.array(v.string())])),
   openNow: v.optional(v.pipe(v.string(), v.transform(val => val === 'true'))),
   nearMe: v.optional(v.pipe(v.string(), v.transform(val => val === 'true'))),
-  page: v.fallback(v.pipe(v.string(), v.transform(Number), v.number(), v.minValue(1)), 1),
-  limit: v.fallback(v.pipe(v.string(), v.transform(Number), v.number(), v.minValue(1), v.maxValue(100)), 20),
 })
 
 async function searchHandler(event: any) {
-  const { q: searchQuery, categories: rawCategories, openNow = false, nearMe = false, lat: qLat, lng: qLng, page = 1, limit = 20 } = await getValidatedQuery(event, data => v.parse(querySchema, data))
+  const { q: searchQuery, categories: rawCategories, openNow = false, nearMe = false, lat: qLat, lng: qLng } = await getValidatedQuery(event, data => v.parse(querySchema, data))
 
   // Normalize categories to array
   const categories = rawCategories ? (Array.isArray(rawCategories) ? rawCategories : [rawCategories]) : undefined
 
   // Require either query or categories
   if ((!searchQuery || searchQuery.trim().length === 0) && !categories)
-    return { results: [], hasMore: false, page, total: 0 }
+    return []
 
   // Use query lat/lng if provided, otherwise fallback to Cloudflare IP geolocation
   let lat = qLat
@@ -45,13 +43,8 @@ async function searchHandler(event: any) {
   let searchResults: SearchLocationResponse[]
 
   if ((!searchQuery || searchQuery.trim().length === 0) && categories) {
-    // Fetch extra when filtering to ensure we have enough results after filtering
-    const fetchMultiplier = openNow ? 3 : 1
-    const effectiveLimit = limit * fetchMultiplier
-
     const searchOptions: SearchLocationOptions = {
-      page: 1,
-      limit: effectiveLimit + ((page - 1) * limit),
+      fetchLimit: 500,
     }
     if (lat !== undefined && lng !== undefined) {
       searchOptions.origin = { lat, lng }
@@ -79,24 +72,10 @@ async function searchHandler(event: any) {
       }
     }
 
-    const startIndex = (page - 1) * limit
-    const endIndex = startIndex + limit
-    const paginatedResults = filteredResults.slice(startIndex, endIndex)
-    const hasMore = endIndex < filteredResults.length || searchResults.length === effectiveLimit + ((page - 1) * limit)
-
-    return {
-      results: paginatedResults,
-      hasMore,
-      page,
-      total: filteredResults.length,
-    }
+    return filteredResults
   }
   else {
-    // Fetch extra to account for deduplication and filtering
-    const filterMultiplier = openNow ? 4 : 2
-    const fetchLimit = Math.min(page * limit * filterMultiplier, 400)
-
-    const searchOptions: SearchLocationOptions = { fetchLimit }
+    const searchOptions: SearchLocationOptions = { fetchLimit: 500 }
     if (lat !== undefined && lng !== undefined) {
       searchOptions.origin = { lat, lng }
       if (nearMe) {
@@ -147,12 +126,7 @@ async function searchHandler(event: any) {
       }
     }
 
-    const startIndex = (page - 1) * limit
-    const endIndex = startIndex + limit
-    const paginatedResults = filteredResults.slice(startIndex, endIndex)
-    const hasMore = endIndex < filteredResults.length
-
-    return { results: paginatedResults, hasMore, page, total: filteredResults.length }
+    return filteredResults
   }
 }
 
@@ -161,7 +135,7 @@ const cachedSearchHandler = defineCachedEventHandler(searchHandler, {
   getKey: (event) => {
     const query = getQuery(event)
     const categoriesKey = query.categories ? (Array.isArray(query.categories) ? query.categories.join(',') : query.categories) : ''
-    return `search:${query.q}:${query.lat || ''}:${query.lng || ''}:${query.openNow || ''}:${query.nearMe || ''}:${categoriesKey}:${query.page || 1}:${query.limit || 20}`
+    return `search:${query.q}:${query.lat || ''}:${query.lng || ''}:${query.openNow || ''}:${query.nearMe || ''}:${categoriesKey}`
   },
   swr: true,
 })

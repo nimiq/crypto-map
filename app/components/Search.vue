@@ -102,17 +102,21 @@ const showQuickCategories = computed(() => {
 })
 
 async function handleItemClick(item: SearchItem) {
+  console.log('[Search] Item clicked:', item)
   switch (item.kind) {
     case 'location':
+      console.log('[Search] Navigating to location:', item.uuid)
       emit('navigate', item.uuid)
       break
     case 'query':
+      console.log('[Search] Setting query:', item.query)
       query.value = item.query
       category.value = undefined
       collapseCombobox()
       await navigateTo('/')
       break
     case 'category':
+      console.log('[Search] Setting category:', item.category)
       category.value = item.category
       query.value = undefined
       collapseCombobox()

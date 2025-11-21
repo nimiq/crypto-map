@@ -43,25 +43,41 @@ const { data: searchResults } = await useFetch<SearchLocationResponse[]>('/api/s
   default: () => [],
 })
 
-// Filter map to show only search results
+// Filter map to show only search results and highlight them
 watch([searchResults, mapInstance], ([results, map]) => {
+  logger.info('[Map] Search results watcher triggered:', { 
+    resultsCount: results?.length || 0, 
+    hasMap: !!map,
+    results: results?.map(r => ({ uuid: r.uuid, name: r.name }))
+  })
+
   if (!map)
     return
 
   try {
     const iconLayer = map.getLayer('location-icon')
-    if (!iconLayer)
+    if (!iconLayer) {
+      logger.warn('[Map] location-icon layer not found')
       return
+    }
 
     if (!results || !Array.isArray(results) || results.length === 0) {
-      // No search - show all locations
+      // No search - show all locations with normal styling
+      logger.info('[Map] No search results - showing all locations')
       map.setFilter('location-icon', null)
+      const { setSearchResults } = useMapIcons()
+      setSearchResults(map, null)
     }
     else {
       // Filter to show only search result UUIDs
       const uuids = results.map((r: SearchLocationResponse) => r.uuid)
+      logger.info('[Map] Applying search filter:', { count: uuids.length, uuids })
       const filter = ['in', ['get', 'uuid'], ['literal', uuids]] as any
       map.setFilter('location-icon', filter)
+      
+      // Highlight all search results with active pins
+      const { setSearchResults } = useMapIcons()
+      setSearchResults(map, uuids)
     }
   }
   catch (error) {
@@ -77,6 +93,13 @@ function handleMarkerClick(uuid: string) {
   logger.info('Marker clicked:', uuid)
   selectedLocationUuid.value = uuid
   isDrawerOpen.value = true
+  
+  // Highlight selected location on map
+  if (mapInstance.value) {
+    const { setSelectedLocation } = useMapIcons()
+    setSelectedLocation(mapInstance.value, uuid)
+  }
+  
   logger.info('Drawer state:', { isDrawerOpen: isDrawerOpen.value, selectedLocationUuid: selectedLocationUuid.value })
 }
 
@@ -168,7 +191,14 @@ async function onMapLoad(event: { map: Map }) {
             :key="selectedLocation.uuid"
             :location="selectedLocation as any"
             :is-expanded="activeSnapPoint === snapPoints[1]"
-            @close="isDrawerOpen = false"
+            @close="() => {
+              isDrawerOpen = false
+              selectedLocationUuid.value = null
+              if (mapInstance.value) {
+                const { setSelectedLocation } = useMapIcons()
+                setSelectedLocation(mapInstance.value, null)
+              }
+            }"
             @collapse="activeSnapPoint = snapPoints[0]"
             @expand="activeSnapPoint = snapPoints[1]"
           />
