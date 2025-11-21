@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm'
 
 /**
- * Get MVT tile for given coordinates
+ * Get MVT tile for given coordinates with clustering support
  */
 export async function getTileMvt(z: number, x: number, y: number): Promise<Buffer> {
   const db = useDrizzle()

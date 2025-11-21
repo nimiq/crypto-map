@@ -132,12 +132,41 @@ async function onMapLoad(event: { map: Map }) {
       }
     })
 
-    // Change cursor on hover
+    // Add click handler to cluster circles - zoom in
+    map.on('click', 'location-clusters', (e) => {
+      if (!e.features || e.features.length === 0)
+        return
+
+      const feature = e.features[0]
+      if (!feature?.geometry || feature.geometry.type !== 'Point')
+        return
+
+      const coordinates = feature.geometry.coordinates as [number, number]
+      const currentZoom = map.getZoom()
+      
+      // Zoom in by 3 levels to reveal clustered locations
+      map.flyTo({
+        center: coordinates,
+        zoom: Math.min(currentZoom + 3, 18), // Cap at zoom 18
+        duration: 800,
+      })
+    })
+
+    // Change cursor on hover for individual locations
     map.on('mouseenter', 'location-icon', () => {
       map.getCanvas().style.cursor = 'pointer'
     })
 
     map.on('mouseleave', 'location-icon', () => {
+      map.getCanvas().style.cursor = ''
+    })
+
+    // Change cursor on hover for clusters
+    map.on('mouseenter', 'location-clusters', () => {
+      map.getCanvas().style.cursor = 'pointer'
+    })
+
+    map.on('mouseleave', 'location-clusters', () => {
       map.getCanvas().style.cursor = ''
     })
 
@@ -166,6 +195,7 @@ async function onMapLoad(event: { map: Map }) {
         <MglMap
           :center
           :zoom
+          :min-zoom="3"
           :map-style
           @map:load="onMapLoad"
           @map:error="(e: any) => logger.error('Map error:', e.event?.error || e)"
@@ -178,6 +208,7 @@ async function onMapLoad(event: { map: Map }) {
     </ClientOnly>
     <MapControls />
     <LocationCounter />
+    <MapDebugPanel />
 
     <DrawerRoot v-model:open="isDrawerOpen" v-model:active-snap-point="activeSnapPoint" :snap-points="snapPoints" :should-scale-background="false" :modal="false" :dismissible="false" :snap-to-sequential-point="true">
       <DrawerPortal>

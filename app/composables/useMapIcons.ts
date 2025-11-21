@@ -85,6 +85,7 @@ export function useMapIcons() {
         'type': 'symbol',
         'source': 'locations',
         'source-layer': 'locations',
+        'filter': ['!', ['has', 'point_count']], // Hide clustered locations
         'minzoom': 0,
         'maxzoom': 24,
         'layout': {

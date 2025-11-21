@@ -12,6 +12,7 @@ const NIMIQ_COLORS = {
   neutral700: '#6B6966', // Darker gray
   blue400: '#ACDAF7', // Light blue (water)
   blue600: '#86CCF0', // Blue
+  darkblue: '#1F2348', // Dark blue (from Nimiq CSS - oklch(0.2737 0.068 276.29))
   green400: '#E0E8C9', // Very light green
   green500: '#BEE7AD', // Light green
   green600: '#A7CB83', // Green (parks)
@@ -137,9 +138,17 @@ export function getMapStyle(origin: string): StyleSpecification {
         'type': 'line',
         'source': 'openmaptiles',
         'source-layer': 'waterway',
+        'minzoom': 8,
         'paint': {
-          'line-color': NIMIQ_COLORS.blue400,
-          'line-width': ['interpolate', ['exponential', 1.3], ['zoom'], 13, 0.5, 20, 6],
+          'line-color': NIMIQ_COLORS.blue600,
+          'line-width': [
+            'interpolate',
+            ['exponential', 1.3],
+            ['zoom'],
+            8, ['match', ['get', 'class'], 'river', 0.5, 0.2],
+            13, ['match', ['get', 'class'], 'river', 1.5, 0.5],
+            20, ['match', ['get', 'class'], 'river', 8, 6],
+          ],
         },
       },
 
@@ -190,6 +199,239 @@ export function getMapStyle(origin: string): StyleSpecification {
         'paint': {
           'line-color': NIMIQ_COLORS.orange500,
           'line-width': ['interpolate', ['exponential', 1.2], ['zoom'], 5, 0, 7, 1, 20, 18],
+        },
+      },
+
+      // Administrative boundaries
+      {
+        'id': 'admin_country',
+        'type': 'line',
+        'source': 'openmaptiles',
+        'source-layer': 'boundary',
+        'filter': ['==', 'admin_level', 2],
+        'paint': {
+          'line-color': NIMIQ_COLORS.neutral600,
+          'line-width': 1,
+          'line-opacity': 0.6,
+        },
+      },
+      {
+        'id': 'admin_state',
+        'type': 'line',
+        'source': 'openmaptiles',
+        'source-layer': 'boundary',
+        'filter': ['in', 'admin_level', 3, 4],
+        'paint': {
+          'line-color': NIMIQ_COLORS.neutral400,
+          'line-width': 0.5,
+          'line-opacity': 0.4,
+        },
+      },
+
+      // Water labels
+      {
+        'id': 'water_name',
+        'type': 'symbol',
+        'source': 'openmaptiles',
+        'source-layer': 'water_name',
+        'minzoom': 10,
+        'layout': {
+          'text-field': ['coalesce', ['get', 'name:en'], ['get', 'name:latin'], ['get', 'name']],
+          'text-font': ['Noto Sans Italic'],
+          'text-size': ['interpolate', ['linear'], ['zoom'], 10, 10, 16, 14],
+        },
+        'paint': {
+          'text-color': NIMIQ_COLORS.blue600,
+          'text-halo-color': NIMIQ_COLORS.white,
+          'text-halo-width': 1.5,
+        },
+      },
+      {
+        'id': 'waterway_name',
+        'type': 'symbol',
+        'source': 'openmaptiles',
+        'source-layer': 'waterway',
+        'filter': ['==', 'class', 'river'],
+        'minzoom': 12,
+        'layout': {
+          'text-field': ['coalesce', ['get', 'name:en'], ['get', 'name:latin'], ['get', 'name']],
+          'text-font': ['Noto Sans Italic'],
+          'text-size': 11,
+          'symbol-placement': 'line',
+          'text-rotation-alignment': 'map',
+        },
+        'paint': {
+          'text-color': NIMIQ_COLORS.blue600,
+          'text-halo-color': NIMIQ_COLORS.white,
+          'text-halo-width': 1.5,
+        },
+      },
+
+      // Road labels
+      {
+        'id': 'road_label',
+        'type': 'symbol',
+        'source': 'openmaptiles',
+        'source-layer': 'transportation_name',
+        'filter': ['in', 'class', 'motorway', 'trunk', 'primary'],
+        'minzoom': 10,
+        'layout': {
+          'text-field': ['concat', ['get', 'ref'], ' ', ['coalesce', ['get', 'name:en'], ['get', 'name:latin'], ['get', 'name'], '']],
+          'text-font': ['Noto Sans Regular'],
+          'text-size': 10,
+          'symbol-placement': 'line',
+          'text-rotation-alignment': 'map',
+          'text-pitch-alignment': 'viewport',
+        },
+        'paint': {
+          'text-color': NIMIQ_COLORS.neutral700,
+          'text-halo-color': NIMIQ_COLORS.white,
+          'text-halo-width': 2,
+        },
+      },
+
+      // Airport labels
+      {
+        'id': 'aerodrome_label',
+        'type': 'symbol',
+        'source': 'openmaptiles',
+        'source-layer': 'aerodrome_label',
+        'minzoom': 9,
+        'layout': {
+          'text-field': ['concat', ['coalesce', ['get', 'name:en'], ['get', 'name:latin'], ['get', 'name']], '\n', ['upcase', ['get', 'iata']]],
+          'text-font': ['Noto Sans Regular'],
+          'text-size': 11,
+          'text-anchor': 'top',
+          'text-offset': [0, 0.5],
+        },
+        'paint': {
+          'text-color': NIMIQ_COLORS.neutral700,
+          'text-halo-color': NIMIQ_COLORS.white,
+          'text-halo-width': 1.5,
+        },
+      },
+
+      // Mountain peaks
+      {
+        'id': 'mountain_peak',
+        'type': 'symbol',
+        'source': 'openmaptiles',
+        'source-layer': 'mountain_peak',
+        'filter': ['>', ['coalesce', ['get', 'rank'], 99], 0],
+        'minzoom': 11,
+        'layout': {
+          'text-field': ['concat', ['coalesce', ['get', 'name:en'], ['get', 'name:latin'], ['get', 'name']], '\n', ['get', 'ele'], 'm'],
+          'text-font': ['Noto Sans Italic'],
+          'text-size': 10,
+          'text-anchor': 'top',
+          'text-offset': [0, 0.5],
+        },
+        'paint': {
+          'text-color': NIMIQ_COLORS.neutral600,
+          'text-halo-color': NIMIQ_COLORS.white,
+          'text-halo-width': 1.5,
+        },
+      },
+
+      // Place labels (country, city, town, village) - BEFORE location layers
+      {
+        'id': 'place_country',
+        'type': 'symbol',
+        'source': 'openmaptiles',
+        'source-layer': 'place',
+        'filter': ['==', 'class', 'country'],
+        'minzoom': 3,
+        'maxzoom': 8,
+        'layout': {
+          'text-field': ['coalesce', ['get', 'name:en'], ['get', 'name:latin'], ['get', 'name']],
+          'text-font': ['Noto Sans Bold'],
+          'text-size': ['interpolate', ['linear'], ['zoom'], 3, 11, 8, 14],
+          'text-transform': 'uppercase',
+          'text-letter-spacing': 0.1,
+        },
+        'paint': {
+          'text-color': NIMIQ_COLORS.neutral600,
+          'text-halo-color': NIMIQ_COLORS.white,
+          'text-halo-width': 1.5,
+        },
+      },
+      {
+        'id': 'place_city',
+        'type': 'symbol',
+        'source': 'openmaptiles',
+        'source-layer': 'place',
+        'filter': ['in', 'class', 'city', 'town'],
+        'minzoom': 8,
+        'layout': {
+          'text-field': ['coalesce', ['get', 'name:en'], ['get', 'name:latin'], ['get', 'name']],
+          'text-font': ['Noto Sans Regular'],
+          'text-size': ['interpolate', ['exponential', 1.2], ['zoom'], 8, 10, 12, 12, 16, 16],
+          'text-anchor': 'center',
+        },
+        'paint': {
+          'text-color': NIMIQ_COLORS.neutral700,
+          'text-halo-color': NIMIQ_COLORS.white,
+          'text-halo-width': 1.5,
+        },
+      },
+      {
+        'id': 'place_village',
+        'type': 'symbol',
+        'source': 'openmaptiles',
+        'source-layer': 'place',
+        'filter': ['==', 'class', 'village'],
+        'minzoom': 12,
+        'layout': {
+          'text-field': ['coalesce', ['get', 'name:en'], ['get', 'name:latin'], ['get', 'name']],
+          'text-font': ['Noto Sans Regular'],
+          'text-size': ['interpolate', ['exponential', 1.2], ['zoom'], 12, 9, 16, 11],
+          'text-anchor': 'center',
+        },
+        'paint': {
+          'text-color': NIMIQ_COLORS.neutral600,
+          'text-halo-color': NIMIQ_COLORS.white,
+          'text-halo-width': 1.5,
+        },
+      },
+
+      // Cluster circles (for 50+ locations in same area)
+      {
+        'id': 'location-clusters',
+        'type': 'circle',
+        'source': 'locations',
+        'source-layer': 'locations',
+        'filter': ['has', 'point_count'],
+        'maxzoom': 9, // Hide clusters above zoom 8
+        'paint': {
+          'circle-color': NIMIQ_COLORS.darkblue,
+          'circle-radius': [
+            'step',
+            ['get', 'point_count'],
+            15,  // 50-99 locations
+            100, 18,  // 100-499 locations
+            500, 22,  // 500+ locations
+          ],
+          'circle-stroke-width': 2,
+          'circle-stroke-color': NIMIQ_COLORS.white,
+        },
+      },
+      // Cluster count labels
+      {
+        'id': 'location-cluster-count',
+        'type': 'symbol',
+        'source': 'locations',
+        'source-layer': 'locations',
+        'filter': ['has', 'point_count'],
+        'maxzoom': 9, // Hide cluster labels above zoom 8
+        'layout': {
+          'text-field': ['get', 'point_count'],
+          'text-font': ['Noto Sans Bold'],
+          'text-size': 12,
+          'text-allow-overlap': true,
+          'text-ignore-placement': true,
+        },
+        'paint': {
+          'text-color': NIMIQ_COLORS.white,
         },
       },
 
