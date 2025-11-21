@@ -89,15 +89,15 @@ export function useMapIcons() {
         'maxzoom': 24,
         'layout': {
           'icon-image': iconExpression,
-          'icon-size': 0.1125,
+          'icon-size': 0.06328125,
           'icon-allow-overlap': false,
-          'icon-anchor': 'right',
-          'icon-offset': [-8, 0],
+          'icon-anchor': 'bottom',
+          'icon-offset': [0, 0],
           'symbol-sort-key': ['-', 0, ['coalesce', ['get', 'rating'], 0]],
           'text-field': ['get', 'name'],
           'text-font': ['Mulish Regular'],
           'text-anchor': 'left',
-          'text-offset': [0.15, -0.2],
+          'text-offset': [1, -0.95],
           'text-justify': 'left',
           'text-size': 14,
           'text-optional': true, // Hide text if it collides, but keep the icon
@@ -183,7 +183,52 @@ export function useMapIcons() {
         buildIconExpression(),
       ]
       map.setLayoutProperty('location-icon', 'icon-image', iconExpression as any)
-      
+
+      // Larger size for active pins
+      const iconSizeExpression = [
+        'case',
+        ['in', ['get', 'uuid'], ['literal', uuids]],
+        0.09492188, // 1.5x larger (0.06328125 * 1.5)
+        0.06328125,
+      ]
+      map.setLayoutProperty('location-icon', 'icon-size', iconSizeExpression as any)
+
+      // Higher priority (lower sort key) for active pins so they're always shown
+      const symbolSortKeyExpression = [
+        'case',
+        ['in', ['get', 'uuid'], ['literal', uuids]],
+        -999999, // Very high priority
+        ['-', 0, ['coalesce', ['get', 'rating'], 0]], // Normal priority by rating
+      ]
+      map.setLayoutProperty('location-icon', 'symbol-sort-key', symbolSortKeyExpression as any)
+
+      // Larger text for active pins
+      const textSizeExpression = [
+        'case',
+        ['in', ['get', 'uuid'], ['literal', uuids]],
+        16, // 14 * 1.14 ≈ 16
+        14,
+      ]
+      map.setLayoutProperty('location-icon', 'text-size', textSizeExpression as any)
+
+      // Force text to show over other pins for active locations
+      const textAllowOverlapExpression = [
+        'case',
+        ['in', ['get', 'uuid'], ['literal', uuids]],
+        true,
+        false,
+      ]
+      map.setLayoutProperty('location-icon', 'text-allow-overlap', textAllowOverlapExpression as any)
+
+      // Make text non-optional for active locations (always show)
+      const textOptionalExpression = [
+        'case',
+        ['in', ['get', 'uuid'], ['literal', uuids]],
+        false, // Force text to show
+        true, // Allow text to be hidden if it collides
+      ]
+      map.setLayoutProperty('location-icon', 'text-optional', textOptionalExpression as any)
+
       // Red text for search results
       const textColorExpression = [
         'case',
@@ -199,7 +244,22 @@ export function useMapIcons() {
       // Reset to normal icons
       const iconExpression = buildIconExpression()
       map.setLayoutProperty('location-icon', 'icon-image', iconExpression as any)
-      
+
+      // Reset to normal size
+      map.setLayoutProperty('location-icon', 'icon-size', 0.06328125)
+
+      // Reset symbol priority to default
+      map.setLayoutProperty('location-icon', 'symbol-sort-key', ['-', 0, ['coalesce', ['get', 'rating'], 0]] as any)
+
+      // Reset to normal text size
+      map.setLayoutProperty('location-icon', 'text-size', 14)
+
+      // Reset text overlap to default
+      map.setLayoutProperty('location-icon', 'text-allow-overlap', false)
+
+      // Reset text optional to default
+      map.setLayoutProperty('location-icon', 'text-optional', true)
+
       const colorExpression = buildColorExpression()
       map.setPaintProperty('location-icon', 'text-color', colorExpression as any)
       logger.info('[setSearchResults] Normal pins applied')
@@ -222,7 +282,52 @@ export function useMapIcons() {
         buildIconExpression(),
       ]
       map.setLayoutProperty('location-icon', 'icon-image', iconExpression as any)
-      
+
+      // Larger size for selected location
+      const iconSizeExpression = [
+        'case',
+        ['==', ['get', 'uuid'], uuid],
+        0.09492188, // 1.5x larger (0.06328125 * 1.5)
+        0.06328125,
+      ]
+      map.setLayoutProperty('location-icon', 'icon-size', iconSizeExpression as any)
+
+      // Higher priority (lower sort key) for selected location so it's always shown
+      const symbolSortKeyExpression = [
+        'case',
+        ['==', ['get', 'uuid'], uuid],
+        -999999, // Very high priority
+        ['-', 0, ['coalesce', ['get', 'rating'], 0]], // Normal priority by rating
+      ]
+      map.setLayoutProperty('location-icon', 'symbol-sort-key', symbolSortKeyExpression as any)
+
+      // Larger text for selected location
+      const textSizeExpression = [
+        'case',
+        ['==', ['get', 'uuid'], uuid],
+        16, // 14 * 1.14 ≈ 16
+        14,
+      ]
+      map.setLayoutProperty('location-icon', 'text-size', textSizeExpression as any)
+
+      // Force text to show over other pins for selected location
+      const textAllowOverlapExpression = [
+        'case',
+        ['==', ['get', 'uuid'], uuid],
+        true,
+        false,
+      ]
+      map.setLayoutProperty('location-icon', 'text-allow-overlap', textAllowOverlapExpression as any)
+
+      // Make text non-optional for selected location (always show)
+      const textOptionalExpression = [
+        'case',
+        ['==', ['get', 'uuid'], uuid],
+        false, // Force text to show
+        true, // Allow text to be hidden if it collides
+      ]
+      map.setLayoutProperty('location-icon', 'text-optional', textOptionalExpression as any)
+
       // Update text color to red for selected location
       const textColorExpression = [
         'case',
@@ -236,7 +341,22 @@ export function useMapIcons() {
       // Reset to normal icons
       const iconExpression = buildIconExpression()
       map.setLayoutProperty('location-icon', 'icon-image', iconExpression as any)
-      
+
+      // Reset to normal size
+      map.setLayoutProperty('location-icon', 'icon-size', 0.06328125)
+
+      // Reset symbol priority to default
+      map.setLayoutProperty('location-icon', 'symbol-sort-key', ['-', 0, ['coalesce', ['get', 'rating'], 0]] as any)
+
+      // Reset to normal text size
+      map.setLayoutProperty('location-icon', 'text-size', 14)
+
+      // Reset text overlap to default
+      map.setLayoutProperty('location-icon', 'text-allow-overlap', false)
+
+      // Reset text optional to default
+      map.setLayoutProperty('location-icon', 'text-optional', true)
+
       const colorExpression = buildColorExpression()
       map.setPaintProperty('location-icon', 'text-color', colorExpression as any)
     }
