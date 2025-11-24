@@ -5,6 +5,7 @@ const logger = consola.withTag('search')
 // Lower threshold means more results, higher means more precise matches
 const SIMILARITY_THRESHOLD = 0.3
 const SEMANTIC_CATEGORY_LIMIT = 5
+const CATEGORY_SUGGESTION_THRESHOLD = 0.6
 
 const KEYWORD_FALLBACKS: Array<{ keywords: string[], categories: string[] }> = [
   { keywords: ['restaurant', 'food', 'eat', 'dining'], categories: ['restaurant', 'food_store', 'bar', 'cafe', 'bakery'] },
@@ -22,6 +23,75 @@ function pickFallbackCategories(query: string): string[] {
   }
 
   return []
+}
+
+export async function getCategorySuggestion(query: string): Promise<CategorySuggestion | null> {
+  const normalizedQuery = query.trim()
+  if (!normalizedQuery)
+    return null
+
+  const db = useDrizzle()
+  let candidate: CategorySuggestion | null = null
+
+  try {
+    const queryEmbedding = await generateEmbeddingCached(normalizedQuery)
+    const vectorMatch = await db.execute(sql`
+      SELECT
+        ${tables.categories.id} as id,
+        1 - (${tables.categories.embedding} <=> ${JSON.stringify(queryEmbedding)}::vector) as similarity
+      FROM ${tables.categories}
+      WHERE ${tables.categories.embedding} IS NOT NULL
+      ORDER BY similarity DESC
+      LIMIT 1
+    `)
+
+    const topMatch = ((vectorMatch as any).rows || [])[0] as { id: string, similarity: number } | undefined
+
+    if (topMatch && topMatch.similarity >= CATEGORY_SUGGESTION_THRESHOLD) {
+      candidate = {
+        categoryId: topMatch.id,
+        similarity: Number(topMatch.similarity),
+        source: 'embedding',
+      }
+    }
+  }
+  catch (error) {
+    logger.error('Category suggestion embedding search failed:', error)
+  }
+
+  if (!candidate) {
+    const fallback = pickFallbackCategories(normalizedQuery)[0]
+    if (fallback) {
+      candidate = {
+        categoryId: fallback,
+        similarity: CATEGORY_SUGGESTION_THRESHOLD,
+        source: 'keyword',
+      }
+    }
+  }
+
+  if (!candidate)
+    return null
+
+  try {
+    const hasLocationsResult = await db.execute(sql`
+      SELECT EXISTS(
+        SELECT 1
+        FROM ${tables.locationCategories}
+        WHERE ${tables.locationCategories.categoryId} = ${candidate.categoryId}
+      ) as has_locations
+    `)
+
+    const hasLocations = Boolean((hasLocationsResult as any).rows?.[0]?.has_locations)
+    if (!hasLocations)
+      return null
+  }
+  catch (error) {
+    logger.error('Category suggestion availability check failed:', error)
+    return null
+  }
+
+  return candidate
 }
 
 const locationSelect = {

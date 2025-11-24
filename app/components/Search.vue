@@ -20,7 +20,7 @@ const query = defineModel<string | undefined>('query')
 const category = defineModel<string | undefined>('category')
 
 // Use the composable's localSearchInput for autocomplete triggering
-const { localSearchInput, clearSearch } = useSearch()
+const { localSearchInput, clearSearch, categorySuggestion, formatCategoryLabel } = useSearch()
 
 // Computed getter/setter for combobox binding
 const searchQuery = computed({
@@ -123,7 +123,7 @@ async function handleItemClick(item: SearchItem) {
 </script>
 
 <template>
-    <ComboboxRoot v-model:open="isComboboxOpen" open-on-click open-on-focus ignore-filter>
+  <ComboboxRoot v-model:open="isComboboxOpen" open-on-click open-on-focus ignore-filter>
     <DefineComboboxItemTemplate
       v-slot="{ item, displayValue, icon, color = 'neutral', subline }"
     >
@@ -154,67 +154,76 @@ async function handleItemClick(item: SearchItem) {
       </ComboboxItem>
     </DefineComboboxItemTemplate>
 
-      <ComboboxAnchor relative>
-        <ComboboxInput ref="search-input" v-model="searchQuery" outline="0.5 neutral-400" name="search" placeholder="Search here" v-bind="$attrs" text-neutral px-47 py-6 rounded-full bg-neutral-0 w-full transition-colors shadow />
-        <button p-0 border-0 bg-transparent cursor-pointer translate-y-9.5 left-16 top-0 absolute @click="handleClose">
-          <Icon v-if="!isComboboxOpen" name="i-nimiq:logos-crypto-map" size-18 />
-          <Icon v-else name="i-tabler:arrow-left" op-70 size-18 />
+    <ComboboxAnchor relative>
+      <ComboboxInput ref="search-input" v-model="searchQuery" outline="0.5 neutral-400" name="search" placeholder="Search here" v-bind="$attrs" text-neutral px-47 py-6 rounded-full bg-neutral-0 w-full shadow transition-colors />
+      <button p-0 border-0 bg-transparent cursor-pointer translate-y-9.5 left-16 top-0 absolute @click="handleClose">
+        <Icon v-if="!isComboboxOpen" name="i-nimiq:logos-crypto-map" size-18 />
+        <Icon v-else name="i-tabler:arrow-left" op-70 size-18 />
+      </button>
+      <ComboboxCancel v-if="searchQuery.length > 0" as-child translate-y-0 right-0 top-0 absolute z-1>
+        <button flex="~ items-center justify-center" size-36 @click="handleClearSearch">
+          <Icon name="i-tabler:x" text-16 op-65 translate-y-1 />
         </button>
-        <ComboboxCancel v-if="searchQuery.length > 0" as-child translate-y-0 right-0 top-0 absolute z-1>
-          <button flex="~ items-center justify-center" size-36 @click="handleClearSearch">
-            <Icon name="i-tabler:x" text-16 op-65 translate-y-1 />
-          </button>
-        </ComboboxCancel>
-      </ComboboxAnchor>
+      </ComboboxCancel>
+    </ComboboxAnchor>
 
-      <ComboboxPortal>
-        <ComboboxContent position="popper" :side-offset="8" nq-raw align="start" flex="~ col" bg-neutral-100 size-full z-50>
-          <ComboboxViewport flex="~ col" h-full of-auto>
-            <div flex="~ col" h-full f-px-md f-pt-sm>
-              <template v-if="showQuickCategories">
-                <template v-for="(item, index) in quickCategories" :key="item.category || item.query">
-                  <Item
-                    :item="item.query
-                      ? { kind: 'query', query: item.query }
-                      : { kind: 'category', category: item.category!, label: item.label }
-                    "
-                    :icon="item.icon" :color="item.color"
-                  />
-                  <ComboboxSeparator v-if="index < quickCategories.length - 1" border="t-1 neutral-400" w="[calc(100%-60px+var(--f-p))]" ml-60 />
-                </template>
-              </template>
-              <template v-else>
+    <ComboboxPortal>
+      <ComboboxContent position="popper" :side-offset="8" nq-raw align="start" flex="~ col" bg-neutral-100 size-full z-50>
+        <ComboboxViewport flex="~ col" h-full of-auto>
+          <div flex="~ col" h-full f-px-md f-pt-sm>
+            <template v-if="showQuickCategories">
+              <template v-for="(item, index) in quickCategories" :key="item.category || item.query">
                 <Item
-                  v-if="searchQuery.trim().length > 0"
-                  key="search-query"
-                  color="red"
-                  :item="{ kind: 'query', query: searchQuery }"
-                  :display-value="searchDisplayValue"
-                  icon="i-tabler:search"
-                />
-                <ComboboxSeparator
-                  v-if="
-                    searchQuery.trim().length > 0
-                      && autocompleteResults
-                      && autocompleteResults.length > 0
+                  :item="item.query
+                    ? { kind: 'query', query: item.query }
+                    : { kind: 'category', category: item.category!, label: item.label }
                   "
-                  border="t-1 neutral-400" w="[calc(100%-60px+var(--f-p))]" ml-60
+                  :icon="item.icon" :color="item.color"
                 />
-                <template v-for="({ uuid, name, address, icon }, i) in autocompleteResults" :key="uuid">
-                  <Item :item="{ kind: 'location', uuid, name }" :icon="icon || 'i-tabler:map-pin'" :subline="address" />
-                  <ComboboxSeparator
-                    v-if="i < autocompleteResults!.length - 1"
-                    border="t-1 neutral-400"
-                    w="[calc(100%-60px+var(--f-p))]"
-                    ml-60
-                  />
-                </template>
+                <ComboboxSeparator v-if="index < quickCategories.length - 1" border="t-1 neutral-400" w="[calc(100%-60px+var(--f-p))]" ml-60 />
               </template>
-            </div>
-          </ComboboxViewport>
-        </ComboboxContent>
-      </ComboboxPortal>
-    </ComboboxRoot>
+            </template>
+            <template v-else>
+              <Item
+                v-if="categorySuggestion && searchQuery.trim().length > 0"
+                key="category-suggestion"
+                color="red"
+                :item="{ kind: 'category', category: categorySuggestion.categoryId, label: searchQuery }"
+                :display-value="searchDisplayValue"
+                icon="i-tabler:search"
+                :subline="`Category: ${formatCategoryLabel(categorySuggestion.categoryId)}`"
+              />
+              <Item
+                v-else-if="searchQuery.trim().length > 0"
+                key="search-query"
+                color="red"
+                :item="{ kind: 'query', query: searchQuery }"
+                :display-value="searchQuery"
+                icon="i-tabler:search"
+              />
+              <ComboboxSeparator
+                v-if="
+                  searchQuery.trim().length > 0
+                    && autocompleteResults
+                    && autocompleteResults.length > 0
+                "
+                border="t-1 neutral-400" w="[calc(100%-60px+var(--f-p))]" ml-60
+              />
+              <template v-for="({ uuid, name, address, icon }, i) in autocompleteResults" :key="uuid">
+                <Item :item="{ kind: 'location', uuid, name }" :icon="icon || 'i-tabler:map-pin'" :subline="address" />
+                <ComboboxSeparator
+                  v-if="i < autocompleteResults!.length - 1"
+                  border="t-1 neutral-400"
+                  w="[calc(100%-60px+var(--f-p))]"
+                  ml-60
+                />
+              </template>
+            </template>
+          </div>
+        </ComboboxViewport>
+      </ComboboxContent>
+    </ComboboxPortal>
+  </ComboboxRoot>
 </template>
 
 <style>

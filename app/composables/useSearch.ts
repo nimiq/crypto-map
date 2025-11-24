@@ -19,7 +19,9 @@ export function useSearch() {
   })
 
   const autocompleteResults = ref<SearchLocationResponse[]>([])
+  const categorySuggestion = ref<CategorySuggestion | null>(null)
   let abortController: AbortController | null = null
+  let suggestionAbortController: AbortController | null = null
 
   // Skip autocomplete fetch when input matches current category to avoid unnecessary requests
   watch(debouncedSearchQuery, async (newQuery) => {
@@ -29,9 +31,13 @@ export function useSearch() {
     if (abortController) {
       abortController.abort()
     }
+    if (suggestionAbortController) {
+      suggestionAbortController.abort()
+    }
 
     if (trimmed.length < 2) {
       autocompleteResults.value = []
+      categorySuggestion.value = null
       return
     }
 
@@ -43,6 +49,7 @@ export function useSearch() {
         queryLower === categoryLower
         || queryLower === categoryLower.replace(/_/g, ' ')
       ) {
+        categorySuggestion.value = null
         return
       }
     }
@@ -59,6 +66,21 @@ export function useSearch() {
       if (error.name !== 'AbortError') {
         logger.error('Autocomplete fetch failed:', error)
         autocompleteResults.value = []
+      }
+    }
+
+    suggestionAbortController = new AbortController()
+
+    try {
+      categorySuggestion.value = await $fetch('/api/search/category-suggestion', {
+        query: { q: trimmed },
+        signal: suggestionAbortController.signal,
+      })
+    }
+    catch (error: any) {
+      if (error.name !== 'AbortError') {
+        logger.error('Category suggestion fetch failed:', error)
+        categorySuggestion.value = null
       }
     }
   })
@@ -130,6 +152,7 @@ export function useSearch() {
     category.value = undefined
     localSearchInput.value = ''
     autocompleteResults.value = []
+    categorySuggestion.value = null
   }
 
   return {
@@ -140,6 +163,7 @@ export function useSearch() {
     openNow,
     nearMe,
     autocompleteResults,
+    categorySuggestion,
     hasSearchParams,
     formatCategoryLabel,
     updateQuery,
