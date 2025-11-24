@@ -7,9 +7,16 @@ function useMapControlsBase() {
   const { point } = useUserLocation()
 
   const center = computed(() => [point.value.lng, point.value.lat] as [number, number])
+  // Initialize with user location, updated on map move
+  const viewCenter = ref<{ lat: number, lng: number }>({ lat: point.value.lat, lng: point.value.lng })
   const zoom = ref(13)
   const bearing = ref(0)
   const pitch = ref(0)
+
+  function updateViewCenter(map: Map) {
+    const c = map.getCenter()
+    viewCenter.value = { lat: c.lat, lng: c.lng }
+  }
 
   function setMapInstance(map: Map) {
     mapInstance.value = map
@@ -21,10 +28,14 @@ function useMapControlsBase() {
     map.on('pitch', () => {
       pitch.value = map.getPitch()
     })
+    map.on('moveend', () => {
+      updateViewCenter(map)
+    })
 
     // Initialize values
     bearing.value = map.getBearing()
     pitch.value = map.getPitch()
+    updateViewCenter(map)
   }
 
   function zoomIn() {
@@ -64,6 +75,7 @@ function useMapControlsBase() {
   return {
     mapInstance,
     center,
+    viewCenter,
     zoom,
     bearing,
     pitch,

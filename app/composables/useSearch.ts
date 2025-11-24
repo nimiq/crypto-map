@@ -12,7 +12,7 @@ export function useSearch() {
   const openNow = useState<boolean>('filter-open-now', () => false)
   const nearMe = useState<boolean>('filter-near-me', () => false)
 
-  const { point } = useUserLocation()
+  const { viewCenter } = useMapControls()
 
   const debouncedSearchQuery = refDebounced(localSearchInput, 300, {
     maxWait: 1000,
@@ -58,7 +58,11 @@ export function useSearch() {
 
     try {
       autocompleteResults.value = await $fetch('/api/search/autocomplete', {
-        query: { q: trimmed },
+        query: {
+          q: trimmed,
+          lat: viewCenter.value.lat,
+          lng: viewCenter.value.lng,
+        },
         signal: abortController.signal,
       })
     }

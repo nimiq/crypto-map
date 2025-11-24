@@ -2,7 +2,7 @@
 import type { ComboboxInput } from 'reka-ui'
 
 type SearchItem
-  = | { kind: 'location', uuid: string, name: string }
+  = | { kind: 'location', uuid: string, name: string, latitude: number, longitude: number }
     | { kind: 'query', query: string }
     | { kind: 'category', category: string, label: string }
 
@@ -10,7 +10,7 @@ interface Props {
   autocompleteResults?: SearchLocationResponse[]
 }
 interface Emits {
-  (e: 'navigate', uuid: string): void
+  (e: 'navigate', uuid: string, latitude: number, longitude: number): void
 }
 
 defineProps<Props>()
@@ -31,9 +31,12 @@ const searchQuery = computed({
 })
 
 const isComboboxOpen = ref(false)
-const searchDisplayValue = computed(
-  () => `<mark>${searchQuery.value}</mark> near you`,
-)
+const searchDisplayValue = computed(() => {
+  const label = categorySuggestion.value
+    ? formatCategoryLabel(categorySuggestion.value.categoryId)
+    : searchQuery.value
+  return `<mark>${label}</mark> near you`
+})
 const input
   = useTemplateRef<InstanceType<typeof ComboboxInput>>('search-input')
 const $input = computed(() => input.value?.$el as HTMLInputElement | undefined)
@@ -104,7 +107,7 @@ const showQuickCategories = computed(() => {
 async function handleItemClick(item: SearchItem) {
   switch (item.kind) {
     case 'location':
-      emit('navigate', item.uuid)
+      emit('navigate', item.uuid, item.latitude, item.longitude)
       break
     case 'query':
       query.value = item.query
@@ -123,7 +126,7 @@ async function handleItemClick(item: SearchItem) {
 </script>
 
 <template>
-  <ComboboxRoot v-model:open="isComboboxOpen" open-on-click open-on-focus ignore-filter>
+<ComboboxRoot v-model:open="isComboboxOpen" open-on-click open-on-focus ignore-filter>
     <DefineComboboxItemTemplate
       v-slot="{ item, displayValue, icon, color = 'neutral', subline }"
     >
@@ -131,15 +134,12 @@ async function handleItemClick(item: SearchItem) {
         <button type="button" flex="~ items-center gap-16" px-16 py-12 text-left border-0 bg-transparent w-full cursor-pointer @click="handleItemClick(item)">
           <div
             :class="{
-              'bg-orange-400 outline-orange-500 text-orange-1100':
-                color === 'orange',
+              'bg-orange-400 outline-orange-500 text-orange-1100': color === 'orange',
               'bg-gold-400 outline-gold-500 text-gold-1100': color === 'gold',
               'bg-red-400 outline-red-500 text-red-1100': color === 'red',
-              'bg-purple-400 outline-purple-500 text-purple-1100':
-                color === 'purple',
+              'bg-purple-400 outline-purple-500 text-purple-1100': color === 'purple',
               'bg-green-400 outline-green-500 text-green-1100': color === 'green',
-              'bg-neutral-300 outline-neutral-400 text-neutral-900':
-                color === 'neutral',
+              'bg-neutral-300 outline-neutral-400 text-neutral-900': color === 'neutral',
             }"
             stack rounded-full size-28 outline="1 offset--1"
           >
@@ -147,28 +147,30 @@ async function handleItemClick(item: SearchItem) {
           </div>
           <div v-if="subline" flex="~ col gap-2">
             <span text-neutral-800 v-html="getDisplayValue(item, displayValue)" />
-            <span text-neutral-600 text-f-xs>{{ subline }}</span>
+            <span text="f-xs neutral-600">{{ subline }}</span>
           </div>
           <span v-else text-neutral-800 v-html="getDisplayValue(item, displayValue)" />
         </button>
       </ComboboxItem>
     </DefineComboboxItemTemplate>
 
-    <ComboboxAnchor relative>
-      <ComboboxInput ref="search-input" v-model="searchQuery" outline="0.5 neutral-400" name="search" placeholder="Search here" v-bind="$attrs" text-neutral px-47 py-6 rounded-full bg-neutral-0 w-full shadow transition-colors />
-      <button p-0 border-0 bg-transparent cursor-pointer translate-y-9.5 left-16 top-0 absolute @click="handleClose">
-        <Icon v-if="!isComboboxOpen" name="i-nimiq:logos-crypto-map" size-18 />
-        <Icon v-else name="i-tabler:arrow-left" op-70 size-18 />
-      </button>
-      <ComboboxCancel v-if="searchQuery.length > 0" as-child translate-y-0 right-0 top-0 absolute z-1>
-        <button flex="~ items-center justify-center" size-36 @click="handleClearSearch">
-          <Icon name="i-tabler:x" text-16 op-65 translate-y-1 />
+    <ComboboxAnchor as="div" absolute z-60 top-0 inset-x-0>
+      <div w-screen relative px-12 mt-12>
+        <ComboboxInput ref="search-input" v-model="searchQuery" w-full outline="0.5 neutral-400" name="search" placeholder="Search here" v-bind="$attrs" text-neutral px-47 py-6 rounded-full bg-neutral-0 shadow transition-colors />
+        <button p-0 border-0 bg-transparent cursor-pointer translate-y-9.5 left-24 top-0 absolute @click="handleClose">
+          <Icon v-if="!isComboboxOpen" name="i-nimiq:logos-crypto-map" size-18 />
+          <Icon v-else name="i-tabler:arrow-left" op-70 size-18 />
         </button>
-      </ComboboxCancel>
+        <ComboboxCancel v-if="searchQuery.length > 0" as-child translate-y-0 right-16 top-0 absolute>
+          <button flex="~ items-center justify-center" size-36 @click="handleClearSearch">
+            <Icon name="i-tabler:x" text-16 op-65 translate-y-1 />
+          </button>
+        </ComboboxCancel>
+      </div>
     </ComboboxAnchor>
 
     <ComboboxPortal>
-      <ComboboxContent position="popper" :side-offset="8" nq-raw align="start" flex="~ col" bg-neutral-100 size-full z-50>
+      <ComboboxContent position="inline" inset-0 fixed flex="~ col" bg-neutral-100 z-50 pt="56 md:60">
         <ComboboxViewport flex="~ col" h-full of-auto>
           <div flex="~ col" h-full f-px-md f-pt-sm>
             <template v-if="showQuickCategories">
@@ -209,8 +211,8 @@ async function handleItemClick(item: SearchItem) {
                 "
                 border="t-1 neutral-400" w="[calc(100%-60px+var(--f-p))]" ml-60
               />
-              <template v-for="({ uuid, name, address, icon }, i) in autocompleteResults" :key="uuid">
-                <Item :item="{ kind: 'location', uuid, name }" :icon="icon || 'i-tabler:map-pin'" :subline="address" />
+              <template v-for="({ uuid, name, address, icon, latitude, longitude }, i) in autocompleteResults" :key="uuid">
+                <Item :item="{ kind: 'location', uuid, name, latitude, longitude }" :icon="icon || 'i-tabler:map-pin'" :subline="address" />
                 <ComboboxSeparator
                   v-if="i < autocompleteResults!.length - 1"
                   border="t-1 neutral-400"
@@ -227,12 +229,6 @@ async function handleItemClick(item: SearchItem) {
 </template>
 
 <style>
-[data-reka-popper-content-wrapper] {
-  height: calc(100vh - var(--anchor-top, 80px));
-  width: 100vw !important;
-  left: 0 !important;
-}
-
 mark {
   --uno: 'bg-transparent text-neutral';
 }

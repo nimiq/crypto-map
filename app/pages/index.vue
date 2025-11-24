@@ -9,7 +9,7 @@ definePageMeta({
 })
 
 const { query, category, autocompleteResults, categories, openNow } = useSearch()
-const { center, zoom, setMapInstance, mapInstance } = useMapControls()
+const { center, viewCenter, zoom, setMapInstance, mapInstance, flyTo } = useMapControls()
 const { setSearchResults, setSelectedLocation, initializeLayers, updateUserLocation } = useMapIcons()
 const { showUserLocation, userLocationPoint, userLocationAccuracy } = useUserLocation()
 
@@ -37,6 +37,8 @@ const { data: searchResults } = await useFetch<SearchLocationResponse[]>('/api/s
     q: query.value || undefined,
     categories: categories.value,
     openNow: openNow.value || undefined,
+    lat: viewCenter.value.lat,
+    lng: viewCenter.value.lng,
   })),
   watch: [query, category, openNow],
   default: () => [],
@@ -96,8 +98,20 @@ watch([searchResults, mapInstance], ([results, map]) => {
   }
 })
 
-async function handleNavigate(uuid: string) {
-  await navigateTo(`/location/${uuid}`)
+function handleNavigate(uuid: string, latitude: number, longitude: number) {
+  // Open drawer
+  selectedLocationUuid.value = uuid
+  isDrawerOpen.value = true
+
+  // Highlight on map and fly if outside view
+  if (mapInstance.value) {
+    setSelectedLocation(mapInstance.value as any, uuid)
+
+    const bounds = mapInstance.value.getBounds()
+    if (!bounds.contains([longitude, latitude])) {
+      flyTo({ lat: latitude, lng: longitude }, 14)
+    }
+  }
 }
 
 function handleMarkerClick(uuid: string) {
@@ -197,9 +211,7 @@ async function onMapLoad(event: { map: Map }) {
 
 <template>
   <main min-h-screen>
-    <header absolute z-1 top="12 md:16" left="12 md:16" right="12 md:16">
       <Search v-model:query="query" v-model:category="category" :autocomplete-results @navigate="handleNavigate" />
-    </header>
     <ClientOnly>
       <template #fallback>
         <div flex="~ items-center justify-center" bg-neutral-100 size-screen>
