@@ -1,8 +1,8 @@
 import { readFile } from 'node:fs/promises'
 import process from 'node:process'
 import { createConsola } from 'consola'
-import postgres from 'postgres'
 import { join } from 'pathe'
+import postgres from 'postgres'
 
 const consola = createConsola().withTag('apply-naka-data')
 

@@ -153,12 +153,102 @@ export function useMapIcons() {
   }
 
   /**
+   * Add user location layer (blue dot)
+   */
+  function addUserLocationLayer(map: Map) {
+    // Add source for user location
+    if (!map.getSource('user-location')) {
+      map.addSource('user-location', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: [],
+        },
+      })
+    }
+
+    // Add accuracy circle layer
+    if (!map.getLayer('user-location-accuracy')) {
+      map.addLayer({
+        id: 'user-location-accuracy',
+        type: 'circle',
+        source: 'user-location',
+        paint: {
+          'circle-radius': [
+            'interpolate',
+            ['exponential', 2],
+            ['zoom'],
+            0, 0,
+            20, ['/', ['get', 'accuracy'], 0.075], // Rough meter-to-pixel conversion at zoom 20
+          ] as any,
+          'circle-color': '#4285F4',
+          'circle-opacity': 0.1,
+          'circle-stroke-width': 1,
+          'circle-stroke-color': '#4285F4',
+          'circle-stroke-opacity': 0.3,
+        },
+      })
+    }
+
+    // Add blue dot layer
+    if (!map.getLayer('user-location-dot')) {
+      map.addLayer({
+        id: 'user-location-dot',
+        type: 'circle',
+        source: 'user-location',
+        paint: {
+          'circle-radius': 8,
+          'circle-color': '#4285F4',
+          'circle-stroke-width': 2.5,
+          'circle-stroke-color': '#FFFFFF',
+        },
+      })
+    }
+
+    logger.info('Added user location layers')
+  }
+
+  /**
+   * Update user location on map
+   */
+  function updateUserLocation(map: Map, point: { lng: number, lat: number } | null, accuracy: number | null) {
+    const source = map.getSource('user-location') as maplibregl.GeoJSONSource
+    if (!source) {
+      logger.warn('user-location source not found')
+      return
+    }
+
+    if (point && accuracy) {
+      source.setData({
+        type: 'FeatureCollection',
+        features: [{
+          type: 'Feature',
+          geometry: {
+            type: 'Point',
+            coordinates: [point.lng, point.lat],
+          },
+          properties: {
+            accuracy,
+          },
+        }],
+      })
+    } else {
+      // Clear the location
+      source.setData({
+        type: 'FeatureCollection',
+        features: [],
+      })
+    }
+  }
+
+  /**
    * Initialize marker layers
    */
   function initializeLayers(map: Map) {
     if (!layersAdded.value) {
       logger.info('Adding marker layers...')
       addMarkerLayers(map)
+      addUserLocationLayer(map)
       layersAdded.value = true
     }
   }
@@ -385,5 +475,6 @@ export function useMapIcons() {
     initializeLayers,
     setSearchResults,
     setSelectedLocation,
+    updateUserLocation,
   }
 }

@@ -10,6 +10,7 @@ interface GeoIpResponse {
 }
 
 const LUGANO_LOCATION: Point = { lng: 8.95606, lat: 46.00503 }
+const LUGANO_ACCURACY = 50 // meters - simulated accuracy for testing
 
 export function useUserLocation() {
   const route = useRoute()
@@ -28,18 +29,56 @@ export function useUserLocation() {
   })
 
   const gpsPoint = ref<Point | null>(null)
+  const gpsAccuracy = ref<number | null>(null)
+  const isLocating = ref(false)
   const { coords, resume, pause } = useGeolocation({ immediate: false })
-  const isLocating = computed(() => coords.value.latitude === Number.POSITIVE_INFINITY)
+
+  const ACCURACY_THRESHOLD = 100 // meters - only show blue dot if accuracy is better than this
 
   function locateMe() {
+    isLocating.value = true
     resume()
     watchOnce(coords, (newCoords) => {
       if (newCoords.latitude && newCoords.longitude) {
         gpsPoint.value = { lng: newCoords.longitude, lat: newCoords.latitude }
+        gpsAccuracy.value = newCoords.accuracy
       }
+      isLocating.value = false
       pause()
     })
   }
+
+  const showUserLocation = computed(() => {
+    // Show for actual GPS location with good accuracy
+    if (gpsPoint.value !== null && gpsAccuracy.value !== null && gpsAccuracy.value <= ACCURACY_THRESHOLD) {
+      return true
+    }
+    // Also show for Lugano location (for testing)
+    if (shouldUseLugano.value && !gpsPoint.value) {
+      return true
+    }
+    return false
+  })
+
+  const userLocationPoint = computed(() => {
+    if (gpsPoint.value && gpsAccuracy.value !== null && gpsAccuracy.value <= ACCURACY_THRESHOLD) {
+      return gpsPoint.value
+    }
+    if (shouldUseLugano.value && !gpsPoint.value) {
+      return LUGANO_LOCATION
+    }
+    return null
+  })
+
+  const userLocationAccuracy = computed(() => {
+    if (gpsPoint.value && gpsAccuracy.value !== null && gpsAccuracy.value <= ACCURACY_THRESHOLD) {
+      return gpsAccuracy.value
+    }
+    if (shouldUseLugano.value && !gpsPoint.value) {
+      return LUGANO_ACCURACY
+    }
+    return null
+  })
 
   const point = computed<Point>(() => {
     // Priority 1: GPS (user clicked "locate me")
@@ -81,5 +120,10 @@ export function useUserLocation() {
     hasQueryParams,
     isLocating,
     locateMe,
+    gpsPoint,
+    gpsAccuracy,
+    showUserLocation,
+    userLocationPoint,
+    userLocationAccuracy,
   }
 }

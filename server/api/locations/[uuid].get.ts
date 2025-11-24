@@ -1,5 +1,4 @@
 import * as v from 'valibot'
-import { baseLocationSelect } from '../../utils/sql-fragments'
 
 const querySchema = v.object({
   uuid: v.pipe(v.string(), v.uuid()),

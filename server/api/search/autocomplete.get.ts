@@ -1,8 +1,5 @@
 import { consola } from 'consola'
 import * as v from 'valibot'
-import { getMostSpecificCategoriesBatch } from '../../utils/category-hierarchy'
-import { generateEmbeddingCached } from '../../utils/embeddings'
-import { searchLocationsByText } from '../../utils/search'
 
 const querySchema = v.object({
   q: v.pipe(v.string(), v.minLength(2, 'Query must be at least 2 characters')),

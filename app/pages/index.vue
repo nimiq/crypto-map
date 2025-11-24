@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { Map } from 'maplibre-gl'
 import { consola } from 'consola'
-import { DrawerContent, DrawerOverlay, DrawerPortal, DrawerRoot } from 'vaul-vue'
 
 const logger = consola.withTag('map')
 
@@ -11,25 +10,25 @@ definePageMeta({
 
 const { query, category, autocompleteResults, categories, openNow } = useSearch()
 const { center, zoom, setMapInstance, mapInstance } = useMapControls()
+const { setSearchResults, setSelectedLocation, initializeLayers, updateUserLocation } = useMapIcons()
+const { showUserLocation, userLocationPoint, userLocationAccuracy } = useUserLocation()
 
 logger.info('Map page loaded - center:', center.value, 'zoom:', zoom.value)
 
 const selectedLocationUuid = ref<string | null>(null)
 const isDrawerOpen = ref(false)
-// Snap points: compact (190px) and expanded (32px from top)
-const snapPoints = ['190px', 'calc(100vh - 32px)']
-const activeSnapPoint = ref<string | number>(snapPoints[0])
+const drawerRef = useTemplateRef<{ collapse: () => void }>('drawer')
 const { origin } = useRequestURL()
 const mapStyle = getMapStyle(origin)
 
-const locationUrl = computed(() =>
-  selectedLocationUuid.value ? `/api/locations/${selectedLocationUuid.value}` : undefined,
-)
-
-const { data: selectedLocation } = useFetch<LocationDetailResponse>(locationUrl as any, {
-  lazy: true,
-  watch: [selectedLocationUuid],
-  server: false,
+// Watch for drawer closing to deselect location
+watch(isDrawerOpen, (newValue) => {
+  if (!newValue) {
+    selectedLocationUuid.value = null
+    if (mapInstance.value) {
+      setSelectedLocation(mapInstance.value as any, null)
+    }
+  }
 })
 
 // Fetch search results when query/category changes
@@ -43,12 +42,26 @@ const { data: searchResults } = await useFetch<SearchLocationResponse[]>('/api/s
   default: () => [],
 })
 
+// Update user location blue dot
+watch([userLocationPoint, userLocationAccuracy, showUserLocation, mapInstance], ([point, accuracy, show, map]) => {
+  if (!map)
+    return
+
+  if (show && point && accuracy) {
+    logger.info('[Map] Updating user location:', { point, accuracy })
+    updateUserLocation(map as any, point, accuracy)
+  }
+  else {
+    updateUserLocation(map as any, null, null)
+  }
+})
+
 // Filter map to show only search results and highlight them
 watch([searchResults, mapInstance], ([results, map]) => {
-  logger.info('[Map] Search results watcher triggered:', { 
-    resultsCount: results?.length || 0, 
+  logger.info('[Map] Search results watcher triggered:', {
+    resultsCount: results?.length || 0,
     hasMap: !!map,
-    results: results?.map(r => ({ uuid: r.uuid, name: r.name }))
+    results: results?.map(r => ({ uuid: r.uuid, name: r.name })),
   })
 
   if (!map)
@@ -65,8 +78,7 @@ watch([searchResults, mapInstance], ([results, map]) => {
       // No search - show all locations with normal styling
       logger.info('[Map] No search results - showing all locations')
       map.setFilter('location-icon', null)
-      const { setSearchResults } = useMapIcons()
-      setSearchResults(map, null)
+      setSearchResults(map as any, null)
     }
     else {
       // Filter to show only search result UUIDs
@@ -74,10 +86,9 @@ watch([searchResults, mapInstance], ([results, map]) => {
       logger.info('[Map] Applying search filter:', { count: uuids.length, uuids })
       const filter = ['in', ['get', 'uuid'], ['literal', uuids]] as any
       map.setFilter('location-icon', filter)
-      
+
       // Highlight all search results with active pins
-      const { setSearchResults } = useMapIcons()
-      setSearchResults(map, uuids)
+      setSearchResults(map as any, uuids)
     }
   }
   catch (error) {
@@ -93,13 +104,12 @@ function handleMarkerClick(uuid: string) {
   logger.info('Marker clicked:', uuid)
   selectedLocationUuid.value = uuid
   isDrawerOpen.value = true
-  
+
   // Highlight selected location on map
   if (mapInstance.value) {
-    const { setSelectedLocation } = useMapIcons()
-    setSelectedLocation(mapInstance.value, uuid)
+    setSelectedLocation(mapInstance.value as any, uuid)
   }
-  
+
   logger.info('Drawer state:', { isDrawerOpen: isDrawerOpen.value, selectedLocationUuid: selectedLocationUuid.value })
 }
 
@@ -112,13 +122,20 @@ async function onMapLoad(event: { map: Map }) {
       return
     }
 
-    const { initializeLayers } = useMapIcons()
-
     // Initialize layers immediately
-    initializeLayers(map)
+    initializeLayers(map as any)
+
+    // Add click handler to map background - deselect location and collapse drawer
+    map.on('click', (e) => {
+      // Clear selected location
+      selectedLocationUuid.value = null
+      isDrawerOpen.value = false
+      setSelectedLocation(map as any, null)
+    })
 
     // Add click handler to location icon layer
     map.on('click', 'location-icon', (e) => {
+      e.preventDefault()
       if (!e.features || e.features.length === 0)
         return
 
@@ -143,7 +160,7 @@ async function onMapLoad(event: { map: Map }) {
 
       const coordinates = feature.geometry.coordinates as [number, number]
       const currentZoom = map.getZoom()
-      
+
       // Zoom in by 3 levels to reveal clustered locations
       map.flyTo({
         center: coordinates,
@@ -181,7 +198,7 @@ async function onMapLoad(event: { map: Map }) {
 <template>
   <main min-h-screen>
     <header absolute z-1 top="12 md:16" left="12 md:16" right="12 md:16">
-      <Search v-model:query="query" v-model:category="category" :autocomplete-results shadow-xl @navigate="handleNavigate" />
+      <Search v-model:query="query" v-model:category="category" :autocomplete-results @navigate="handleNavigate" />
     </header>
     <ClientOnly>
       <template #fallback>
@@ -210,55 +227,23 @@ async function onMapLoad(event: { map: Map }) {
     <LocationCounter />
     <MapDebugPanel />
 
-    <DrawerRoot v-model:open="isDrawerOpen" v-model:active-snap-point="activeSnapPoint" :snap-points="snapPoints" :should-scale-background="false" :modal="false" :dismissible="false" :snap-to-sequential-point="true">
-      <DrawerPortal>
-        <DrawerOverlay bg="black/20" inset-0 fixed z-40 />
-        <DrawerContent
-          class="drawer-content"
-          flex="~ col" shadow="[0_-4px_24px_rgba(0,0,0,0.1)]" outline-none rounded-t-10 bg-white h-full inset-x-0 bottom-0 fixed z-50
-        >
-          <LocationDrawerContent
-            v-if="selectedLocation"
-            :key="selectedLocation.uuid"
-            :location="selectedLocation as any"
-            :is-expanded="activeSnapPoint === snapPoints[1]"
-            @close="() => {
-              isDrawerOpen = false
-              selectedLocationUuid.value = null
-              if (mapInstance.value) {
-                const { setSelectedLocation } = useMapIcons()
-                setSelectedLocation(mapInstance.value, null)
-              }
-            }"
-            @collapse="activeSnapPoint = snapPoints[0]"
-            @expand="activeSnapPoint = snapPoints[1]"
-          />
-          <div v-else class="p-8 flex justify-center">
-            <Icon name="i-nimiq:spinner" text="f-2xl neutral-500" />
-          </div>
-        </DrawerContent>
-      </DrawerPortal>
-    </DrawerRoot>
+    <LocationDrawer
+      ref="drawer"
+      v-model:open="isDrawerOpen"
+      :location-uuid="selectedLocationUuid"
+      @update:location-uuid="(uuid) => {
+        selectedLocationUuid = uuid
+        if (!uuid && mapInstance) {
+          const { setSelectedLocation } = useMapIcons()
+          setSelectedLocation(mapInstance, null)
+        }
+      }"
+    />
   </main>
 </template>
 
 <style>
 main {
   --uno: bg-neutral-100 transition-colors;
-}
-
-/* Vaul drawer animations - iOS-style cubic bezier from Ionic Framework */
-.drawer-content {
-  transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1) !important;
-  will-change: transform;
-}
-
-[data-vaul-overlay] {
-  transition: opacity 0.5s cubic-bezier(0.32, 0.72, 0, 1) !important;
-}
-
-/* Disable transitions during drag for immediate feedback */
-.drawer-content[data-vaul-no-drag] {
-  transition: none !important;
 }
 </style>

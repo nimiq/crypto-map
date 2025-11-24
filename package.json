@@ -2,7 +2,7 @@
   "name": "pay-app",
   "type": "module",
   "private": true,
-  "packageManager": "pnpm@10.22.0",
+  "packageManager": "pnpm@10.23.0",
   "scripts": {
     "dev": "nuxt dev",
     "dev:remote": "nuxt dev --remote",
@@ -44,7 +44,7 @@
     "motion-v": "catalog:ui",
     "nimiq-flags": "catalog:ui",
     "nimiq-icons": "catalog:ui",
-    "nuxt": "catalog:framework",
+    "nuxt": "4.2.1",
     "nuxt-maplibre": "catalog:framework",
     "nuxt-safe-runtime-config": "catalog:framework",
     "opening_hours": "catalog:utils",
@@ -53,7 +53,8 @@
     "reka-ui": "catalog:ui",
     "valibot": "catalog:utils",
     "vaul-vue": "catalog:ui",
-    "vue-sonner": "catalog:ui"
+    "vue-sonner": "catalog:ui",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@antfu/eslint-config": "catalog:dev",
@@ -63,6 +64,7 @@
     "@unocss/eslint-plugin": "catalog:dev",
     "@unocss/nuxt": "catalog:ui",
     "@vue/test-utils": "catalog:test",
+    "@vueuse/core": "catalog:",
     "dotenv": "catalog:dev",
     "drizzle-kit": "catalog:database",
     "eslint": "catalog:dev",

@@ -1,12 +1,4 @@
 import { consola } from 'consola'
-import { and, eq, sql, tables, useDrizzle } from './drizzle'
-import { generateEmbeddingCached } from './embeddings'
-import {
-  baseLocationSelect,
-  categoryFilterOr,
-  distance,
-  withinDistance,
-} from './sql-fragments'
 
 const logger = consola.withTag('search')
 

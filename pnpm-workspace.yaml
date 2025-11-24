@@ -1,3 +1,6 @@
+catalog:
+  '@vueuse/core': ^13.8.0
+  zod: ^4.1.13
 catalogs:
   database:
     drizzle-kit: ^0.31.7
@@ -7,21 +10,21 @@ catalogs:
     '@antfu/eslint-config': ^6.2.0
     '@iconify-json/tabler': ^1.2.23
     '@nuxt/eslint': ^1.10.0
-    '@unocss/eslint-plugin': ^66.5.6
+    '@unocss/eslint-plugin': ^66.5.9
     dotenv: ^17.2.3
     eslint: ^9.39.1
     eslint-plugin-format: ^1.0.2
     tsx: ^4.20.6
     typescript: ^5.9.3
-    wrangler: ^4.47.0
+    wrangler: ^4.50.0
   framework:
     '@nuxt/fonts': ^0.12.1
     '@nuxt/icon': ^2.1.0
     '@nuxt/image': ^2.0.0
     '@nuxthub/core': ^0.9.0
     '@nuxtjs/i18n': ^10.2.1
-    '@vueuse/nuxt': ^13.0.0
-    '@vueuse/router': ^13.0.0
+    '@vueuse/nuxt': ^13.8.0
+    '@vueuse/router': ^13.8.0
     nuxt: ^4.2.1
     nuxt-maplibre: ^1.2.0
     nuxt-safe-runtime-config: ^0.0.9
@@ -30,22 +33,22 @@ catalogs:
     '@vue/test-utils': ^2.4.6
     happy-dom: ^20.0.10
     playwright-core: ^1.56.1
-    vitest: ^4.0.10
+    vitest: ^4.0.13
   ui:
-    '@unocss/nuxt': ^66.5.6
+    '@unocss/nuxt': ^66.5.9
     maplibre-gl: ^5.13.0
     motion-v: ^1.7.4
     nimiq-css: ^1.0.0-beta.146
     nimiq-flags: ^1.0.0-beta.146
     nimiq-icons: ^1.0.0-beta.146
     reka-ui: ^2.6.0
-    unocss: ^66.5.6
+    unocss: ^66.5.9
     unocss-preset-onmax: 1.0.0-beta.52
     vaul-vue: ^0.4.1
     vue-sonner: ^2.0.9
   utils:
-    '@ai-sdk/openai': ^2.0.68
-    ai: ^5.0.93
+    '@ai-sdk/openai': ^2.0.71
+    ai: ^5.0.101
     consola: ^3.4.2
     date-fns: ^4.1.0
     date-fns-tz: ^3.2.0

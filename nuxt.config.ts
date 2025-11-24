@@ -66,7 +66,7 @@ export default defineNuxtConfig({
       hyperdriveId: v.optional(v.string()),
 
       public: v.object({
-        siteURL: v.url(),
+        siteURL: v.string(),
       }),
     }),
   },

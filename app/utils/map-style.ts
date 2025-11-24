@@ -145,9 +145,12 @@ export function getMapStyle(origin: string): StyleSpecification {
             'interpolate',
             ['exponential', 1.3],
             ['zoom'],
-            8, ['match', ['get', 'class'], 'river', 0.5, 0.2],
-            13, ['match', ['get', 'class'], 'river', 1.5, 0.5],
-            20, ['match', ['get', 'class'], 'river', 8, 6],
+            8,
+            ['match', ['get', 'class'], 'river', 0.5, 0.2],
+            13,
+            ['match', ['get', 'class'], 'river', 1.5, 0.5],
+            20,
+            ['match', ['get', 'class'], 'river', 8, 6],
           ],
         },
       },
@@ -407,9 +410,11 @@ export function getMapStyle(origin: string): StyleSpecification {
           'circle-radius': [
             'step',
             ['get', 'point_count'],
-            15,  // 50-99 locations
-            100, 18,  // 100-499 locations
-            500, 22,  // 500+ locations
+            15, // 50-99 locations
+            100,
+            18, // 100-499 locations
+            500,
+            22, // 500+ locations
           ],
           'circle-stroke-width': 2,
           'circle-stroke-color': NIMIQ_COLORS.white,

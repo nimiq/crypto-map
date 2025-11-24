@@ -8,7 +8,7 @@ import type { Buffer } from 'node:buffer'
 
 export interface DbFunctions {
   /**
-   * Generates an MVT (Mapbox Vector Tile) for the given tile coordinates (z/x/y). Returns category_id for client-side color computation.
+   * Generates an MVT tile with clustering support. At zoom <= 8, clusters locations within proximity (min 50-100 locations). At zoom > 8, shows individual locations. Returns point_count for clusters, NULL for individual locations.
    */
   get_tile_mvt: {
     args: {

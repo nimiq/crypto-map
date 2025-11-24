@@ -60,7 +60,7 @@ function cleanName(name: string): string {
   }
 
   // Fix common patterns
-  let cleaned = name
+  const cleaned = name
     .replace(/\s+/g, ' ') // normalize whitespace
     .trim()
 

@@ -102,21 +102,17 @@ const showQuickCategories = computed(() => {
 })
 
 async function handleItemClick(item: SearchItem) {
-  console.log('[Search] Item clicked:', item)
   switch (item.kind) {
     case 'location':
-      console.log('[Search] Navigating to location:', item.uuid)
       emit('navigate', item.uuid)
       break
     case 'query':
-      console.log('[Search] Setting query:', item.query)
       query.value = item.query
       category.value = undefined
       collapseCombobox()
       await navigateTo('/')
       break
     case 'category':
-      console.log('[Search] Setting category:', item.category)
       category.value = item.category
       query.value = undefined
       collapseCombobox()
@@ -127,7 +123,7 @@ async function handleItemClick(item: SearchItem) {
 </script>
 
 <template>
-  <div>
+    <ComboboxRoot v-model:open="isComboboxOpen" open-on-click open-on-focus ignore-filter>
     <DefineComboboxItemTemplate
       v-slot="{ item, displayValue, icon, color = 'neutral', subline }"
     >
@@ -158,9 +154,8 @@ async function handleItemClick(item: SearchItem) {
       </ComboboxItem>
     </DefineComboboxItemTemplate>
 
-    <ComboboxRoot v-model:open="isComboboxOpen" open-on-click open-on-focus ignore-filter>
       <ComboboxAnchor relative>
-        <ComboboxInput ref="search-input" v-model="searchQuery" outline="0.5 neutral-400" name="search" placeholder="Search here" v-bind="$attrs" shadow- text-neutral px-47 py-6 rounded-full bg-neutral-0 w-full transition-colors shadow-sm />
+        <ComboboxInput ref="search-input" v-model="searchQuery" outline="0.5 neutral-400" name="search" placeholder="Search here" v-bind="$attrs" text-neutral px-47 py-6 rounded-full bg-neutral-0 w-full transition-colors shadow />
         <button p-0 border-0 bg-transparent cursor-pointer translate-y-9.5 left-16 top-0 absolute @click="handleClose">
           <Icon v-if="!isComboboxOpen" name="i-nimiq:logos-crypto-map" size-18 />
           <Icon v-else name="i-tabler:arrow-left" op-70 size-18 />
@@ -220,7 +215,6 @@ async function handleItemClick(item: SearchItem) {
         </ComboboxContent>
       </ComboboxPortal>
     </ComboboxRoot>
-  </div>
 </template>
 
 <style>

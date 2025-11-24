@@ -6,7 +6,8 @@ const mapCenter = ref({ lat: 0, lng: 0 })
 
 // Update debug info when map moves
 watch(mapInstance, (map) => {
-  if (!map) return
+  if (!map)
+    return
 
   const updateDebugInfo = () => {
     mapZoom.value = map.getZoom()
@@ -24,12 +25,12 @@ watch(mapInstance, (map) => {
 
 <template>
   <div
-    absolute bottom-16 left-16 z-10
-    bg-white outline="1.5 offset--1.5 neutral/15" f-px-sm f-py-2xs f-rounded-lg shadow
+
+    outline="1.5 offset--1.5 neutral/15"
     text="neutral-700 f-sm"
-    font-mono
+    font-mono bg-white shadow bottom-16 left-16 absolute z-10 f-px-sm f-py-2xs f-rounded-lg
   >
-    <div text="f-xs neutral-600" mb-2 font-sans font-bold>
+    <div text="f-xs neutral-600" font-bold font-sans mb-2>
       MAP DEBUG
     </div>
     <div flex="~ col gap-1">

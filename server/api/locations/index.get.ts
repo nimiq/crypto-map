@@ -1,10 +1,5 @@
 import { eq, inArray, isNotNull, sql } from 'drizzle-orm'
 import * as v from 'valibot'
-import { filterOpenNow } from '../../utils/open-now'
-import {
-  categoryFilterOr,
-  locationSelectWithDistance,
-} from '../../utils/sql-fragments'
 
 // Plan B Forum at Lugano Convention Centre (Palazzo dei Congressi)
 const CONFERENCE_CENTER = { lat: 46.00503, lng: 8.95606 }

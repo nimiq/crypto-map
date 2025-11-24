@@ -1,5 +1,4 @@
 import { desc, sql } from 'drizzle-orm'
-import { categoryLocationJoin, locationCount } from '../utils/sql-fragments'
 
 export default defineCachedEventHandler(async (event) => {
   const db = useDrizzle()

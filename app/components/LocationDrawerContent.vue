@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import {DialogTitle} from 'reka-ui'
+
 const props = defineProps<{
   location: LocationDetailResponse
   isExpanded?: boolean
@@ -6,25 +8,10 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void
-  (e: 'expand'): void
-  (e: 'collapse'): void
 }>()
 
 const { t } = useI18n()
 const { point: userLocation, source: locationSource } = useUserLocation()
-
-const photoSrc = computed(() => {
-  if (!props.location.photo && !props.location.gmapsPlaceId)
-    return null
-  return `/blob/location/${props.location.uuid}`
-})
-
-const hasPhotoError = ref(false)
-
-// Reset photo error when location changes
-watch(() => props.location.uuid, () => {
-  hasPhotoError.value = false
-})
 
 const primaryCategory = computed(() => {
   if (props.location.primaryCategory)
@@ -87,55 +74,71 @@ const walkingTime = computed(() => {
 </script>
 
 <template>
-  <div flex="~ col" outline="~ 1.5 neutral/4" rounded-t-20 bg-neutral-0 h-full max-h-96vh shadow relative isolate f-px-sm>
-    <div mx-auto my-8 rounded-full bg-neutral-500 shrink-0 h-3 w-40 />
+  <div flex="~ col" class="bg-white size-full">
+    <!-- Header Section (always visible in compact) -->
+    <div f-px-md f-pb-2xs bg-white shrink-0 z-10>
 
-    <!-- Clickable area for expansion -->
-    <div
-      :class="!isExpanded && 'cursor-pointer'"
-      @click="!isExpanded && emit('expand')"
-    >
-      <div flex="~ items-center gap-16" f-mt-xs>
-        <h2 text="neutral f-xl" leading-tight font-bold flex-1 line-clamp-2 my-0>
+      <!-- Title Row -->
+      <div flex="~ items-start justify-between gap-4">
+        <DialogTitle as="h2" text="f-xl neutral-900" my-0 font-bold leading-tight line-clamp-2>
           {{ location.name }}
-        </h2>
-        <button bg="neutral-300 hocus:neutral-400" outline="1.5 neutral/3" stack ml-auto p-8 rounded-full size-28 transition-colors aria-label="Close details" @click.stop="emit('close')">
-          <Icon name="i-nimiq:nodes" text-neutral-800 size-14 rotate-z-180 />
-        </button>
+        </DialogTitle>
 
-        <button bg="neutral-300 hocus:neutral-400" outline="1.5 neutral/3" stack rounded-full size-28 transition-colors aria-label="Close details" @click.stop="emit('close')">
-          <Icon name="i-nimiq:cross" text-neutral-800 size-11 />
-        </button>
+        <div flex="~ gap-2 shrink-0">
+          <button stack rounded-full bg="neutral-100 hocus:neutral-200" size-32 transition-colors @click.stop="emit('close')">
+            <Icon name="i-nimiq:cross" text-neutral-800 size-14 />
+          </button>
+        </div>
       </div>
 
-      <!-- Rating, count, and walking distance -->
-      <div flex="~ items-center gap-8 wrap" text="neutral-700 f-sm" mt-4>
+      <!-- Quick Info Row -->
+      <div flex="~ wrap items-center gap-x-4 gap-y-2" mt-2 text="f-sm neutral-600">
         <!-- Rating -->
-        <div v-if="location.rating" flex="~ items-center gap-4">
-          <span>{{ location.rating.toFixed(1) }}</span>
-          <div flex="~ items-center gap-2" text-yellow-500>
-            <Icon v-for="i in 5" name="i-nimiq:star" :key="i" :class="i <= Math.round(location.rating) ? 'text-gold' : 'text-neutral-200'" size-14 />
+        <div v-if="location.rating" flex="~ items-center gap-1.5">
+          <span text-neutral-900 font-medium>{{ location.rating.toFixed(1) }}</span>
+          <div text-yellow-400 flex>
+            <Icon name="i-nimiq:star" size-14 />
           </div>
-          <span v-if="location.ratingCount">({{ location.ratingCount }})</span>
+          <span text-neutral-500>({{ location.ratingCount }})</span>
         </div>
 
-        <!-- Walking distance -->
-        <div v-if="walkingTime" flex="~ items-center gap-4">
-          <Icon name="i-tabler:walk" size-18 />
+        <!-- Walking Distance -->
+        <div v-if="walkingTime" flex="~ items-center gap-1.5">
+          <Icon name="i-tabler:walk" size-16 />
           <span>{{ walkingTime.text }}</span>
         </div>
       </div>
 
-      <!-- Main category with opening status badge -->
-      <div v-if="primaryCategory || statusInfo" flex="~ items-center gap-8 wrap" mt-8>
-        <div v-if="primaryCategory" text="neutral-800 f-sm">
+      <!-- Category & Status -->
+      <div v-if="primaryCategory || statusInfo" flex="~ wrap items-center gap-3" mt-3>
+        <span v-if="primaryCategory" text="f-sm neutral-600">
           {{ primaryCategory.name }}
-        </div>
-        <div v-if="statusInfo" :class="[statusInfo.bg, statusInfo.color]" rounded-full px-12 py-4 text="f-sm" font-semibold>
+        </span>
+        <span
+          v-if="statusInfo"
+          :class="[statusInfo.bg, statusInfo.color]"
+          text="f-xs" font-medium px-2.5 py-0.5 rounded-full
+        >
           {{ statusInfo.text }}
-        </div>
+        </span>
       </div>
     </div>
 
+    <!-- Scrollable Content (visible on expansion) -->
+    <div
+      px-6 py-4 bg-white flex-1
+      :class="isExpanded ? 'of-y-auto' : 'of-hidden'"
+    >
+      <div space-y-6>
+        <!-- Debug Element -->
+        <div border="2 dashed neutral-300" text-neutral-500 rounded-lg bg-neutral-100 flex h-500px w-full items-center justify-center>
+          Debug Content Area (500px)
+        </div>
+
+        <div text="f-sm neutral-500">
+          More details about {{ location.name }} would go here...
+        </div>
+      </div>
+    </div>
   </div>
 </template>
