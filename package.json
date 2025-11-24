@@ -44,7 +44,7 @@
     "motion-v": "catalog:ui",
     "nimiq-flags": "catalog:ui",
     "nimiq-icons": "catalog:ui",
-    "nuxt": "4.2.1",
+    "nuxt": "catalog:framework",
     "nuxt-maplibre": "catalog:framework",
     "nuxt-safe-runtime-config": "catalog:framework",
     "opening_hours": "catalog:utils",

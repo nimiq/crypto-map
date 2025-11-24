@@ -55,6 +55,8 @@ catalogs:
     opening_hours: ^3.9.0
     pathe: ^2.0.3
     valibot: ^1.1.0
+  conflicts_framework_4_2_1:
+    nuxt: 4.2.1
 
 onlyBuiltDependencies:
   - '@parcel/watcher'

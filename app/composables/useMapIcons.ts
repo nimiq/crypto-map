@@ -178,8 +178,10 @@ export function useMapIcons() {
             'interpolate',
             ['exponential', 2],
             ['zoom'],
-            0, 0,
-            20, ['/', ['get', 'accuracy'], 0.075], // Rough meter-to-pixel conversion at zoom 20
+            0,
+            0,
+            20,
+            ['/', ['get', 'accuracy'], 0.075], // Rough meter-to-pixel conversion at zoom 20
           ] as any,
           'circle-color': '#4285F4',
           'circle-opacity': 0.1,
@@ -232,7 +234,8 @@ export function useMapIcons() {
           },
         }],
       })
-    } else {
+    }
+    else {
       // Clear the location
       source.setData({
         type: 'FeatureCollection',

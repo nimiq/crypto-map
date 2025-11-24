@@ -30,7 +30,8 @@ watch(snap, async (newSnap, oldSnap) => {
     overlayOpacity.value = 0
     // Wait for transition to complete before hiding
     setTimeout(() => {
-      if (snap.value !== 1) showOverlay.value = false
+      if (snap.value !== 1)
+        showOverlay.value = false
     }, 500)
   }
 })
@@ -66,12 +67,12 @@ function handleClose() {
 <template>
   <DrawerRoot v-model:open="isOpen" v-model:active-snap-point="snap" :snap-points :should-scale-background="false" :modal="false">
     <DrawerPortal>
-      <div 
+      <div
         v-if="showOverlay"
-        fixed inset-0 bg="neutral/20" z-40 
-        :style="{ 
+        bg="neutral/20" inset-0 fixed z-40
+        :style="{
           opacity: overlayOpacity,
-          transition: 'opacity 500ms cubic-bezier(0.32, 0.72, 0, 1)'
+          transition: 'opacity 500ms cubic-bezier(0.32, 0.72, 0, 1)',
         }"
         @click="handleClose"
       />

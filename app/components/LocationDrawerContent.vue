@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {DialogTitle} from 'reka-ui'
+import { DialogTitle } from 'reka-ui'
 
 const props = defineProps<{
   location: LocationDetailResponse
@@ -76,11 +76,10 @@ const walkingTime = computed(() => {
 <template>
   <div flex="~ col" class="bg-white size-full">
     <!-- Header Section (always visible in compact) -->
-    <div f-px-md f-pb-2xs bg-white shrink-0 z-10>
-
+    <div bg-white shrink-0 z-10 f-px-md f-pb-2xs>
       <!-- Title Row -->
       <div flex="~ items-start justify-between gap-4">
-        <DialogTitle as="h2" text="f-xl neutral-900" my-0 font-bold leading-tight line-clamp-2>
+        <DialogTitle as="h2" text="f-xl neutral-900" leading-tight font-bold my-0 line-clamp-2>
           {{ location.name }}
         </DialogTitle>
 

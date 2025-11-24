@@ -14,8 +14,8 @@ function handleLocateMe() {
 <template>
   <div flex="~ col gap-8" bottom="12 md:16" right="12 md:16" absolute z-10>
     <Motion
-      v-if="isRotated"
       is="button"
+      v-if="isRotated"
       flex="~ items-center justify-center"
       outline="~ 1.5 neutral-200 hocus:neutral-300"
       rounded-full
@@ -45,21 +45,21 @@ function handleLocateMe() {
         <Icon name="i-tabler:minus" text-neutral size-20 />
       </button>
     </template>
-    <button 
-      stack 
-      outline="~ 1.5 neutral-200 hocus:neutral-900" 
-      rounded-full 
-      size-40 
-      cursor-pointer 
-      shadow 
-      transition-colors 
-      disabled:op-50 
+    <button
+      stack
+      outline="~ 1.5 neutral-200 hocus:neutral-900"
+      rounded-full
+      size-40
+      cursor-pointer
+      shadow
+      transition-colors
+      disabled:op-50
       :disabled="isLocating"
       :class="showUserLocation ? 'bg-blue-500 hocus:bg-blue-600' : 'bg-neutral-0 hocus:bg-neutral-50'"
       @click="handleLocateMe"
     >
-      <Icon 
-        :name="isLocating ? 'i-nimiq:spinner' : 'i-tabler:current-location'" 
+      <Icon
+        :name="isLocating ? 'i-nimiq:spinner' : 'i-tabler:current-location'"
         size-20
         :class="showUserLocation ? 'text-white' : 'text-neutral'"
       />

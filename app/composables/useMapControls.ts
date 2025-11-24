@@ -13,7 +13,7 @@ function useMapControlsBase() {
 
   function setMapInstance(map: Map) {
     mapInstance.value = map
-    
+
     // Track bearing and pitch changes
     map.on('rotate', () => {
       bearing.value = map.getBearing()
@@ -21,7 +21,7 @@ function useMapControlsBase() {
     map.on('pitch', () => {
       pitch.value = map.getPitch()
     })
-    
+
     // Initialize values
     bearing.value = map.getBearing()
     pitch.value = map.getPitch()
