@@ -17,7 +17,6 @@ logger.info('Map page loaded - center:', center.value, 'zoom:', zoom.value)
 
 const selectedLocationUuid = ref<string | null>(null)
 const isDrawerOpen = ref(false)
-const drawerRef = useTemplateRef<{ collapse: () => void }>('drawer')
 const { origin } = useRequestURL()
 const mapStyle = getMapStyle(origin)
 
@@ -140,7 +139,7 @@ async function onMapLoad(event: { map: Map }) {
     initializeLayers(map as any)
 
     // Add click handler to map background - deselect location and collapse drawer
-    map.on('click', (e) => {
+    map.on('click', (_e) => {
       // Clear selected location
       selectedLocationUuid.value = null
       isDrawerOpen.value = false
@@ -211,7 +210,7 @@ async function onMapLoad(event: { map: Map }) {
 
 <template>
   <main min-h-screen>
-      <Search v-model:query="query" v-model:category="category" :autocomplete-results @navigate="handleNavigate" />
+    <Search v-model:query="query" v-model:category="category" :autocomplete-results @navigate="handleNavigate" />
     <ClientOnly>
       <template #fallback>
         <div flex="~ items-center justify-center" bg-neutral-100 size-screen>
@@ -240,14 +239,13 @@ async function onMapLoad(event: { map: Map }) {
     <MapDebugPanel />
 
     <LocationDrawer
-      ref="drawer"
       v-model:open="isDrawerOpen"
       :location-uuid="selectedLocationUuid"
       @update:location-uuid="(uuid) => {
         selectedLocationUuid = uuid
         if (!uuid && mapInstance) {
           const { setSelectedLocation } = useMapIcons()
-          setSelectedLocation(mapInstance, null)
+          setSelectedLocation(mapInstance as any, null)
         }
       }"
     />

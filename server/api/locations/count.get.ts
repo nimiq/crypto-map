@@ -1,3 +1,4 @@
+import { consola } from 'consola'
 import { sql } from 'drizzle-orm'
 import { z } from 'zod'
 
@@ -34,7 +35,7 @@ export default defineEventHandler(async (event) => {
     }
   }
   catch (error) {
-    console.error('Error counting locations:', error)
+    consola.error('Error counting locations:', error)
     throw createError({
       statusCode: 500,
       statusMessage: 'Internal Server Error',

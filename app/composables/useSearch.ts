@@ -57,7 +57,7 @@ export function useSearch() {
     abortController = new AbortController()
 
     try {
-      autocompleteResults.value = await $fetch('/api/search/autocomplete', {
+      autocompleteResults.value = await $fetch<SearchLocationResponse[]>('/api/search/autocomplete', {
         query: {
           q: trimmed,
           lat: viewCenter.value.lat,
@@ -76,7 +76,7 @@ export function useSearch() {
     suggestionAbortController = new AbortController()
 
     try {
-      categorySuggestion.value = await $fetch('/api/search/category-suggestion', {
+      categorySuggestion.value = await $fetch<CategorySuggestion | null>('/api/search/category-suggestion', {
         query: { q: trimmed },
         signal: suggestionAbortController.signal,
       })

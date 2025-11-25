@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { consola } from 'consola'
+
 const { mapInstance } = useMapControls()
 const count = ref<number | null>(null)
 const loading = ref(false)
@@ -24,7 +26,7 @@ const updateCount = useDebounceFn(async () => {
     count.value = serverCount
   }
   catch (error) {
-    console.error('Failed to fetch location count:', error)
+    consola.error('Failed to fetch location count:', error)
   }
   finally {
     loading.value = false

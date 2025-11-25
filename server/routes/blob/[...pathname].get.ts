@@ -13,7 +13,7 @@ function isValidImage(contentType: string | null | undefined, buffer: ArrayBuffe
   return buffer.byteLength >= MIN_VALID_IMAGE_BYTES
 }
 
-async function fetchPhotoFromGoogle(placeId: string): Promise<{ data: ArrayBuffer | null, contentType: string | null, error: string | null }> {
+async function fetchPhotoFromGoogle(placeId: string, photoIndex = 0): Promise<{ data: ArrayBuffer | null, contentType: string | null, error: string | null }> {
   try {
     const config = useRuntimeConfig()
     const apiKey = config.googleApiKey
@@ -32,7 +32,10 @@ async function fetchPhotoFromGoogle(placeId: string): Promise<{ data: ArrayBuffe
     if (!photos || photos.length === 0)
       return { data: null, contentType: null, error: 'No photos found for this place' }
 
-    const photoReference = photos[0].photo_reference
+    if (photoIndex >= photos.length)
+      return { data: null, contentType: null, error: `Photo ${photoIndex} not available (has ${photos.length})` }
+
+    const photoReference = photos[photoIndex].photo_reference
 
     const photoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${photoReference}&key=${apiKey}`
     const photoResponse = await fetch(photoUrl)
@@ -55,7 +58,17 @@ export default eventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Invalid pathname' })
 
   if (pathname.startsWith('location/')) {
-    const uuid = pathname.replace('location/', '')
+    const parts = pathname.replace('location/', '').split('/')
+    const uuid = parts[0]
+    const indexStr = parts[1]
+
+    if (!uuid || !indexStr)
+      throw createError({ statusCode: 400, message: 'Invalid path. Use /blob/location/{uuid}/{index}' })
+
+    const photoIndex = Number.parseInt(indexStr, 10)
+    if (Number.isNaN(photoIndex) || photoIndex < 0 || photoIndex > 2)
+      throw createError({ statusCode: 400, message: 'Photo index must be 0-2' })
+
     const blob = hubBlob()
 
     // Check if image exists in cache
@@ -89,7 +102,7 @@ export default eventHandler(async (event) => {
     let imageBuffer: ArrayBuffer | null = null
     let contentType = 'image/jpeg'
 
-    if (location.photo) {
+    if (photoIndex === 0 && location.photo) {
       try {
         const response = await fetch(location.photo)
         if (response.ok) {
@@ -115,7 +128,7 @@ export default eventHandler(async (event) => {
     }
 
     if (!imageBuffer && location.gmapsPlaceId) {
-      const { data, contentType: gmapsContentType, error } = await fetchPhotoFromGoogle(location.gmapsPlaceId)
+      const { data, contentType: gmapsContentType, error } = await fetchPhotoFromGoogle(location.gmapsPlaceId, photoIndex)
       if (!error && data) {
         const resolvedContentType = gmapsContentType || 'image/jpeg'
         const dataSize = data.byteLength

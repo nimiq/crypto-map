@@ -89,7 +89,7 @@ function guessCategoriesFromName(name: string, supportedCategories: Set<string>)
   const patterns: Array<{ match: RegExp, category: string }> = [
     { match: /\b(pizzeria|pizza)\b/, category: 'restaurant' },
     { match: /\b(ristorante|restaurant|osteria|trattoria|bistrot|bistro|grill|braceria)\b/, category: 'restaurant' },
-    { match: /\b(cafe|caf[eè]|coffee|caffetteria)\b/, category: 'cafe' },
+    { match: /\b(caf[eè]|coffee|caffetteria)\b/, category: 'cafe' },
     { match: /\b(bar|lounge|pub)\b/, category: 'bar' },
     { match: /\b(hotel|hostel|motel|albergo)\b/, category: 'lodging' },
     { match: /\b(supermercado|supermercato|supermarket|coop|migros)\b/, category: 'supermarket' },

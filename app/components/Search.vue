@@ -126,7 +126,7 @@ async function handleItemClick(item: SearchItem) {
 </script>
 
 <template>
-<ComboboxRoot v-model:open="isComboboxOpen" open-on-click open-on-focus ignore-filter>
+  <ComboboxRoot v-model:open="isComboboxOpen" open-on-click open-on-focus ignore-filter>
     <DefineComboboxItemTemplate
       v-slot="{ item, displayValue, icon, color = 'neutral', subline }"
     >
@@ -154,9 +154,9 @@ async function handleItemClick(item: SearchItem) {
       </ComboboxItem>
     </DefineComboboxItemTemplate>
 
-    <ComboboxAnchor as="div" absolute z-60 top-0 inset-x-0>
-      <div w-screen relative px-12 mt-12>
-        <ComboboxInput ref="search-input" v-model="searchQuery" w-full outline="0.5 neutral-400" name="search" placeholder="Search here" v-bind="$attrs" text-neutral px-47 py-6 rounded-full bg-neutral-0 shadow transition-colors />
+    <ComboboxAnchor as="div" inset-x-0 top-0 absolute z-60>
+      <div mt-12 px-12 w-screen relative>
+        <ComboboxInput ref="search-input" v-model="searchQuery" outline="0.5 neutral-400" name="search" placeholder="Search here" v-bind="$attrs" text-neutral px-47 py-6 rounded-full bg-neutral-0 w-full shadow transition-colors />
         <button p-0 border-0 bg-transparent cursor-pointer translate-y-9.5 left-24 top-0 absolute @click="handleClose">
           <Icon v-if="!isComboboxOpen" name="i-nimiq:logos-crypto-map" size-18 />
           <Icon v-else name="i-tabler:arrow-left" op-70 size-18 />
@@ -170,7 +170,7 @@ async function handleItemClick(item: SearchItem) {
     </ComboboxAnchor>
 
     <ComboboxPortal>
-      <ComboboxContent position="inline" inset-0 fixed flex="~ col" bg-neutral-100 z-50 pt="56 md:60">
+      <ComboboxContent position="inline" flex="~ col" bg-neutral-100 inset-0 fixed z-50 pt="56 md:60">
         <ComboboxViewport flex="~ col" h-full of-auto>
           <div flex="~ col" h-full f-px-md f-pt-sm>
             <template v-if="showQuickCategories">

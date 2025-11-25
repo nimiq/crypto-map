@@ -10,4 +10,11 @@ export default withNuxt(
     vue: true,
     ignores: ['.eslintcache', 'cache/**', '.claude/**', 'README.md', 'docs/**', 'database/scripts/categories.json'],
   }),
+  {
+    files: ['database/scripts/**/*.ts'],
+    rules: {
+      'node/prefer-global/process': 'off',
+      'node/prefer-global/buffer': 'off',
+    },
+  },
 )

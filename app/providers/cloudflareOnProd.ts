@@ -2,10 +2,8 @@ import { defineProvider } from '@nuxt/image/runtime'
 
 export default defineProvider({
   getImage(src, { modifiers }) {
-    const config = useRuntimeConfig()
-    const isProduction = config.public.siteURL !== 'http://localhost:3000'
-
-    if (isProduction) {
+    // Use import.meta.dev for reliable dev detection
+    if (!import.meta.dev) {
       // Use Cloudflare Image Resizing in production
       const params = []
       const { width, height, fit = 'cover', quality = 85, format } = modifiers

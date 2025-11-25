@@ -1,5 +1,6 @@
 import { Buffer } from 'node:buffer'
 import { createGzip } from 'node:zlib'
+import { consola } from 'consola'
 import { z } from 'zod'
 
 const tileParamSchema = z.object({
@@ -51,7 +52,7 @@ export default defineCachedEventHandler(async (event) => {
     }
     catch (error) {
       // If any error occurs during gzip, log it and fall back to uncompressed MVT
-      console.error('Error gzipping MVT tile, falling back to uncompressed:', error)
+      consola.error('Error gzipping MVT tile, falling back to uncompressed:', error)
     }
   }
 

@@ -129,14 +129,7 @@ const walkingTime = computed(() => {
       :class="isExpanded ? 'of-y-auto' : 'of-hidden'"
     >
       <div space-y-6>
-        <!-- Debug Element -->
-        <div border="2 dashed neutral-300" text-neutral-500 rounded-lg bg-neutral-100 flex h-500px w-full items-center justify-center>
-          Debug Content Area (500px)
-        </div>
-
-        <div text="f-sm neutral-500">
-          More details about {{ location.name }} would go here...
-        </div>
+        <PhotoCarousel :uuid="location.uuid" />
       </div>
     </div>
   </div>

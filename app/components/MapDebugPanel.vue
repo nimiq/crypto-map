@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { zoom, center, mapInstance } = useMapControls()
+const { mapInstance } = useMapControls()
 
 const mapZoom = ref(0)
 const mapCenter = ref({ lat: 0, lng: 0 })

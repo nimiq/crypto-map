@@ -9,9 +9,9 @@ const emit = defineEmits<{
   (e: 'update:locationUuid', value: string | null): void
 }>()
 
-const snapPoints = ['190px', '450px', 1]
+const snapPoints: (string | number)[] = ['190px', '450px', 1]
 const isOpen = defineModel<boolean>('open', { default: false })
-const snap = ref<string | number | null>(snapPoints[0])
+const snap = ref<string | number | null>(snapPoints[0] ?? null)
 
 const isExpanded = computed(() => snap.value === 1)
 
@@ -45,7 +45,7 @@ watch(isOpen, (open) => {
 })
 
 function collapse() {
-  snap.value = snapPoints[0]
+  snap.value = snapPoints[0] ?? null
 }
 
 defineExpose({ collapse })
