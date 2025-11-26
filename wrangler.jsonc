@@ -10,5 +10,6 @@
   ],
   "r2_buckets": [
     { "binding": "BLOB", "bucket_name": "crypto-map-blob" }
-  ]
+  ],
+  "observability": { "enabled": true, "logs": { "enabled": true, "head_sampling_rate": 1, "invocation_logs": true } }
 }
