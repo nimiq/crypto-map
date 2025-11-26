@@ -75,6 +75,9 @@ catalogs:
     '@vueuse/router':
       specifier: ^13.8.0
       version: 13.9.0
+    nuxt:
+      specifier: ^4.2.1
+      version: 4.2.1
     nuxt-maplibre:
       specifier: ^1.2.0
       version: 1.2.0
@@ -213,7 +216,7 @@ importers:
         specifier: catalog:ui
         version: 1.0.0-beta.146
       nuxt:
-        specifier: 4.2.1
+        specifier: catalog:framework
         version: 4.2.1(@parcel/watcher@2.5.1)(@types/node@24.10.1)(@vue/compiler-sfc@3.5.25)(db0@0.3.4(drizzle-orm@0.44.7(@cloudflare/workers-types@4.20251121.0)(@opentelemetry/api@1.9.0)(postgres@3.4.7)))(drizzle-orm@0.44.7(@cloudflare/workers-types@4.20251121.0)(@opentelemetry/api@1.9.0)(postgres@3.4.7))(eslint@9.39.1(jiti@2.6.1))(ioredis@5.8.2)(lightningcss@1.30.2)(magicast@0.5.1)(optionator@0.9.4)(rollup@4.53.3)(terser@5.44.1)(tsx@4.20.6)(typescript@5.9.3)(vite@7.2.4(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.20.6)(yaml@2.8.1))(yaml@2.8.1)
       nuxt-maplibre:
         specifier: catalog:framework
