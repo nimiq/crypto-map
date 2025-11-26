@@ -1,36 +1,33 @@
 <script setup lang="ts">
-const props = defineProps<{ uuid: string }>()
+import { NuxtImg } from '#components'
 
-const photoIndices = [0, 1, 2]
+const { uuid, photos } = defineProps<{ uuid: string, photos?: string[] | null }>()
+
 const failedPhotos = ref<Set<number>>(new Set())
 
 function onError(index: number) {
   failedPhotos.value.add(index)
 }
 
-const availablePhotos = computed(() => photoIndices.filter(i => !failedPhotos.value.has(i)))
+const isExternalPhoto = computed(() => photos?.[0]?.startsWith('http'))
+const availablePhotos = computed(() => {
+  if (!photos?.length)
+    return []
+  return photos.map((_, i) => i).filter(i => !failedPhotos.value.has(i))
+})
 </script>
 
 <template>
-  <div v-if="availablePhotos.length > 0" flex="~" gap-2 of-x-auto snap-x snap-mandatory class="no-scrollbar">
-    <div v-for="index in photoIndices" v-show="!failedPhotos.has(index)" :key="index" shrink-0 w-full snap-center>
-      <NuxtImg
-        :src="`/blob/location/${props.uuid}/${index}`"
-        provider="cloudflareOnProd"
+  <div v-if="availablePhotos.length > 0" flex="~ gap-8" scroll-pe-24 scroll-ps-24 of-x-auto nq-scrollbar-hide snap="x mandatory">
+    <div v-for="index in availablePhotos" :key="index" shrink-0 snap-start first:ps-24 last:pe-24>
+      <component
+        :is="isExternalPhoto ? 'img' : NuxtImg"
+        :src="isExternalPhoto ? photos![index] : `/blob/location/${uuid}/${index}`"
+        :provider="isExternalPhoto ? undefined : 'cloudflareOnProd'"
         :alt="`Photo ${index + 1}`"
-        rounded-lg w-full aspect-video object-cover
+        w-280 aspect-0.8 object-cover f-rounded-lg outline="1.5 offset--1.5 white/14"
         @error="onError(index)"
       />
     </div>
   </div>
 </template>
-
-<style scoped>
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-</style>

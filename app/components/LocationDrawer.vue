@@ -13,8 +13,6 @@ const snapPoints: (string | number)[] = ['190px', '450px', 1]
 const isOpen = defineModel<boolean>('open', { default: false })
 const snap = ref<string | number | null>(snapPoints[0] ?? null)
 
-const isExpanded = computed(() => snap.value === 1)
-
 // Track overlay opacity based on snap point transitions
 const overlayOpacity = ref(0)
 const showOverlay = ref(false)
@@ -82,7 +80,6 @@ function handleClose() {
           v-if="selectedLocation"
           :key="selectedLocation.uuid"
           :location="selectedLocation as any"
-          :is-expanded
           @close="handleClose"
         />
         <div v-else p-8 flex justify-center>

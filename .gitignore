@@ -32,3 +32,5 @@ database/sql/*.sql
 !database/sql/2.category-hierarchies.sql
 
 .pnpm-store
+
+.claude

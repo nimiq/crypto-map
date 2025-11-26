@@ -5,6 +5,24 @@ import { defineNuxtConfig } from 'nuxt/config'
 import * as v from 'valibot'
 
 export default defineNuxtConfig({
+  hooks: {
+    'pages:extend': (pages) => {
+      // Only run this logic if we are in production
+      if (process.env.NODE_ENV === 'production') {
+        // Remove any page that starts with 'dev-' or is in a 'dev' folder
+        const pagesToRemove = pages.filter((page) => {
+          return page.path.includes('/dev') || page.name?.startsWith('dev-')
+        })
+
+        pagesToRemove.forEach((page) => {
+          const index = pages.indexOf(page)
+          if (index > -1) {
+            pages.splice(index, 1)
+          }
+        })
+      }
+    },
+  },
   modules: [
     '@nuxthub/core',
     '@unocss/nuxt',

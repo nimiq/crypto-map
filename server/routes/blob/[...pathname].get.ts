@@ -90,7 +90,7 @@ export default eventHandler(async (event) => {
     // Fetch image from database and external sources
     const db = useDrizzle()
     const location = await db
-      .select({ photo: tables.locations.photo, gmapsPlaceId: tables.locations.gmapsPlaceId })
+      .select({ photos: tables.locations.photos, gmapsPlaceId: tables.locations.gmapsPlaceId })
       .from(tables.locations)
       .where(eq(tables.locations.uuid, uuid))
       .limit(1)
@@ -102,9 +102,10 @@ export default eventHandler(async (event) => {
     let imageBuffer: ArrayBuffer | null = null
     let contentType = 'image/jpeg'
 
-    if (photoIndex === 0 && location.photo) {
+    const photoUrl = location.photos?.[photoIndex]
+    if (photoUrl) {
       try {
-        const response = await fetch(location.photo)
+        const response = await fetch(photoUrl)
         if (response.ok) {
           const fetchedBuffer = await response.arrayBuffer()
           const fetchedContentType = response.headers.get('content-type') || 'image/jpeg'

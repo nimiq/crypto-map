@@ -1,5 +1,3 @@
-import type { Buffer } from 'node:buffer'
-
 /**
  * PostgreSQL function type definitions
  * Auto-generated from SQL files in database/functions/
@@ -16,7 +14,7 @@ export interface DbFunctions {
       x: number
       y: number
     }
-    returns: Buffer
+    returns: unknown
   }
 }
 
