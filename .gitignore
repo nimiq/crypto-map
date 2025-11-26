@@ -26,10 +26,10 @@ docs/
 !.env.example
 
 # Database import data (contains API responses)
-database/data/
-database/sql/*.sql
-!database/sql/1.rls-policies.sql
-!database/sql/2.category-hierarchies.sql
+server/database/data/
+server/database/sql/*.sql
+!server/database/sql/1.rls-policies.sql
+!server/database/sql/2.category-hierarchies.sql
 
 .pnpm-store
 

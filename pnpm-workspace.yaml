@@ -1,6 +1,7 @@
 catalog:
-  '@vueuse/core': ^14.0.0
+  '@vueuse/core': ^13.8.0
   zod: ^4.1.13
+
 catalogs:
   database:
     drizzle-kit: ^0.31.7
@@ -23,8 +24,8 @@ catalogs:
     '@nuxt/image': ^2.0.0
     '@nuxthub/core-nightly': latest
     '@nuxtjs/i18n': ^10.2.1
-    '@vueuse/nuxt': ^14.0.0
-    '@vueuse/router': ^14.0.0
+    '@vueuse/nuxt': ^13.8.0
+    '@vueuse/router': ^13.8.0
     nuxt: ^4.2.1
     nuxt-maplibre: ^1.2.0
     nuxt-safe-runtime-config: ^0.0.10
@@ -55,8 +56,11 @@ catalogs:
     opening_hours: ^3.9.0
     pathe: ^2.0.3
     valibot: ^1.2.0
+
 onlyBuiltDependencies:
   - '@parcel/watcher'
   - esbuild
   - sharp
+  - unrs-resolver
+  - vue-demi
   - workerd

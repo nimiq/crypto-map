@@ -3,26 +3,9 @@ import { icons as nimiqFlags } from 'nimiq-flags'
 import { icons as nimiqIcons } from 'nimiq-icons'
 import { defineNuxtConfig } from 'nuxt/config'
 import * as v from 'valibot'
+import { scheduler } from 'node:timers/promises'
 
 export default defineNuxtConfig({
-  hooks: {
-    'pages:extend': (pages) => {
-      // Only run this logic if we are in production
-      if (process.env.NODE_ENV === 'production') {
-        // Remove any page that starts with 'dev-' or is in a 'dev' folder
-        const pagesToRemove = pages.filter((page) => {
-          return page.path.includes('/dev') || page.name?.startsWith('dev-')
-        })
-
-        pagesToRemove.forEach((page) => {
-          const index = pages.indexOf(page)
-          if (index > -1) {
-            pages.splice(index, 1)
-          }
-        })
-      }
-    },
-  },
   modules: [
     '@nuxthub/core-nightly',
     '@unocss/nuxt',
@@ -43,7 +26,10 @@ export default defineNuxtConfig({
   hub: {
     blob: true,
     kv: true,
-    database: 'postgresql',
+    database: {
+      dialect: 'postgresql',
+
+    },
   },
   eslint: {
     config: {
@@ -53,6 +39,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     googleApiKey: process.env.GOOGLE_API_KEY || '',
     openaiApiKey: process.env.OPENAI_API_KEY || '',
+    databaseUrl: process.env.DATABASE_URL || '',
     public: {
       siteURL: import.meta.dev
         ? ' http://localhost:3000'
@@ -63,6 +50,7 @@ export default defineNuxtConfig({
     $schema: v.object({
       googleApiKey: v.pipe(v.string(), v.minLength(1, 'GOOGLE_API_KEY is required')),
       openaiApiKey: v.pipe(v.string(), v.minLength(1, 'OPENAI_API_KEY is required')),
+      databaseUrl: v.pipe(v.string(), v.minLength(1, 'DATABASE_URL is required')),
       public: v.object({ siteURL: v.string() }),
     }),
   },

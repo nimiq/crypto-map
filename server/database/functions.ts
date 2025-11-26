@@ -1,3 +1,5 @@
+import type { Buffer } from 'node:buffer'
+
 /**
  * PostgreSQL function type definitions
  * Auto-generated from SQL files in database/functions/
