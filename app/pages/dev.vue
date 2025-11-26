@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { DrawerContent, DrawerHandle, DrawerPortal, DrawerRoot } from 'vaul-vue'
+
 const dummyLocations: LocationDetailResponse[] = [
   {
     uuid: 'test-1',
@@ -121,15 +123,63 @@ const dummyLocations: LocationDetailResponse[] = [
     updatedAt: new Date(),
   },
 ]
+
+// Drawer state for testing the full LocationDrawer component
+const snapPoints: (string | number)[] = ['450px', 1]
+const drawerOpen = ref(false)
+const selectedLocation = ref<LocationDetailResponse | null>(null)
+const snap = ref<string | number | null>(snapPoints[0] ?? null)
+
+function openDrawer(loc: LocationDetailResponse) {
+  selectedLocation.value = loc
+  snap.value = snapPoints[0] ?? null
+  drawerOpen.value = true
+}
+
+function closeDrawer() {
+  drawerOpen.value = false
+  selectedLocation.value = null
+}
 </script>
 
 <template>
-  <div grid="~ cols-1 md:cols-2 lg:cols-3" p-4 bg-neutral-100 gap-4 min-h-screen>
-    <div v-for="loc in dummyLocations" :key="loc.uuid" flex="~ col" border="~ neutral-200" pt-128 rounded-8 bg-darkblue bg-neutral-300 h-600 of-hidden shadow-sm>
-      <!-- Drawer content -->
-      <div f-rounded-t-2xl flex-1 overflow-hidden>
-        <LocationDrawerContent :location="loc" :is-expanded="true" />
-      </div>
+  <div p-16 bg-neutral-100 min-h-screen>
+    <!-- Test Triggers -->
+    <h2 text-18 font-bold mb-16>
+      Drawer Test Triggers
+    </h2>
+    <div flex="~ wrap gap-8" mb-24>
+      <button
+        v-for="loc in dummyLocations"
+        :key="loc.uuid"
+
+        text-white font-medium px-16 py-8 rounded-8 bg-blue transition-colors shadow-sm hover:bg-blue-600
+        @click="openDrawer(loc)"
+      >
+        {{ loc.name }}
+      </button>
     </div>
+
+    <!-- Test Drawer (using vaul-vue directly with local data) -->
+    <DrawerRoot v-model:open="drawerOpen" v-model:active-snap-point="snap" :snap-points :should-scale-background="false" :modal="false">
+      <DrawerPortal>
+        <div
+          v-if="snap === 1"
+          bg="neutral/20" inset-0 fixed z-40
+          @click="closeDrawer"
+        />
+        <DrawerContent flex="~ col" shadow="[0_-4px_24px_rgba(0,0,0,0.1)]" outline-none rounded-t-10 bg-neutral-0 h-full max-h-95vh inset-x-0 bottom-0 fixed z-50>
+          <DrawerHandle my-8 />
+          <div v-if="selectedLocation" flex-1 min-h-0 of-hidden>
+            <LocationDrawerContent
+              :key="selectedLocation.uuid"
+              :location="selectedLocation"
+              :snap
+              @close="closeDrawer"
+            />
+          </div>
+        </DrawerContent>
+      </DrawerPortal>
+    </DrawerRoot>
   </div>
 </template>
