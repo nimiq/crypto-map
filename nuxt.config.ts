@@ -97,7 +97,7 @@ export default defineNuxtConfig({
   },
   vite: {
     optimizeDeps: {
-      include: ['maplibre-gl'],
+      include: ['maplibre-gl', 'pmtiles'],
     },
   },
   compatibilityDate: '2025-10-01',
