@@ -24,7 +24,7 @@ export default defineNuxtConfig({
     },
   },
   modules: [
-    '@nuxthub/core',
+    '@nuxthub/core-nightly',
     '@unocss/nuxt',
     '@vueuse/nuxt',
     'motion-v/nuxt',
@@ -43,13 +43,7 @@ export default defineNuxtConfig({
   hub: {
     blob: true,
     kv: true,
-    ...(process.env.HYPERDRIVE_ID && {
-      bindings: {
-        hyperdrive: {
-          POSTGRES: process.env.HYPERDRIVE_ID,
-        },
-      },
-    }),
+    database: 'postgresql',
   },
   eslint: {
     config: {
@@ -59,8 +53,6 @@ export default defineNuxtConfig({
   runtimeConfig: {
     googleApiKey: process.env.GOOGLE_API_KEY || '',
     openaiApiKey: process.env.OPENAI_API_KEY || '',
-    databaseUrl: process.env.DATABASE_URL || '',
-    hyperdriveId: process.env.HYPERDRIVE_ID || '',
     public: {
       siteURL: import.meta.dev
         ? ' http://localhost:3000'
@@ -69,23 +61,9 @@ export default defineNuxtConfig({
   },
   safeRuntimeConfig: {
     $schema: v.object({
-      googleApiKey: v.pipe(
-        v.string(),
-        v.minLength(1, 'GOOGLE_API_KEY is required'),
-      ),
-      openaiApiKey: v.pipe(
-        v.string(),
-        v.minLength(1, 'OPENAI_API_KEY is required'),
-      ),
-      databaseUrl: v.pipe(
-        v.string(),
-        v.minLength(1, 'DATABASE_URL is required'),
-      ),
-      hyperdriveId: v.optional(v.string()),
-
-      public: v.object({
-        siteURL: v.string(),
-      }),
+      googleApiKey: v.pipe(v.string(), v.minLength(1, 'GOOGLE_API_KEY is required')),
+      openaiApiKey: v.pipe(v.string(), v.minLength(1, 'OPENAI_API_KEY is required')),
+      public: v.object({ siteURL: v.string() }),
     }),
   },
   icon: {

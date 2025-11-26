@@ -14,9 +14,9 @@ export function useDrizzle() {
   if (db)
     return db
 
-  // Use Hyperdrive in production if available, fallback to direct connection
-  const hyperdrive = process.env.POSTGRES || (globalThis as any).__env__?.POSTGRES || (globalThis as any).POSTGRES
-  const connectionString = hyperdrive?.connectionString ?? useRuntimeConfig().databaseUrl
+  const connectionString = process.env.DATABASE_URL
+  if (!connectionString)
+    throw new Error('DATABASE_URL is required')
 
   db = drizzle(postgres(connectionString), { schema })
   return db
