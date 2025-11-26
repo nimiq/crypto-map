@@ -21,7 +21,7 @@ catalogs:
     '@nuxt/fonts': ^0.12.1
     '@nuxt/icon': ^2.1.0
     '@nuxt/image': ^2.0.0
-    '@nuxthub/core': ^0.9.1
+    '@nuxthub/core-nightly': latest
     '@nuxtjs/i18n': ^10.2.1
     '@vueuse/nuxt': ^14.0.0
     '@vueuse/router': ^14.0.0

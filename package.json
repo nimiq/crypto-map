@@ -31,7 +31,7 @@
     "@nuxt/fonts": "catalog:framework",
     "@nuxt/icon": "catalog:framework",
     "@nuxt/image": "catalog:framework",
-    "@nuxthub/core-nightly": "0.11.0-20251126-160434-593c918",
+    "@nuxthub/core-nightly": "catalog:framework",
     "@nuxtjs/i18n": "catalog:framework",
     "@vueuse/nuxt": "catalog:framework",
     "@vueuse/router": "catalog:framework",
