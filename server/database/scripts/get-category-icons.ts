@@ -1,3 +1,4 @@
+import process from 'node:process'
 import { consola } from 'consola'
 
 const logger = consola.withTag('get-icons')

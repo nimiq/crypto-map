@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises'
+import process from 'node:process'
 import { consola } from 'consola'
 import { config } from 'dotenv'
 import { drizzle } from 'drizzle-orm/postgres-js'

@@ -32,14 +32,16 @@ async function main() {
 
     // Enable extensions
     consola.info('Enabling extensions...')
+    await sql.unsafe('SET client_min_messages = WARNING')
     await sql.unsafe('CREATE EXTENSION IF NOT EXISTS postgis')
     await sql.unsafe('CREATE EXTENSION IF NOT EXISTS vector')
+    await sql.unsafe('SET client_min_messages = NOTICE')
 
     // Run migrations
     consola.info('Running migrations...')
     const migrationsDir = join(import.meta.dirname, '..', 'migrations')
     const migrationFiles = (await readdir(migrationsDir))
-      .filter(f => f.endsWith('.sql'))
+      .filter(f => f.endsWith('.sql') && !f.startsWith('meta'))
       .sort()
 
     for (const file of migrationFiles) {
@@ -50,6 +52,21 @@ async function main() {
       await sql.unsafe(cleanSql)
       consola.info(`Applied migration: ${file}`)
     }
+
+    // Register migrations in NuxtHub's tracking table (so NuxtHub skips them during build)
+    consola.info('Registering migrations for NuxtHub...')
+    await sql.unsafe(`
+      CREATE TABLE IF NOT EXISTS _hub_migrations (
+        id         SERIAL PRIMARY KEY,
+        name       TEXT UNIQUE,
+        applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+      )
+    `)
+    for (const file of migrationFiles) {
+      const migrationName = file.replace(/\.sql$/, '') // NuxtHub stores names without .sql
+      await sql.unsafe(`INSERT INTO _hub_migrations (name) VALUES ('${migrationName}') ON CONFLICT (name) DO NOTHING`)
+    }
+    consola.info(`Registered ${migrationFiles.length} migration(s) in _hub_migrations`)
 
     // Seed categories with embeddings
     consola.info('Seeding categories...')

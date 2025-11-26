@@ -4,6 +4,7 @@ catalog:
 
 catalogs:
   database:
+    '@electric-sql/pglite': ^0.3.14
     drizzle-kit: ^0.31.7
     drizzle-orm: ^0.44.7
     postgres: ^3.4.7

@@ -1,3 +1,5 @@
+import { Buffer } from 'node:buffer'
+import process from 'node:process'
 import { consola } from 'consola'
 import postgres from 'postgres'
 import 'dotenv/config'

@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises'
+import process from 'node:process'
 import { createConsola } from 'consola'
 import { join } from 'pathe'
 

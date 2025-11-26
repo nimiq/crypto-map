@@ -3,7 +3,6 @@ import { icons as nimiqFlags } from 'nimiq-flags'
 import { icons as nimiqIcons } from 'nimiq-icons'
 import { defineNuxtConfig } from 'nuxt/config'
 import * as v from 'valibot'
-import { scheduler } from 'node:timers/promises'
 
 export default defineNuxtConfig({
   modules: [
@@ -28,7 +27,6 @@ export default defineNuxtConfig({
     kv: true,
     database: {
       dialect: 'postgresql',
-
     },
   },
   eslint: {

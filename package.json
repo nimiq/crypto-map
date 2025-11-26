@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "catalog:utils",
-    "@electric-sql/pglite": "^0.3.14",
+    "@electric-sql/pglite": "catalog:database",
     "@nuxt/fonts": "catalog:framework",
     "@nuxt/icon": "catalog:framework",
     "@nuxt/image": "catalog:framework",

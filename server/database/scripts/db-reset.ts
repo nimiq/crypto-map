@@ -20,12 +20,16 @@ async function main() {
   try {
     consola.start('Dropping all tables...')
 
+    // Suppress NOTICE messages for idempotent DROP statements
+    await sql.unsafe('SET client_min_messages = WARNING')
     await sql.unsafe('DROP TABLE IF EXISTS location_categories CASCADE')
     await sql.unsafe('DROP TABLE IF EXISTS category_hierarchies CASCADE')
     await sql.unsafe('DROP TABLE IF EXISTS locations CASCADE')
     await sql.unsafe('DROP TABLE IF EXISTS categories CASCADE')
+    await sql.unsafe('DROP TABLE IF EXISTS _hub_migrations CASCADE')
     await sql.unsafe('DROP TABLE IF EXISTS drizzle.__drizzle_migrations CASCADE')
     await sql.unsafe('DROP SCHEMA IF EXISTS drizzle CASCADE')
+    await sql.unsafe('SET client_min_messages = NOTICE')
 
     consola.success('All tables dropped successfully')
   }
