@@ -70,7 +70,7 @@ const starColor = computed(() => {
   const rating = location.rating
   if (!rating)
     return 'text-neutral'
-  if (rating < 2)
+  if (rating <= 3)
     return 'text-red'
   if (rating < 4)
     return 'text-blue'
@@ -109,7 +109,7 @@ const websiteDisplay = computed(() => {
 </script>
 
 <template>
-  <div flex="~ col" pb-24 bg-neutral-0 size-full h-full relative of-x-clip of-y-auto class="scroll-container">
+  <div flex="~ col" pb-24 bg-neutral-0 size-full h-full relative of-x-clip class="scroll-container">
     <!-- Sticky Header -->
     <header bg-neutral-0 top-0 relative sticky z-10 f-px-md>
       <!-- Close Button -->
@@ -151,11 +151,11 @@ const websiteDisplay = computed(() => {
 
       <!-- Action Buttons -->
       <div class="action-buttons" flex="~ gap-8">
-        <NuxtLink :to="directionsUrl" target="_blank" outline="1.5 white/15 offset--1.5" external shadow nq-arrow nq-pill-lg nq-pill-blue>
+        <NuxtLink :to="directionsUrl" target="_blank" outline="1.5 neutral-0/15 offset--1.5" external shadow nq-arrow nq-pill-lg nq-pill-blue>
           <Icon name="i-tabler:directions" size-16 />
           {{ t('location.directions') }}
         </NuxtLink>
-        <NuxtLink :to="location.gmapsUrl" target="_blank" external nq-arrow nq-pill-lg nq-pill-secondary outline="1.5 white/20 offset--1.5">
+        <NuxtLink :to="location.gmapsUrl" target="_blank" external nq-arrow nq-pill-lg nq-pill-secondary outline="1.5 neutral-0/20 offset--1.5">
           {{ t('location.openInGoogleMaps') }}
         </NuxtLink>
       </div>

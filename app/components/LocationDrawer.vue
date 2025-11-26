@@ -74,15 +74,16 @@ function handleClose() {
         }"
         @click="handleClose"
       />
-      <DrawerContent flex="~ col" shadow="[0_-4px_24px_rgba(0,0,0,0.1)]" outline-none rounded-t-10 bg-white h-full max-h-95vh inset-x-0 bottom-0 fixed z-50>
+      <DrawerContent flex="~ col" shadow="[0_-4px_24px_rgba(0,0,0,0.1)]" outline-none rounded-t-10 bg-neutral-0 h-full max-h-95vh inset-x-0 bottom-0 fixed z-50>
         <DrawerHandle my-8 />
-        <LocationDrawerContent
-          v-if="selectedLocation"
-          :key="selectedLocation.uuid"
-          :location="selectedLocation as any"
-          @close="handleClose"
-        />
-        <div v-else p-8 flex justify-center>
+        <div v-if="selectedLocation" flex-1 min-h-0 of-y-auto>
+          <LocationDrawerContent
+            :key="selectedLocation.uuid"
+            :location="selectedLocation as any"
+            @close="handleClose"
+          />
+        </div>
+        <div v-else flex-1 p-8 flex justify-center>
           <Icon name="i-nimiq:spinner" text="f-2xl neutral-500" />
         </div>
       </DrawerContent>

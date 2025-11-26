@@ -154,7 +154,7 @@ async function handleItemClick(item: SearchItem) {
       </ComboboxItem>
     </DefineComboboxItemTemplate>
 
-    <ComboboxAnchor as="div" inset-x-0 top-0 absolute z-60>
+    <ComboboxAnchor as="div" inset-x-0 top-0 absolute z-30>
       <div mt-12 px-12 w-screen relative>
         <ComboboxInput ref="search-input" v-model="searchQuery" outline="0.5 neutral-400" name="search" placeholder="Search here" v-bind="$attrs" text-neutral px-47 py-6 rounded-full bg-neutral-0 w-full shadow transition-colors />
         <button p-0 border-0 bg-transparent cursor-pointer translate-y-9.5 left-24 top-0 absolute @click="handleClose">
