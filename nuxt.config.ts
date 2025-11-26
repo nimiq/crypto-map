@@ -5,8 +5,26 @@ import { defineNuxtConfig } from 'nuxt/config'
 import * as v from 'valibot'
 
 export default defineNuxtConfig({
+  hooks: {
+    'pages:extend': (pages) => {
+      // Only run this logic if we are in production
+      if (process.env.NODE_ENV === 'production') {
+        // Remove any page that starts with 'dev-' or is in a 'dev' folder
+        const pagesToRemove = pages.filter((page) => {
+          return page.path.includes('/dev') || page.name?.startsWith('dev-')
+        })
+
+        pagesToRemove.forEach((page) => {
+          const index = pages.indexOf(page)
+          if (index > -1) {
+            pages.splice(index, 1)
+          }
+        })
+      }
+    },
+  },
   modules: [
-    '@nuxthub/core',
+    '@nuxthub/core-nightly',
     '@unocss/nuxt',
     '@vueuse/nuxt',
     'motion-v/nuxt',
@@ -17,6 +35,7 @@ export default defineNuxtConfig({
     'reka-ui/nuxt',
     '@nuxt/image',
     '@nuxtjs/i18n',
+    'nuxt-maplibre',
   ],
   experimental: {
     viewTransition: true,
@@ -24,14 +43,7 @@ export default defineNuxtConfig({
   hub: {
     blob: true,
     kv: true,
-    cache: true,
-    ...(process.env.HYPERDRIVE_ID && {
-      bindings: {
-        hyperdrive: {
-          POSTGRES: process.env.HYPERDRIVE_ID,
-        },
-      },
-    }),
+    database: 'postgresql',
   },
   eslint: {
     config: {
@@ -41,8 +53,6 @@ export default defineNuxtConfig({
   runtimeConfig: {
     googleApiKey: process.env.GOOGLE_API_KEY || '',
     openaiApiKey: process.env.OPENAI_API_KEY || '',
-    databaseUrl: process.env.DATABASE_URL || '',
-    hyperdriveId: process.env.HYPERDRIVE_ID || '',
     public: {
       siteURL: import.meta.dev
         ? ' http://localhost:3000'
@@ -51,23 +61,9 @@ export default defineNuxtConfig({
   },
   safeRuntimeConfig: {
     $schema: v.object({
-      googleApiKey: v.pipe(
-        v.string(),
-        v.minLength(1, 'GOOGLE_API_KEY is required'),
-      ),
-      openaiApiKey: v.pipe(
-        v.string(),
-        v.minLength(1, 'OPENAI_API_KEY is required'),
-      ),
-      databaseUrl: v.pipe(
-        v.string(),
-        v.minLength(1, 'DATABASE_URL is required'),
-      ),
-      hyperdriveId: v.optional(v.string()),
-
-      public: v.object({
-        siteURL: v.url(),
-      }),
+      googleApiKey: v.pipe(v.string(), v.minLength(1, 'GOOGLE_API_KEY is required')),
+      openaiApiKey: v.pipe(v.string(), v.minLength(1, 'OPENAI_API_KEY is required')),
+      public: v.object({ siteURL: v.string() }),
     }),
   },
   icon: {
@@ -89,9 +85,6 @@ export default defineNuxtConfig({
     providers: {
       cloudflareOnProd: {
         provider: '~/providers/cloudflareOnProd.ts',
-        options: {
-          prodSiteURL: 'https://crypto-map-next.je-cf9.workers.dev/',
-        },
       },
     },
   },
@@ -111,7 +104,15 @@ export default defineNuxtConfig({
       cache: { maxAge: 3600, swr: true, staleMaxAge: 43200 },
     },
     '/api/locations': { cache: false },
-    '/api/locations/*': { cache: { maxAge: 900, swr: true, staleMaxAge: 900 } },
+    '/api/locations/*': {
+      cache: { maxAge: 900, swr: true, staleMaxAge: 900 },
+    },
+    '/api/tiles/**': { cache: false },
+  },
+  vite: {
+    optimizeDeps: {
+      include: ['maplibre-gl'],
+    },
   },
   compatibilityDate: '2025-10-01',
 })

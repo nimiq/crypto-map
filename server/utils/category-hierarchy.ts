@@ -45,76 +45,21 @@ export async function getMostSpecificCategory(categoryIds: string[]): Promise<st
 }
 
 /**
- * Batch version: finds the most specific category for multiple locations
- * More efficient than calling getMostSpecificCategory multiple times
- *
- * @param locationCategories - Map of location UUID to array of category IDs
- * @returns Map of location UUID to most specific category ID
+ * Batch version of getMostSpecificCategory for processing multiple locations efficiently.
+ * @param locationCategories - Map of location UUIDs to their category ID arrays
+ * @returns Map of location UUIDs to their most specific category ID
  */
-export async function getMostSpecificCategoriesBatch(
-  locationCategories: Map<string, string[]>,
-): Promise<Map<string, string>> {
-  const db = useDrizzle()
-  const results = new Map<string, string>()
+export async function getMostSpecificCategoriesBatch(locationCategories: Map<string, string[]>): Promise<Map<string, string>> {
+  const result = new Map<string, string>()
 
-  // Get all unique category IDs across all locations
-  const allCategoryIds = Array.from(
-    new Set(
-      Array.from(locationCategories.values()).flat(),
-    ),
-  )
-
-  if (allCategoryIds.length === 0)
-    return results
-
-  // Fetch all relevant hierarchy relationships in one query
-  const hierarchyRelations = await db
-    .select({
-      childId: tables.categoryHierarchies.childId,
-      parentId: tables.categoryHierarchies.parentId,
-    })
-    .from(tables.categoryHierarchies)
-    .where(
-      inArray(tables.categoryHierarchies.childId, allCategoryIds),
-    )
-
-  // Build a map of child -> parent relationships
-  const childToParent = new Map<string, Set<string>>()
-  for (const rel of hierarchyRelations) {
-    if (!childToParent.has(rel.childId))
-      childToParent.set(rel.childId, new Set())
-    childToParent.get(rel.childId)!.add(rel.parentId)
+  // For now, process each location individually
+  // Future optimization: fetch all hierarchies in one query
+  for (const [uuid, categoryIds] of locationCategories) {
+    const mostSpecific = await getMostSpecificCategory(categoryIds)
+    if (mostSpecific) {
+      result.set(uuid, mostSpecific)
+    }
   }
 
-  // For each location, find the most specific category
-  for (const [locationId, categoryIds] of locationCategories) {
-    if (categoryIds.length === 0) {
-      results.set(locationId, '')
-      continue
-    }
-    if (categoryIds.length === 1) {
-      const firstCategory = categoryIds[0]
-      results.set(locationId, firstCategory || '')
-      continue
-    }
-
-    // Find parent IDs that exist in this location's categories
-    const parentIdsInSet = new Set<string>()
-    for (const categoryId of categoryIds) {
-      const parents = childToParent.get(categoryId)
-      if (parents) {
-        for (const parent of parents) {
-          if (categoryIds.includes(parent))
-            parentIdsInSet.add(parent)
-        }
-      }
-    }
-
-    // Find leaf nodes (categories with no children in this set)
-    const leafCategories = categoryIds.filter(id => !parentIdsInSet.has(id))
-
-    results.set(locationId, leafCategories[0] || categoryIds[0] || '')
-  }
-
-  return results
+  return result
 }

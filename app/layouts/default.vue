@@ -18,8 +18,6 @@ async function handleNavigate(uuid: string) {
     </header>
 
     <slot />
-
-    <DevConfig />
   </main>
 </template>
 

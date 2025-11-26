@@ -8,6 +8,13 @@ export default withNuxt(
     unocss: true,
     pnpm: true,
     vue: true,
-    ignores: ['.eslintcache', 'cache/**', '.claude/**', 'README.md'],
+    ignores: ['.eslintcache', 'cache/**', '.claude/**', 'README.md', 'docs/**', 'database/scripts/categories.json'],
   }),
+  {
+    files: ['database/scripts/**/*.ts'],
+    rules: {
+      'node/prefer-global/process': 'off',
+      'node/prefer-global/buffer': 'off',
+    },
+  },
 )

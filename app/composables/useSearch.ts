@@ -1,3 +1,7 @@
+import { consola } from 'consola'
+
+const logger = consola.withTag('search')
+
 export function useSearch() {
   const query = useState<string>('search-query', () => '')
   const category = useState<string | undefined>(
@@ -8,14 +12,16 @@ export function useSearch() {
   const openNow = useState<boolean>('filter-open-now', () => false)
   const nearMe = useState<boolean>('filter-near-me', () => false)
 
-  const { lat, lng } = useUserLocation()
+  const { viewCenter } = useMapControls()
 
   const debouncedSearchQuery = refDebounced(localSearchInput, 300, {
     maxWait: 1000,
   })
 
   const autocompleteResults = ref<SearchLocationResponse[]>([])
+  const categorySuggestion = ref<CategorySuggestion | null>(null)
   let abortController: AbortController | null = null
+  let suggestionAbortController: AbortController | null = null
 
   // Skip autocomplete fetch when input matches current category to avoid unnecessary requests
   watch(debouncedSearchQuery, async (newQuery) => {
@@ -25,9 +31,13 @@ export function useSearch() {
     if (abortController) {
       abortController.abort()
     }
+    if (suggestionAbortController) {
+      suggestionAbortController.abort()
+    }
 
     if (trimmed.length < 2) {
       autocompleteResults.value = []
+      categorySuggestion.value = null
       return
     }
 
@@ -39,6 +49,7 @@ export function useSearch() {
         queryLower === categoryLower
         || queryLower === categoryLower.replace(/_/g, ' ')
       ) {
+        categorySuggestion.value = null
         return
       }
     }
@@ -46,15 +57,34 @@ export function useSearch() {
     abortController = new AbortController()
 
     try {
-      autocompleteResults.value = await $fetch('/api/search/autocomplete', {
-        query: { q: trimmed },
+      autocompleteResults.value = await $fetch<SearchLocationResponse[]>('/api/search/autocomplete', {
+        query: {
+          q: trimmed,
+          lat: viewCenter.value.lat,
+          lng: viewCenter.value.lng,
+        },
         signal: abortController.signal,
       })
     }
     catch (error: any) {
       if (error.name !== 'AbortError') {
-        console.error('Autocomplete fetch failed:', error)
+        logger.error('Autocomplete fetch failed:', error)
         autocompleteResults.value = []
+      }
+    }
+
+    suggestionAbortController = new AbortController()
+
+    try {
+      categorySuggestion.value = await $fetch<CategorySuggestion | null>('/api/search/category-suggestion', {
+        query: { q: trimmed },
+        signal: suggestionAbortController.signal,
+      })
+    }
+    catch (error: any) {
+      if (error.name !== 'AbortError') {
+        logger.error('Category suggestion fetch failed:', error)
+        categorySuggestion.value = null
       }
     }
   })
@@ -63,86 +93,12 @@ export function useSearch() {
   const categories = computed(() => {
     if (!category.value)
       return undefined
-    // Handle comma-separated categories (from carousel load-more)
+    // Handle comma-separated categories
     if (category.value.includes(',')) {
       return category.value.split(',').map(c => c.trim())
     }
     return [category.value]
   })
-
-  const currentPage = ref(1)
-  const allResults = ref<SearchLocationResponse[]>([])
-  const hasMore = ref(false)
-  const total = ref(0)
-
-  const queryParams = computed(() => ({
-    q:
-      typeof query.value === 'string' && query.value.trim().length > 0
-        ? query.value
-        : undefined,
-    categories: categories.value,
-    openNow: openNow.value || undefined,
-    nearMe: nearMe.value || undefined,
-    lat: lat.value ?? undefined,
-    lng: lng.value ?? undefined,
-    page: currentPage.value,
-    limit: 20,
-  }))
-
-  const {
-    data: apiResponse,
-    status,
-    refresh: refreshSearch,
-  } = useFetch('/api/search', {
-    query: queryParams,
-    immediate: hasSearchParams.value,
-    watch: false,
-  })
-
-  const searchResults = computed(() => {
-    if (!apiResponse.value)
-      return []
-    return allResults.value
-  })
-
-  // Accumulate results for infinite scroll
-  watchEffect(() => {
-    if (apiResponse.value) {
-      const response = apiResponse.value as any
-      const results = response.results || []
-
-      if (currentPage.value === 1) {
-        allResults.value = results.map((loc: any) => ({
-          ...loc,
-          hoursStatus: getOpeningHoursStatus(loc),
-        }))
-      }
-      else {
-        allResults.value.push(
-          ...results.map((loc: any) => ({
-            ...loc,
-            hoursStatus: getOpeningHoursStatus(loc),
-          })),
-        )
-      }
-      hasMore.value = response.hasMore || false
-      total.value = response.total || 0
-    }
-  })
-
-  watch([query, category, openNow, nearMe, lat, lng], async () => {
-    currentPage.value = 1
-    allResults.value = []
-    if (hasSearchParams.value)
-      await refreshSearch()
-  })
-
-  async function loadMore() {
-    if (hasMore.value && status.value !== 'pending') {
-      currentPage.value++
-      await refreshSearch()
-    }
-  }
 
   const { t } = useI18n()
 
@@ -160,16 +116,20 @@ export function useSearch() {
   // Keep search input in sync with query/category state
   // Only sync when they're explicitly set, not when empty (to preserve typing)
   watch([query, category], () => {
+    logger.info('[useSearch] Query/category changed:', { query: query.value, category: category.value })
     // Only populate input for single category, not multiple
     if (category.value && !category.value.includes(',')) {
       localSearchInput.value = formatCategoryLabel(category.value)
+      logger.info('[useSearch] Set input to category label:', localSearchInput.value)
     }
     else if (query.value) {
       localSearchInput.value = query.value
+      logger.info('[useSearch] Set input to query:', localSearchInput.value)
     }
     else if (category.value?.includes(',')) {
       // Clear input when multiple categories are selected
       localSearchInput.value = ''
+      logger.info('[useSearch] Cleared input (multiple categories)')
     }
   })
 
@@ -196,6 +156,7 @@ export function useSearch() {
     category.value = undefined
     localSearchInput.value = ''
     autocompleteResults.value = []
+    categorySuggestion.value = null
   }
 
   return {
@@ -206,13 +167,8 @@ export function useSearch() {
     openNow,
     nearMe,
     autocompleteResults,
-    searchResults,
-    status,
-    hasMore,
-    total,
+    categorySuggestion,
     hasSearchParams,
-    loadMore,
-    refreshSearch,
     formatCategoryLabel,
     updateQuery,
     updateCategory,

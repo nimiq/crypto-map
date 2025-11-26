@@ -30,6 +30,12 @@ export type SearchLocationResponse = LocationResponse & {
   icon?: string
 }
 
+export interface CategorySuggestion {
+  categoryId: string
+  similarity: number
+  source: 'embedding' | 'keyword'
+}
+
 export type LocationDetailResponse = Omit<Location, 'location' | 'street' | 'city' | 'postalCode' | 'region' | 'country'> & {
   address: string
   latitude: number

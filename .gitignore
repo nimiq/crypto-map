@@ -18,6 +18,7 @@ logs
 .fleet
 .idea
 .eslintcache
+docs/
 
 # Local env files
 .env
@@ -31,3 +32,5 @@ database/sql/*.sql
 !database/sql/2.category-hierarchies.sql
 
 .pnpm-store
+
+.claude

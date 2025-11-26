@@ -67,7 +67,7 @@ export const locations = pgTable(
     }).notNull(),
     rating: doublePrecision('rating'),
     ratingCount: doublePrecision('rating_count'),
-    photo: text('photo'),
+    photos: text('photos').array(),
     gmapsPlaceId: text('gmaps_place_id').notNull().unique(),
     gmapsUrl: text('gmaps_url').notNull(),
     website: text('website'),

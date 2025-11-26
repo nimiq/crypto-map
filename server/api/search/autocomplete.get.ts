@@ -3,10 +3,12 @@ import * as v from 'valibot'
 
 const querySchema = v.object({
   q: v.pipe(v.string(), v.minLength(2, 'Query must be at least 2 characters')),
+  lat: v.optional(v.pipe(v.string(), v.transform(Number), v.number())),
+  lng: v.optional(v.pipe(v.string(), v.transform(Number), v.number())),
 })
 
 export default defineCachedEventHandler(async (event) => {
-  const { q: searchQuery } = await getValidatedQuery(event, data => v.parse(querySchema, data))
+  const { q: searchQuery, lat, lng } = await getValidatedQuery(event, data => v.parse(querySchema, data))
 
   // Precompute embedding in background (non-blocking)
   // waitUntil ensures the task completes even after response is sent
@@ -16,7 +18,8 @@ export default defineCachedEventHandler(async (event) => {
     }),
   )
 
-  const results = await searchLocationsByText(searchQuery, { fetchLimit: 10 })
+  const origin = lat !== undefined && lng !== undefined ? { lat, lng } : undefined
+  const results = await searchLocationsByText(searchQuery, { fetchLimit: 10, origin })
 
   // Compute primary category for each location
   const locationCategories = new Map<string, string[]>()
@@ -36,6 +39,12 @@ export default defineCachedEventHandler(async (event) => {
   return results
 }, {
   maxAge: 60 * 60 * 24 * 7, // Cache for 7 days
-  getKey: event => `autocomplete:${getQuery(event).q}`,
+  getKey: (event) => {
+    const query = getQuery(event)
+    // Round to 1 decimal (~11km precision) to avoid cache fragmentation
+    const lat = query.lat ? Math.round(Number(query.lat) * 10) / 10 : ''
+    const lng = query.lng ? Math.round(Number(query.lng) * 10) / 10 : ''
+    return `autocomplete:${query.q}:${lat}:${lng}`
+  },
   swr: true, // Stale-while-revalidate
 })

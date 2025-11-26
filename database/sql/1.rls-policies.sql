@@ -1,5 +1,38 @@
--- Row Level Security (RLS) Policies
+-- Row Level Security (RLS) Policies and Triggers
 -- Run this after creating tables with Drizzle migrations
+
+-- Create trigger function to validate category hierarchy on insert
+CREATE OR REPLACE FUNCTION check_category_hierarchy()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Check if the category exists in category_hierarchies as a child
+  IF EXISTS (
+    SELECT 1 FROM category_hierarchies 
+    WHERE child_id = NEW.category_id
+  ) THEN
+    -- Verify parent categories are also assigned to this location
+    IF NOT EXISTS (
+      SELECT 1 FROM category_hierarchies ch
+      WHERE ch.child_id = NEW.category_id
+      AND EXISTS (
+        SELECT 1 FROM location_categories lc
+        WHERE lc.location_uuid = NEW.location_uuid
+        AND lc.category_id = ch.parent_id
+      )
+    ) THEN
+      RAISE WARNING 'Category % has parent categories that should also be assigned', NEW.category_id;
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create trigger on location_categories
+DROP TRIGGER IF EXISTS category_hierarchy_insert_check ON location_categories;
+CREATE TRIGGER category_hierarchy_insert_check
+  BEFORE INSERT ON location_categories
+  FOR EACH ROW
+  EXECUTE FUNCTION check_category_hierarchy();
 
 -- Enable RLS on categories table
 ALTER TABLE categories ENABLE ROW LEVEL SECURITY;

@@ -36,13 +36,18 @@
   "location": {
     "viewOnMaps": "Voir sur Maps",
     "categories": "Catégories",
-    "openingHours": "Horaires d'ouverture"
+    "openingHours": "Horaires d'ouverture",
+    "directions": "Itinéraire",
+    "openInGoogleMaps": "Ouvrir dans Google Maps",
+    "addressCopied": "Adresse copiée !"
   },
   "hours": {
-    "open": "Ouvert maintenant",
+    "open": "Ouvert",
     "closingSoon": "Ferme bientôt",
     "closed": "Fermé",
-    "unavailable": "Horaires non disponibles"
+    "unavailable": "Horaires non disponibles",
+    "opensAt": "Ouvre",
+    "closesAt": "Ferme"
   },
   "locations": {
     "noResults": {

@@ -95,6 +95,20 @@ async function main() {
       consola.info(`Applied: ${file}`)
     }
 
+    // Load database functions
+    consola.info('Loading database functions...')
+    const functionsDir = join(import.meta.dirname, '..', 'functions')
+    const functionFiles = (await readdir(functionsDir))
+      .filter(f => f.endsWith('.sql'))
+      .sort()
+
+    for (const file of functionFiles) {
+      const funcPath = join(functionsDir, file)
+      const funcContent = await readFile(funcPath, 'utf-8')
+      await sql.unsafe(funcContent)
+      consola.info(`Loaded function: ${file}`)
+    }
+
     consola.success('Database setup complete')
   }
   catch (error) {
