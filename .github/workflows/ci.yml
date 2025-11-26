@@ -34,3 +34,7 @@ jobs:
 
       - name: Test
         run: pnpm test
+        env:
+          GOOGLE_API_KEY: test
+          OPENAI_API_KEY: test
+          DATABASE_URL: postgresql://test:test@localhost:5432/test
