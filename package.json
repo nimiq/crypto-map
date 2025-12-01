@@ -51,7 +51,6 @@
     "nuxt-safe-runtime-config": "catalog:framework",
     "opening_hours": "catalog:utils",
     "pathe": "catalog:utils",
-    "pmtiles": "^4.3.0",
     "postgres": "catalog:database",
     "reka-ui": "catalog:ui",
     "valibot": "catalog:utils",

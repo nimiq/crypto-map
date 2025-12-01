@@ -22,8 +22,8 @@ const NIMIQ_COLORS = {
   red400: '#F9E1DC', // Very light red (hospitals)
 } as const
 
-// Free Protomaps tiles URL (non-commercial use)
-const PROTOMAPS_TILES_URL = 'pmtiles://https://build.protomaps.com/20250122.pmtiles'
+// Stadia Maps vector tiles (OpenMapTiles schema)
+const STADIA_TILES_URL = 'https://tiles.stadiamaps.com/data/openmaptiles.json?api_key=72b90deb-0790-4dcb-a39e-8584048fbf45'
 
 export function getMapStyle(origin: string): StyleSpecification {
   return {
@@ -36,10 +36,10 @@ export function getMapStyle(origin: string): StyleSpecification {
     sprite: 'https://protomaps.github.io/basemaps-assets/sprites/v4/light',
     glyphs: 'https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf',
     sources: {
-      protomaps: {
+      openmaptiles: {
         type: 'vector',
-        url: PROTOMAPS_TILES_URL,
-        attribution: '<a href="https://protomaps.com">Protomaps</a> | <a href="https://openstreetmap.org">© OpenStreetMap</a>',
+        url: STADIA_TILES_URL,
+        attribution: '<a href="https://stadiamaps.com/">Stadia Maps</a> | <a href="https://openmaptiles.org/">© OpenMapTiles</a> | <a href="https://openstreetmap.org">© OpenStreetMap</a>',
       },
       locations: {
         type: 'vector',
@@ -62,7 +62,7 @@ export function getMapStyle(origin: string): StyleSpecification {
       {
         'id': 'landcover_grass',
         'type': 'fill',
-        'source': 'protomaps',
+        'source': 'openmaptiles',
         'source-layer': 'landcover',
         'filter': ['==', 'class', 'grass'],
         'paint': {
@@ -73,7 +73,7 @@ export function getMapStyle(origin: string): StyleSpecification {
       {
         'id': 'landcover_wood',
         'type': 'fill',
-        'source': 'protomaps',
+        'source': 'openmaptiles',
         'source-layer': 'landcover',
         'filter': ['==', 'class', 'wood'],
         'paint': {
@@ -86,7 +86,7 @@ export function getMapStyle(origin: string): StyleSpecification {
       {
         'id': 'park',
         'type': 'fill',
-        'source': 'protomaps',
+        'source': 'openmaptiles',
         'source-layer': 'park',
         'paint': {
           'fill-color': NIMIQ_COLORS.green600,
@@ -98,7 +98,7 @@ export function getMapStyle(origin: string): StyleSpecification {
       {
         'id': 'landuse_residential',
         'type': 'fill',
-        'source': 'protomaps',
+        'source': 'openmaptiles',
         'source-layer': 'landuse',
         'filter': ['in', 'class', 'residential', 'suburbs', 'neighbourhood'],
         'paint': {
@@ -109,7 +109,7 @@ export function getMapStyle(origin: string): StyleSpecification {
       {
         'id': 'landuse_hospital',
         'type': 'fill',
-        'source': 'protomaps',
+        'source': 'openmaptiles',
         'source-layer': 'landuse',
         'filter': ['==', 'class', 'hospital'],
         'paint': {
@@ -119,7 +119,7 @@ export function getMapStyle(origin: string): StyleSpecification {
       {
         'id': 'landuse_school',
         'type': 'fill',
-        'source': 'protomaps',
+        'source': 'openmaptiles',
         'source-layer': 'landuse',
         'filter': ['==', 'class', 'school'],
         'paint': {
@@ -131,7 +131,7 @@ export function getMapStyle(origin: string): StyleSpecification {
       {
         'id': 'water',
         'type': 'fill',
-        'source': 'protomaps',
+        'source': 'openmaptiles',
         'source-layer': 'water',
         'paint': {
           'fill-color': NIMIQ_COLORS.blue400,
@@ -140,7 +140,7 @@ export function getMapStyle(origin: string): StyleSpecification {
       {
         'id': 'waterway',
         'type': 'line',
-        'source': 'protomaps',
+        'source': 'openmaptiles',
         'source-layer': 'waterway',
         'minzoom': 8,
         'paint': {
@@ -163,7 +163,7 @@ export function getMapStyle(origin: string): StyleSpecification {
       {
         'id': 'building',
         'type': 'fill',
-        'source': 'protomaps',
+        'source': 'openmaptiles',
         'source-layer': 'building',
         'minzoom': 13,
         'paint': {
@@ -177,7 +177,7 @@ export function getMapStyle(origin: string): StyleSpecification {
       {
         'id': 'road_minor',
         'type': 'line',
-        'source': 'protomaps',
+        'source': 'openmaptiles',
         'source-layer': 'transportation',
         'filter': ['in', 'class', 'minor', 'service'],
         'paint': {
@@ -188,7 +188,7 @@ export function getMapStyle(origin: string): StyleSpecification {
       {
         'id': 'road_major',
         'type': 'line',
-        'source': 'protomaps',
+        'source': 'openmaptiles',
         'source-layer': 'transportation',
         'filter': ['in', 'class', 'primary', 'secondary', 'tertiary'],
         'paint': {
@@ -199,7 +199,7 @@ export function getMapStyle(origin: string): StyleSpecification {
       {
         'id': 'road_motorway',
         'type': 'line',
-        'source': 'protomaps',
+        'source': 'openmaptiles',
         'source-layer': 'transportation',
         'filter': ['==', 'class', 'motorway'],
         'minzoom': 5,
@@ -213,7 +213,7 @@ export function getMapStyle(origin: string): StyleSpecification {
       {
         'id': 'admin_country',
         'type': 'line',
-        'source': 'protomaps',
+        'source': 'openmaptiles',
         'source-layer': 'boundary',
         'filter': ['==', 'admin_level', 2],
         'paint': {
@@ -225,7 +225,7 @@ export function getMapStyle(origin: string): StyleSpecification {
       {
         'id': 'admin_state',
         'type': 'line',
-        'source': 'protomaps',
+        'source': 'openmaptiles',
         'source-layer': 'boundary',
         'filter': ['in', 'admin_level', 3, 4],
         'paint': {
@@ -239,7 +239,7 @@ export function getMapStyle(origin: string): StyleSpecification {
       {
         'id': 'water_name',
         'type': 'symbol',
-        'source': 'protomaps',
+        'source': 'openmaptiles',
         'source-layer': 'water_name',
         'minzoom': 10,
         'layout': {
@@ -256,7 +256,7 @@ export function getMapStyle(origin: string): StyleSpecification {
       {
         'id': 'waterway_name',
         'type': 'symbol',
-        'source': 'protomaps',
+        'source': 'openmaptiles',
         'source-layer': 'waterway',
         'filter': ['==', 'class', 'river'],
         'minzoom': 12,
@@ -278,7 +278,7 @@ export function getMapStyle(origin: string): StyleSpecification {
       {
         'id': 'road_label',
         'type': 'symbol',
-        'source': 'protomaps',
+        'source': 'openmaptiles',
         'source-layer': 'transportation_name',
         'filter': ['in', 'class', 'motorway', 'trunk', 'primary'],
         'minzoom': 10,
@@ -301,7 +301,7 @@ export function getMapStyle(origin: string): StyleSpecification {
       {
         'id': 'aerodrome_label',
         'type': 'symbol',
-        'source': 'protomaps',
+        'source': 'openmaptiles',
         'source-layer': 'aerodrome_label',
         'minzoom': 9,
         'layout': {
@@ -322,7 +322,7 @@ export function getMapStyle(origin: string): StyleSpecification {
       {
         'id': 'mountain_peak',
         'type': 'symbol',
-        'source': 'protomaps',
+        'source': 'openmaptiles',
         'source-layer': 'mountain_peak',
         'filter': ['>', ['coalesce', ['get', 'rank'], 99], 0],
         'minzoom': 11,
@@ -344,7 +344,7 @@ export function getMapStyle(origin: string): StyleSpecification {
       {
         'id': 'place_country',
         'type': 'symbol',
-        'source': 'protomaps',
+        'source': 'openmaptiles',
         'source-layer': 'place',
         'filter': ['==', 'class', 'country'],
         'minzoom': 3,
@@ -365,7 +365,7 @@ export function getMapStyle(origin: string): StyleSpecification {
       {
         'id': 'place_city',
         'type': 'symbol',
-        'source': 'protomaps',
+        'source': 'openmaptiles',
         'source-layer': 'place',
         'filter': ['in', 'class', 'city', 'town'],
         'minzoom': 8,
@@ -384,7 +384,7 @@ export function getMapStyle(origin: string): StyleSpecification {
       {
         'id': 'place_village',
         'type': 'symbol',
-        'source': 'protomaps',
+        'source': 'openmaptiles',
         'source-layer': 'place',
         'filter': ['==', 'class', 'village'],
         'minzoom': 12,
