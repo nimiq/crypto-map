@@ -25,7 +25,7 @@ async function main() {
     process.exit(1)
   }
 
-  const sql = postgres(databaseUrl, { prepare: false, idle_timeout: 60, statement_timeout: 60000 })
+  const sql = postgres(databaseUrl, { prepare: false, idle_timeout: 60 } as any)
 
   try {
     consola.start('Setting up database...')

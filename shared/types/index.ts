@@ -1,4 +1,4 @@
-import type { categories, locationCategories, locations } from '../../database/schema'
+import type { categories, locationCategories, locations } from '../../server/database/schema'
 
 export type Location = typeof locations.$inferSelect
 export type Category = typeof categories.$inferSelect
