@@ -31,15 +31,15 @@ CREATE TABLE "locations" (
 	"rating" double precision,
 	"rating_count" double precision,
 	"photos" text[],
-	"gmaps_place_id" text NOT NULL,
-	"gmaps_url" text NOT NULL,
+	"gmaps_place_id" text,
+	"gmaps_url" text,
 	"website" text,
 	"source" varchar(20) NOT NULL,
+	"source_id" text NOT NULL,
 	"timezone" text NOT NULL,
 	"opening_hours" text,
 	"updated_at" timestamp DEFAULT NOW(),
-	"created_at" timestamp DEFAULT NOW(),
-	CONSTRAINT "locations_gmaps_place_id_unique" UNIQUE("gmaps_place_id")
+	"created_at" timestamp DEFAULT NOW()
 );
 --> statement-breakpoint
 ALTER TABLE "category_hierarchies" ADD CONSTRAINT "category_hierarchies_child_id_categories_id_fk" FOREIGN KEY ("child_id") REFERENCES "public"."categories"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -51,4 +51,5 @@ CREATE INDEX "category_hierarchies_child_idx" ON "category_hierarchies" USING bt
 CREATE INDEX "category_hierarchies_parent_idx" ON "category_hierarchies" USING btree ("parent_id");--> statement-breakpoint
 CREATE INDEX "location_idx" ON "location_categories" USING btree ("location_uuid");--> statement-breakpoint
 CREATE INDEX "category_idx" ON "location_categories" USING btree ("category_id");--> statement-breakpoint
-CREATE INDEX "location_spatial_idx" ON "locations" USING gist ("location");
+CREATE INDEX "location_spatial_idx" ON "locations" USING gist ("location");--> statement-breakpoint
+CREATE UNIQUE INDEX "source_unique_idx" ON "locations" USING btree ("source","source_id");

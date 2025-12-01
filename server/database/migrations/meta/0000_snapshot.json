@@ -1,5 +1,5 @@
 {
-  "id": "8cfff89d-abd8-4902-aa24-3bdfdbe1746e",
+  "id": "1f5efbeb-c66a-40a5-9553-44b6b4cc1d07",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -331,13 +331,13 @@
           "name": "gmaps_place_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "gmaps_url": {
           "name": "gmaps_url",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "website": {
           "name": "website",
@@ -348,6 +348,12 @@
         "source": {
           "name": "source",
           "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_id": {
+          "name": "source_id",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
@@ -393,19 +399,32 @@
           "concurrently": false,
           "method": "gist",
           "with": {}
+        },
+        "source_unique_idx": {
+          "name": "source_unique_idx",
+          "columns": [
+            {
+              "expression": "source",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "source_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "locations_gmaps_place_id_unique": {
-          "name": "locations_gmaps_place_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "gmaps_place_id"
-          ]
-        }
-      },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

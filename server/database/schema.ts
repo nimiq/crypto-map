@@ -8,6 +8,7 @@ import {
   primaryKey,
   text,
   timestamp,
+  uniqueIndex,
   varchar,
 } from 'drizzle-orm/pg-core'
 
@@ -68,13 +69,11 @@ export const locations = pgTable(
     rating: doublePrecision('rating'),
     ratingCount: doublePrecision('rating_count'),
     photos: text('photos').array(),
-    gmapsPlaceId: text('gmaps_place_id').notNull().unique(),
-    gmapsUrl: text('gmaps_url').notNull(),
+    gmapsPlaceId: text('gmaps_place_id'),
+    gmapsUrl: text('gmaps_url'),
     website: text('website'),
-    source: varchar('source', {
-      length: 20,
-      enum: ['naka', 'bluecode'],
-    }).notNull(),
+    source: varchar('source', { length: 20, enum: ['naka', 'bluecode'] }).notNull(),
+    sourceId: text('source_id').notNull(),
     timezone: text('timezone').notNull(),
     openingHours: text('opening_hours'),
     updatedAt: timestamp('updated_at')
@@ -85,7 +84,10 @@ export const locations = pgTable(
       .default(sql`NOW()`)
       .$defaultFn(() => new Date()),
   },
-  table => [index('location_spatial_idx').using('gist', table.location)],
+  table => [
+    index('location_spatial_idx').using('gist', table.location),
+    uniqueIndex('source_unique_idx').on(table.source, table.sourceId),
+  ],
 )
 
 export type Location = typeof locations.$inferSelect
