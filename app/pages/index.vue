@@ -244,7 +244,7 @@ async function onMapLoad(event: { map: Map }) {
     </ClientOnly>
     <MapControls />
     <LocationCounter />
-    <MapDebugPanel />
+    <DevOnly><MapDebugPanel /></DevOnly>
 
     <LocationDrawer
       v-model:open="isDrawerOpen"

@@ -3,6 +3,10 @@
 </template>
 
 <style>
+body {
+  color-scheme: light;
+}
+
 /* Vaul-vue drawer styles */
 [data-vaul-drawer] {
   touch-action: none;
