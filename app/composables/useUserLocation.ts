@@ -1,32 +1,15 @@
 import type { Point } from '~/types/geo'
 
-interface GeoIpResponse {
-  location?: {
-    longitude?: number
-    latitude?: number
-  }
-  country?: string
-  city?: string
-}
-
-const LUGANO_LOCATION: Point = { lng: 8.95606, lat: 46.00503 }
-const LUGANO_ACCURACY = 50 // meters - simulated accuracy for testing
-
 export function useUserLocation() {
   const route = useRoute()
-  const shouldUseLugano = useLocalStorage('use-lugano-location', true)
 
   const queryLat = route.query.lat ? Number(route.query.lat) : undefined
   const queryLng = route.query.lng ? Number(route.query.lng) : undefined
   const hasQueryParams = queryLat !== undefined && queryLng !== undefined
 
-  // GeoIP location (only fetch if toggle is off and no query params)
-  const shouldFetchGeoIp = computed(() => !hasQueryParams && !shouldUseLugano.value)
-  const { data: geoIpData } = useFetch<GeoIpResponse>('https://geoip.nimiq-network.com:8443/v1/locate', {
-    lazy: true,
-    server: false,
-    watch: [shouldFetchGeoIp],
-  })
+  // Cloudflare geolocation (city-level accuracy)
+  const { data: cfGeo, status: cfGeoStatus } = useFetch<{ lat: number | null, lng: number | null }>('/api/geolocation', { lazy: true, server: false })
+  const isGeoReady = computed(() => cfGeoStatus.value === 'success' || cfGeoStatus.value === 'error')
 
   const gpsPoint = ref<Point | null>(null)
   const gpsAccuracy = ref<number | null>(null)
@@ -48,75 +31,51 @@ export function useUserLocation() {
     })
   }
 
+  // Show blue dot only for GPS location with good accuracy
   const showUserLocation = computed(() => {
-    // Show for actual GPS location with good accuracy
-    if (gpsPoint.value !== null && gpsAccuracy.value !== null && gpsAccuracy.value <= ACCURACY_THRESHOLD) {
-      return true
-    }
-    // Also show for Lugano location (for testing)
-    if (shouldUseLugano.value && !gpsPoint.value) {
-      return true
-    }
-    return false
+    return gpsPoint.value !== null && gpsAccuracy.value !== null && gpsAccuracy.value <= ACCURACY_THRESHOLD
   })
 
   const userLocationPoint = computed(() => {
-    if (gpsPoint.value && gpsAccuracy.value !== null && gpsAccuracy.value <= ACCURACY_THRESHOLD) {
+    if (showUserLocation.value)
       return gpsPoint.value
-    }
-    if (shouldUseLugano.value && !gpsPoint.value) {
-      return LUGANO_LOCATION
-    }
     return null
   })
 
   const userLocationAccuracy = computed(() => {
-    if (gpsPoint.value && gpsAccuracy.value !== null && gpsAccuracy.value <= ACCURACY_THRESHOLD) {
+    if (showUserLocation.value)
       return gpsAccuracy.value
-    }
-    if (shouldUseLugano.value && !gpsPoint.value) {
-      return LUGANO_ACCURACY
-    }
     return null
   })
 
-  const point = computed<Point>(() => {
-    // Priority 1: GPS (user clicked "locate me")
-    if (gpsPoint.value)
-      return gpsPoint.value
-
-    // Priority 2: URL query params
+  // Initial map center point (for centering map, not for blue dot)
+  const initialPoint = computed<Point | null>(() => {
+    // Priority 1: URL query params
     if (hasQueryParams)
       return { lng: queryLng!, lat: queryLat! }
 
-    // Priority 3: Lugano toggle on
-    if (shouldUseLugano.value)
-      return LUGANO_LOCATION
+    // Priority 2: Cloudflare geolocation
+    if (cfGeo.value?.lat && cfGeo.value?.lng)
+      return { lng: cfGeo.value.lng, lat: cfGeo.value.lat }
 
-    // Priority 4: GeoIP
-    if (geoIpData.value?.location?.latitude && geoIpData.value?.location?.longitude)
-      return { lng: geoIpData.value.location.longitude, lat: geoIpData.value.location.latitude }
-
-    // Fallback: Lugano
-    return LUGANO_LOCATION
+    // No initial location available
+    return null
   })
 
-  const source = computed<'gps' | 'query' | 'lugano' | 'geoip' | 'fallback'>(() => {
+  const source = computed<'gps' | 'query' | 'cloudflare' | 'none'>(() => {
     if (gpsPoint.value)
       return 'gps'
     if (hasQueryParams)
       return 'query'
-    if (shouldUseLugano.value)
-      return 'lugano'
-    if (geoIpData.value?.location?.latitude && geoIpData.value?.location?.longitude)
-      return 'geoip'
-    return 'fallback'
+    if (cfGeo.value?.lat && cfGeo.value?.lng)
+      return 'cloudflare'
+    return 'none'
   })
 
   return {
-    point,
+    initialPoint,
+    isGeoReady,
     source,
-    shouldUseLugano,
     hasQueryParams,
     isLocating,
     locateMe,

@@ -85,8 +85,8 @@ export function useMapIcons() {
         'type': 'symbol',
         'source': 'locations',
         'source-layer': 'locations',
-        'filter': ['!', ['has', 'point_count']], // Hide clustered locations
-        'minzoom': 0,
+        'filter': ['!', ['has', 'point_count']], // Hide cluster circles (they have point_count)
+        'minzoom': 10, // Show individual pins only at higher zoom (clusters disappear at 9)
         'maxzoom': 24,
         'layout': {
           'icon-image': iconExpression,
@@ -167,7 +167,7 @@ export function useMapIcons() {
       })
     }
 
-    // Add accuracy circle layer
+    // Add accuracy circle layer (scales with zoom and accuracy)
     if (!map.getLayer('user-location-accuracy')) {
       map.addLayer({
         id: 'user-location-accuracy',
@@ -175,13 +175,17 @@ export function useMapIcons() {
         source: 'user-location',
         paint: {
           'circle-radius': [
-            'interpolate',
-            ['exponential', 2],
-            ['zoom'],
-            0,
-            0,
-            20,
-            ['/', ['get', 'accuracy'], 0.075], // Rough meter-to-pixel conversion at zoom 20
+            'max',
+            6, // Minimum visible radius
+            [
+              'interpolate',
+              ['exponential', 2],
+              ['zoom'],
+              0,
+              0,
+              20,
+              ['/', ['get', 'accuracy'], 0.075], // Rough meter-to-pixel conversion at zoom 20
+            ],
           ] as any,
           'circle-color': '#4285F4',
           'circle-opacity': 0.1,
@@ -192,16 +196,16 @@ export function useMapIcons() {
       })
     }
 
-    // Add blue dot layer
+    // Add blue dot layer (scales with zoom)
     if (!map.getLayer('user-location-dot')) {
       map.addLayer({
         id: 'user-location-dot',
         type: 'circle',
         source: 'user-location',
         paint: {
-          'circle-radius': 8,
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 4, 10, 6, 18, 10],
           'circle-color': '#4285F4',
-          'circle-stroke-width': 2.5,
+          'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 3, 1.5, 18, 3],
           'circle-stroke-color': '#FFFFFF',
         },
       })

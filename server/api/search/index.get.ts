@@ -20,20 +20,16 @@ async function searchHandler(event: any) {
   if ((!searchQuery || searchQuery.trim().length === 0) && !categories)
     return []
 
-  // Use query lat/lng if provided, otherwise fallback to Cloudflare IP geolocation
+  // Use query lat/lng if provided, otherwise fallback to Cloudflare geolocation
   let lat = qLat
   let lng = qLng
 
   if (!lat || !lng) {
-    try {
-      const cfIp = event.node.req.headers['cf-connecting-ip'] as string | undefined
-      const geoLocation = await locateByHost(cfIp)
-      lat = geoLocation.lat
-      lng = geoLocation.lng
-      consola.info(`Using Cloudflare IP geolocation: ${lat}, ${lng}`, { tag: 'geolocation' })
-    }
-    catch (error) {
-      consola.warn('Failed to get Cloudflare IP geolocation', { tag: 'geolocation', error })
+    const cf = (event.context.cloudflare as any)?.cf
+    if (cf?.latitude && cf?.longitude) {
+      lat = Number(cf.latitude)
+      lng = Number(cf.longitude)
+      consola.info(`Using Cloudflare geolocation: ${lat}, ${lng}`, { tag: 'geolocation' })
     }
   }
   else {

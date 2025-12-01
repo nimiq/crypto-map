@@ -9,11 +9,19 @@ definePageMeta({
 })
 
 const { query, category, autocompleteResults, categories, openNow } = useSearch()
-const { center, viewCenter, zoom, setMapInstance, mapInstance, flyTo } = useMapControls()
+const { initialCenter, initialZoom, isInitialized, initializeView, viewCenter, setMapInstance, mapInstance, flyTo } = useMapControls()
 const { setSearchResults, setSelectedLocation, initializeLayers, updateUserLocation } = useMapIcons()
-const { showUserLocation, userLocationPoint, userLocationAccuracy } = useUserLocation()
+const { showUserLocation, userLocationPoint, userLocationAccuracy, initialPoint, isGeoReady } = useUserLocation()
+const { width: windowWidth, height: windowHeight } = useWindowSize()
 
-logger.info('Map page loaded - center:', center.value, 'zoom:', zoom.value)
+// Initialize map view with optimal zoom once CF geolocation resolves
+watch([isGeoReady, windowWidth], async () => {
+  if (!isInitialized.value && isGeoReady.value && windowWidth.value > 0) {
+    await initializeView(windowWidth.value, windowHeight.value)
+  }
+}, { immediate: true })
+
+logger.info('Map page loaded')
 
 const selectedLocationUuid = ref<string | null>(null)
 const isDrawerOpen = ref(false)
@@ -219,10 +227,10 @@ async function onMapLoad(event: { map: Map }) {
           </p>
         </div>
       </template>
-      <div bg-red-100 size-screen>
+      <div v-if="isInitialized && initialCenter" bg-red-100 size-screen>
         <MglMap
-          :center
-          :zoom
+          :center="initialCenter"
+          :zoom="initialZoom"
           :min-zoom="3"
           :map-style
           @map:load="onMapLoad"

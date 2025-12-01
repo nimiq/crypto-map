@@ -1,12 +1,13 @@
 <script setup lang="ts">
 const { zoomIn, zoomOut, flyTo, bearing, isRotated, resetNorth } = useMapControls()
 const { hasPointer } = usePointerType()
-const { isLocating, locateMe, point, showUserLocation } = useUserLocation()
+const { isLocating, locateMe, gpsPoint, showUserLocation } = useUserLocation()
 
 function handleLocateMe() {
   locateMe()
-  watchOnce(point, () => {
-    flyTo(point.value)
+  watchOnce(gpsPoint, (point) => {
+    if (point)
+      flyTo(point)
   })
 }
 </script>
@@ -47,21 +48,21 @@ function handleLocateMe() {
     </template>
     <button
       stack
-      outline="~ 1.5 neutral-200 hocus:neutral-900"
+      outline="~ 1.5 neutral-200 hocus:neutral-300"
       rounded-full
       size-40
       cursor-pointer
       shadow
       transition-colors
       disabled:op-50
+      bg="neutral-0 hocus:neutral-50"
       :disabled="isLocating"
-      :class="showUserLocation ? 'bg-blue-500 hocus:bg-blue-600' : 'bg-neutral-0 hocus:bg-neutral-50'"
       @click="handleLocateMe"
     >
       <Icon
         :name="isLocating ? 'i-nimiq:spinner' : 'i-tabler:current-location'"
         size-20
-        :class="showUserLocation ? 'text-white' : 'text-neutral'"
+        :class="showUserLocation ? 'text-blue' : 'text-neutral'"
       />
     </button>
   </div>
