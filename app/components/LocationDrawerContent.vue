@@ -69,7 +69,11 @@ function useOpeningHours() {
     return s.variant === 'open' ? `${t('hours.closesAt')} ${time}` : null
   })
 
-  const weeklyHours = computed(() => location.openingHours ? getWeeklyHours(location.openingHours) : null)
+  const weeklyHours = computed(() => {
+    if (!location.openingHours) return null
+    const hours = getWeeklyHours(location.openingHours)
+    return hours.some(h => h) ? hours : null // Only show if at least one day has hours
+  })
   const rotatedHours = computed(() => weeklyHours.value && location.timezone ? rotateWeeklyHoursToToday(weeklyHours.value, location.timezone, locale.value) : null)
 
   return { statusInfo, nextChangeText, rotatedHours }
