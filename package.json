@@ -14,17 +14,18 @@
     "db:generate": "drizzle-kit generate",
     "db:generate-category-embeddings": "tsx server/database/scripts/generate-category-embeddings.ts",
     "db:generate-functions": "tsx server/database/scripts/generate-function-types.ts",
-    "db:enrich-ratings": "tsx server/database/scripts/enrich-with-ratings.ts",
-    "db:clean-locations": "tsx server/database/scripts/clean-locations.ts",
-    "db:prepare-data": "tsx server/database/scripts/prepare-data.ts",
+    "sources:fetch": "cd sources && pnpm naka:fetch",
+    "sources:enrich": "cd sources && pnpm naka:enrich",
+    "sources:clean": "cd sources && pnpm naka:clean",
+    "sources:generate": "cd sources && pnpm naka:generate",
+    "sources:pipeline": "cd sources && pnpm naka:pipeline",
     "db:apply-naka": "tsx server/database/scripts/apply-naka-data.ts",
     "db:nuke": "tsx server/database/scripts/db-reset.ts",
     "db:setup": "tsx server/database/scripts/db-setup.ts && pnpm run db:generate-functions",
     "lint": "eslint . --cache",
     "lint:fix": "eslint . --fix --cache",
     "test": "vitest run",
-    "typecheck": "nuxt typecheck",
-    "db:validate-google-raw": "tsx database/scripts/validate-google-raw.ts"
+    "typecheck": "nuxt typecheck"
   },
   "dependencies": {
     "@ai-sdk/openai": "catalog:utils",
