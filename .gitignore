@@ -25,11 +25,11 @@ docs/
 .env.*
 !.env.example
 
-# Database import data (contains API responses)
-server/database/data/
+# Database SQL files (generated/imported)
 server/database/sql/*.sql
 !server/database/sql/1.rls-policies.sql
 !server/database/sql/2.category-hierarchies.sql
+!server/database/sql/3.naka.sql
 
 .pnpm-store
 
