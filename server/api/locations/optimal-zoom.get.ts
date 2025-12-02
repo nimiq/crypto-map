@@ -1,3 +1,4 @@
+import { SphericalMercator } from '@mapbox/sphericalmercator'
 import { sql } from 'drizzle-orm'
 import * as v from 'valibot'
 
@@ -11,10 +12,13 @@ const querySchema = v.object({
 const MIN_ZOOM = 3
 const MAX_ZOOM = 15
 
-// Approximate degrees per pixel at each zoom level (at equator)
-// Formula: 360 / (256 * 2^zoom)
-function degreesPerPixel(zoom: number): number {
-  return 360 / (256 * 2 ** zoom)
+const merc = new SphericalMercator({ size: 256 })
+
+function getViewportBbox(lat: number, lng: number, width: number, height: number, zoom: number) {
+  const [centerPx, centerPy] = merc.px([lng, lat], zoom)
+  const [minLng, maxLat] = merc.ll([centerPx - width / 2, centerPy - height / 2], zoom)
+  const [maxLng, minLat] = merc.ll([centerPx + width / 2, centerPy + height / 2], zoom)
+  return { minLat, maxLat, minLng, maxLng }
 }
 
 export default defineEventHandler(async (event) => {
@@ -25,15 +29,9 @@ export default defineEventHandler(async (event) => {
 
   const { lat, lng, width, height } = query.output
 
-  // Binary search for optimal zoom
   for (let zoom = MAX_ZOOM; zoom >= MIN_ZOOM; zoom--) {
-    const dpp = degreesPerPixel(zoom)
-    // Adjust for latitude (Mercator projection)
-    const latFactor = Math.cos((lat * Math.PI) / 180)
-    const lngDelta = (width / 2) * dpp
-    const latDelta = (height / 2) * dpp / latFactor
-
-    const bbox = sql`ST_MakeEnvelope(${lng - lngDelta}, ${lat - latDelta}, ${lng + lngDelta}, ${lat + latDelta}, 4326)`
+    const { minLat, maxLat, minLng, maxLng } = getViewportBbox(lat, lng, width, height, zoom)
+    const bbox = sql`ST_MakeEnvelope(${minLng}, ${minLat}, ${maxLng}, ${maxLat}, 4326)`
 
     const result = await useDrizzle()
       .select({ count: sql<number>`count(*)` })
