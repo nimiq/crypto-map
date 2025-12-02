@@ -7,15 +7,9 @@ export { and, eq, or, sql } from 'drizzle-orm'
 
 export const tables = schema
 
-// TODO Maybe remove this file when NuxtHub v1 is stable
-
-let db: PostgresJsDatabase<typeof schema> | null = null
-
-export function useDrizzle() {
-  if (db)
-    return db
-
+// Fresh connection per request to avoid stale connections in CF Workers
+// TODO: Consider Hyperdrive for connection pooling if latency becomes an issue
+export function useDrizzle(): PostgresJsDatabase<typeof schema> {
   const connectionString = useRuntimeConfig().databaseUrl
-  db = drizzle(postgres(connectionString), { schema })
-  return db
+  return drizzle(postgres(connectionString), { schema })
 }
