@@ -11,7 +11,7 @@ const querySchema = v.object({
 const MIN_ZOOM = 3
 const MAX_ZOOM = 15
 const ZOOM_STEP = 0.5
-const VIEWPORT_BUFFER = 0.60 // Use 60% of viewport to ensure locations are comfortably visible
+const VIEWPORT_BUFFER = 1.5 // Divide viewport by this to ensure locations are comfortably visible
 const DEFAULT_CENTER = { lat: 20, lng: 0 }
 
 const TILE_SIZE = 256
@@ -80,8 +80,8 @@ export default defineEventHandler(async (event) => {
   const centerLng = (userLng + nearestLng) / 2
 
   // Find highest zoom where nearest location is visible from midpoint center (with buffer)
-  const bufferedWidth = width * VIEWPORT_BUFFER
-  const bufferedHeight = height * VIEWPORT_BUFFER
+  const bufferedWidth = width / VIEWPORT_BUFFER
+  const bufferedHeight = height / VIEWPORT_BUFFER
 
   for (let zoom = MAX_ZOOM; zoom >= MIN_ZOOM; zoom -= ZOOM_STEP) {
     const bbox = getViewportBbox(centerLat, centerLng, bufferedWidth, bufferedHeight, zoom)
