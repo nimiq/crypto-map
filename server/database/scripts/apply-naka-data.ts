@@ -19,7 +19,7 @@ async function main() {
     const sql = postgres(databaseUrl)
 
     consola.start('Loading SQL file...')
-    const sqlPath = join(import.meta.dirname, '..', 'sql', '3.naka.sql')
+    const sqlPath = join(import.meta.dirname, '../../../sources/naka/output/naka.sql')
     const sqlContent = await readFile(sqlPath, 'utf-8')
 
     consola.start('Applying NAKA location data...')

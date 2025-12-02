@@ -9,7 +9,7 @@ const tileParamSchema = z.object({
   y: z.coerce.number().int().min(0),
 })
 
-export default defineCachedEventHandler(async (event) => {
+export default defineEventHandler(async (event) => {
   const { slug } = getRouterParams(event)
   if (!slug) {
     throw createError({
@@ -60,4 +60,4 @@ export default defineCachedEventHandler(async (event) => {
   setResponseHeader(event, 'Content-Type', 'application/vnd.mapbox-vector-tile')
   setResponseHeader(event, 'Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400')
   return mvt
-}, { maxAge: 60 * 60, swr: true, staleMaxAge: 60 * 60 * 24 })
+})

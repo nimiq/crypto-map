@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Crypto Map Pay App Widget is a Nuxt 4 application that helps users discover crypto-friendly locations in Lugano. It uses PostgreSQL with PostGIS for geospatial queries and pgvector for semantic search via OpenAI embeddings. The app features hybrid search combining PostgreSQL full-text search with AI-powered category matching. Deployed on NuxtHub/Cloudflare and styled with UnoCSS using the Nimiq design system.
+Crypto Map Pay App Widget is a Nuxt 4 application that helps users discover crypto-friendly locations worldwide. It uses PostgreSQL with PostGIS for geospatial queries and pgvector for semantic search via OpenAI embeddings. The app features hybrid search combining PostgreSQL full-text search with AI-powered category matching. Deployed on NuxtHub/Cloudflare and styled with UnoCSS using the Nimiq design system.
 
 ## Development Commands
 
@@ -40,6 +40,7 @@ pnpm run typecheck        # Run TypeScript type checking
 Location data is managed in a **private Git submodule** at `sources/` (repo: `nimiq/crypto-map-sources`). This separates sensitive API responses from the public main repo.
 
 **Structure:**
+
 ```
 sources/
 ├── naka/
@@ -52,19 +53,20 @@ sources/
 │   │   ├── 3-clean-data.ts           # Validation and cleaning
 │   │   └── 4-generate-sql.ts         # Generate SQL output
 │   └── output/
-│       └── naka.sql                  # Generated SQL (symlinked)
+│       └── naka.sql                  # Generated SQL
 └── .env                    # API keys (NAKA_API_KEY, GOOGLE_API_KEY)
 ```
 
 **Data Pipeline:**
+
 1. **Fetch** - Get merchant list from NAKA API (`api.gocrypto.com/v2/stores`)
 2. **Enrich** - Use `place_id` to fetch correct business data from Google Places API
    - ⚠️ **IMPORTANT**: NAKA coordinates are geocoded from address, not actual business location
    - Google Places API costs ~$0.017/request - script shows cost estimate and prompts for confirmation
-3. **Clean** - Validate bounds (Lugano region), normalize names, map categories
+3. **Clean** - Normalize names, map categories
 4. **Generate** - Create SQL INSERT statements for database import
 
-**Output:** `sources/naka/output/naka.sql` is symlinked to `server/database/sql/3.naka.sql`
+**Output:** `sources/naka/output/naka.sql` (read directly by `db:apply-naka` script)
 
 ### Image Proxying System
 
@@ -124,7 +126,7 @@ The app uses **PostgreSQL with PostGIS and pgvector** and a normalized relationa
 - Seed SQL files in `server/database/sql/`:
   - `1.rls-policies.sql` - Row Level Security policies and triggers
   - `2.category-hierarchies.sql` - Category parent-child relationships
-  - `3.naka.sql` - Location data (symlink to `sources/naka/output/naka.sql`)
+- Location data is read directly from `sources/naka/output/naka.sql` by `db:apply-naka`
 - Categories with embeddings are seeded from `server/database/scripts/categories.json`
 - To apply updated location data: `pnpm run db:apply-naka`
 - To regenerate migrations after schema changes: `pnpm run db:generate`
@@ -287,11 +289,13 @@ The app uses **UnoCSS with Nimiq presets**:
 ### Adding New Locations
 
 **Via NAKA Pipeline (recommended):**
+
 1. Run `pnpm run sources:pipeline` to refresh data from NAKA API
 2. The pipeline fetches → enriches → cleans → generates SQL automatically
 3. Run `pnpm run db:apply-naka` to apply to database
 
 **Manually:**
+
 1. Add location to `sources/naka/raw/google-places-cache.json`
 2. Run `pnpm run sources:clean && pnpm run sources:generate`
 3. Run `pnpm run db:apply-naka` to apply to database

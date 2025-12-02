@@ -1,1 +1,0 @@
-../../../sources/naka/output/naka.sql

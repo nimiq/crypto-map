@@ -1,7 +1,7 @@
 catalog:
   '@protomaps/basemaps': ^5.7.0
   '@vueuse/core': ^13.8.0
-  zod: ^4.1.13
+  zod: 'catalog:'
 
 catalogs:
   database:
