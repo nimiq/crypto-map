@@ -11,7 +11,7 @@ definePageMeta({
 const { query, category, autocompleteResults, categories, openNow } = useSearch()
 const { initialCenter, initialZoom, isInitialized, initializeView, viewCenter, setMapInstance, mapInstance, flyTo } = useMapControls()
 const { setSearchResults, setSelectedLocation, initializeLayers, updateUserLocation } = useMapIcons()
-const { showUserLocation, userLocationPoint, userLocationAccuracy, initialPoint, isGeoReady } = useUserLocation()
+const { showUserLocation, userLocationPoint, userLocationAccuracy, initialPoint: _initialPoint, isGeoReady } = useUserLocation()
 const { width: windowWidth, height: windowHeight } = useWindowSize()
 
 // Initialize map view with optimal zoom once CF geolocation resolves

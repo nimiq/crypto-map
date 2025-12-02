@@ -70,7 +70,8 @@ function useOpeningHours() {
   })
 
   const weeklyHours = computed(() => {
-    if (!location.openingHours) return null
+    if (!location.openingHours)
+      return null
     const hours = getWeeklyHours(location.openingHours)
     return hours.some(h => h) ? hours : null // Only show if at least one day has hours
   })
@@ -145,7 +146,7 @@ const { addressRef, showCopiedTooltip } = useAddressCopy()
           <Icon name="i-tabler:directions" size-16 />
           {{ t('location.directions') }}
         </NuxtLink>
-        <NuxtLink :to="location.gmapsUrl" target="_blank" external nq-arrow nq-pill nq-pill-secondary outline="1.5 neutral-0/20 offset--1.5" @click.stop>
+        <NuxtLink v-if="location.gmapsUrl" :to="location.gmapsUrl" target="_blank" external nq-arrow nq-pill nq-pill-secondary outline="1.5 neutral-0/20 offset--1.5" @click.stop>
           {{ t('location.openInGoogleMaps') }}
         </NuxtLink>
       </div>
