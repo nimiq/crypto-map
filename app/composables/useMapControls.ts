@@ -17,7 +17,7 @@ function useMapControlsBase() {
   const bearing = ref(0)
   const pitch = ref(0)
 
-  // Fetch optimal zoom when we have a location
+  // Fetch optimal zoom and center to show nearest locations
   async function initializeView(viewportWidth: number, viewportHeight: number) {
     if (isInitialized.value)
       return
@@ -32,10 +32,10 @@ function useMapControlsBase() {
     }
 
     try {
-      const { zoom } = await $fetch<{ zoom: number }>('/api/locations/optimal-zoom', {
+      const { zoom, center } = await $fetch<{ zoom: number, center: { lat: number, lng: number } }>('/api/locations/optimal-zoom', {
         query: { lat: point.lat, lng: point.lng, width: viewportWidth, height: viewportHeight },
       })
-      initialCenter.value = [point.lng, point.lat]
+      initialCenter.value = [center.lng, center.lat]
       initialZoom.value = zoom
     }
     catch {
