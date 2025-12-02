@@ -25,7 +25,7 @@ async function searchHandler(event: any) {
   let lng = qLng
 
   if (!lat || !lng) {
-    const cf = (event.context.cloudflare as any)?.cf
+    const cf = event.context.cf as { latitude?: string, longitude?: string } | undefined
     if (cf?.latitude && cf?.longitude) {
       lat = Number(cf.latitude)
       lng = Number(cf.longitude)
