@@ -1,3 +1,4 @@
 [submodule "sources"]
 	path = sources
 	url = git@github.com:nimiq/crypto-map-sources.git
+	update = none
