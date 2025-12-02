@@ -11,7 +11,7 @@ const querySchema = v.object({
 const MIN_ZOOM = 3
 const MAX_ZOOM = 15
 const ZOOM_STEP = 0.5
-const VIEWPORT_BUFFER = 0.85 // Use 85% of viewport to ensure locations aren't at the edge
+const VIEWPORT_BUFFER = 0.60 // Use 60% of viewport to ensure locations are comfortably visible
 const DEFAULT_CENTER = { lat: 20, lng: 0 }
 
 const TILE_SIZE = 256
