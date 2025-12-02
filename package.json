@@ -30,7 +30,6 @@
   "dependencies": {
     "@ai-sdk/openai": "catalog:utils",
     "@electric-sql/pglite": "catalog:database",
-    "@mapbox/sphericalmercator": "catalog:",
     "@nuxt/fonts": "catalog:framework",
     "@nuxt/icon": "catalog:framework",
     "@nuxt/image": "catalog:framework",

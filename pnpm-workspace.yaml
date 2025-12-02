@@ -1,5 +1,4 @@
 catalog:
-  '@mapbox/sphericalmercator': ^2.0.2
   '@protomaps/basemaps': ^5.7.0
   '@vueuse/core': ^13.8.0
   zod: ^3.25.56

@@ -19,9 +19,6 @@ catalogs:
       specifier: ^3.4.7
       version: 3.4.7
   default:
-    '@mapbox/sphericalmercator':
-      specifier: ^2.0.2
-      version: 2.0.2
     '@protomaps/basemaps':
       specifier: ^5.7.0
       version: 5.7.0
@@ -181,9 +178,6 @@ importers:
       '@electric-sql/pglite':
         specifier: catalog:database
         version: 0.3.14
-      '@mapbox/sphericalmercator':
-        specifier: 'catalog:'
-        version: 2.0.2
       '@nuxt/fonts':
         specifier: catalog:framework
         version: 0.12.1(@vercel/blob@2.0.0)(aws4fetch@1.0.20)(db0@0.3.4(@electric-sql/pglite@0.3.14)(drizzle-orm@0.44.7(@cloudflare/workers-types@4.20251126.0)(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.0)(postgres@3.4.7)))(ioredis@5.8.2)(magicast@0.5.1)(vite@7.2.4(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.20.6)(yaml@2.8.1))
@@ -1757,9 +1751,6 @@ packages:
 
   '@mapbox/point-geometry@1.1.0':
     resolution: {integrity: sha512-YGcBz1cg4ATXDCM/71L9xveh4dynfGmcLDqufR+nQQy3fKwsAZsWd/x4621/6uJaeB9mwOHE6hPeDgXz9uViUQ==}
-
-  '@mapbox/sphericalmercator@2.0.2':
-    resolution: {integrity: sha512-Ai/S9qXupBzFCM0i4sYDIx1A0pDYMaD3xlhVg05JToYeyORq8aAuHbd6CCPC86HlLSjYmoPeljJ5tMVKtzd4Lg==}
 
   '@mapbox/tiny-sdf@2.0.7':
     resolution: {integrity: sha512-25gQLQMcpivjOSA40g3gO6qgiFPDpWRoMfd+G/GoppPIeP6JDaMMkMrEJnMZhKyyS6iKwVt5YKu02vCUyJM3Ug==}
@@ -8426,8 +8417,6 @@ snapshots:
       - supports-color
 
   '@mapbox/point-geometry@1.1.0': {}
-
-  '@mapbox/sphericalmercator@2.0.2': {}
 
   '@mapbox/tiny-sdf@2.0.7': {}
 

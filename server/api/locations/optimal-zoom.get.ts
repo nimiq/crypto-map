@@ -1,4 +1,3 @@
-import { SphericalMercator } from '@mapbox/sphericalmercator'
 import { sql } from 'drizzle-orm'
 import * as v from 'valibot'
 
@@ -15,12 +14,38 @@ const ZOOM_STEP = 0.5
 const VIEWPORT_BUFFER = 0.85 // Use 85% of viewport to ensure locations aren't at the edge
 const DEFAULT_CENTER = { lat: 20, lng: 0 }
 
-const merc = new SphericalMercator({ size: 256 })
+const TILE_SIZE = 256
+const D2R = Math.PI / 180
+const R2D = 180 / Math.PI
+
+// Web Mercator projection: convert [lng, lat] to pixel coordinates at given zoom
+function lngLatToPixel(lng: number, lat: number, zoom: number): [number, number] {
+  const size = TILE_SIZE * 2 ** zoom
+  const d = size / 2
+  const bc = size / 360
+  const cc = size / (2 * Math.PI)
+  const f = Math.min(Math.max(Math.sin(D2R * lat), -0.9999), 0.9999)
+  const x = d + lng * bc
+  const y = d + 0.5 * Math.log((1 + f) / (1 - f)) * -cc
+  return [x, y]
+}
+
+// Web Mercator projection: convert pixel coordinates to [lng, lat] at given zoom
+function pixelToLngLat(px: number, py: number, zoom: number): [number, number] {
+  const size = TILE_SIZE * 2 ** zoom
+  const bc = size / 360
+  const cc = size / (2 * Math.PI)
+  const zc = size / 2
+  const g = (py - zc) / -cc
+  const lng = (px - zc) / bc
+  const lat = R2D * (2 * Math.atan(Math.exp(g)) - 0.5 * Math.PI)
+  return [lng, lat]
+}
 
 function getViewportBbox(lat: number, lng: number, width: number, height: number, zoom: number) {
-  const [centerPx, centerPy] = merc.px([lng, lat], zoom)
-  const [minLng, maxLat] = merc.ll([centerPx - width / 2, centerPy - height / 2], zoom)
-  const [maxLng, minLat] = merc.ll([centerPx + width / 2, centerPy + height / 2], zoom)
+  const [centerPx, centerPy] = lngLatToPixel(lng, lat, zoom)
+  const [minLng, maxLat] = pixelToLngLat(centerPx - width / 2, centerPy - height / 2, zoom)
+  const [maxLng, minLat] = pixelToLngLat(centerPx + width / 2, centerPy + height / 2, zoom)
   return { minLat, maxLat, minLng, maxLng }
 }
 
