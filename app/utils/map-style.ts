@@ -43,7 +43,7 @@ export function getMapStyle(origin: string): StyleSpecification {
       },
       locations: {
         type: 'vector',
-        tiles: [`${origin}/tiles/{z}/{x}/{y}`],
+        tiles: [`${origin}/api/tiles/{z}/{x}/{y}`],
         minzoom: 0,
         maxzoom: 18,
       },
