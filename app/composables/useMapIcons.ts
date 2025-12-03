@@ -1,5 +1,6 @@
 import type { Map } from 'maplibre-gl'
 import { consola } from 'consola'
+import { buildColorMatches, buildIconMatches, defaultColor } from '~/utils/category-mapping'
 
 const logger = consola.withTag('map-markers')
 
@@ -19,6 +20,7 @@ export function useMapIcons() {
       'bar',
       'bus',
       'cafe',
+      'convenience',
       'gas',
       'golf',
       'grocery',
@@ -67,7 +69,7 @@ export function useMapIcons() {
       'match',
       ['get', 'category_id'],
       ...buildColorMatches(),
-      labelColors.misc, // default
+      defaultColor, // default
     ] as unknown as string
 
     // Build icon expression
@@ -112,44 +114,6 @@ export function useMapIcons() {
       })
       logger.info('Added location-icon layer')
     }
-  }
-
-  /**
-   * Build MapLibre color match expression from label colors
-   */
-  function buildColorMatches(): string[] {
-    return Object.entries(labelColors).flat()
-  }
-
-  /**
-   * Build MapLibre icon match expression
-   */
-  function buildIconMatches(): string[] {
-    // This is a simplified mapping for the style expression
-    // Ideally we would use the same logic as getCategoryIcon but adapted for MapLibre expressions
-    // For now, we'll map the most common exact matches
-    const mappings: Array<[string, string]> = [
-      ['restaurant', 'restaurant'],
-      ['cafe', 'cafe'],
-      ['bar', 'bar'],
-      ['bakery', 'cafe'],
-      ['store', 'shopping'],
-      ['supermarket', 'grocery'],
-      ['pharmacy', 'pharmacy'],
-      ['atm', 'atm'],
-      ['bank', 'bank'],
-      ['gas_station', 'gas'],
-      ['museum', 'museum'],
-      ['theater', 'theater'],
-      ['aquarium', 'aquarium'],
-      ['airport', 'airport'],
-      ['train_station', 'train'],
-      ['bus_station', 'bus'],
-      ['park', 'golf'], // fallback
-      ['stadium', 'misc'],
-      ['hospital', 'pharmacy'],
-    ]
-    return mappings.flat()
   }
 
   /**
@@ -474,7 +438,7 @@ export function useMapIcons() {
       'match',
       ['get', 'category_id'],
       ...buildColorMatches(),
-      labelColors.misc,
+      defaultColor,
     ]
   }
 
