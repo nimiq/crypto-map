@@ -273,14 +273,8 @@ export function useMapIcons() {
       ]
       map.setLayoutProperty('location-icon', 'text-size', textSizeExpression as any)
 
-      // Force text to show over other pins for active locations
-      const textAllowOverlapExpression = [
-        'case',
-        ['in', ['get', 'uuid'], ['literal', uuids]],
-        true,
-        false,
-      ]
-      map.setLayoutProperty('location-icon', 'text-allow-overlap', textAllowOverlapExpression as any)
+      // Allow text overlap globally when we have active pins (symbol-sort-key handles priority)
+      map.setLayoutProperty('location-icon', 'text-allow-overlap', true)
 
       // Make text non-optional for active locations (always show)
       const textOptionalExpression = [
@@ -372,14 +366,8 @@ export function useMapIcons() {
       ]
       map.setLayoutProperty('location-icon', 'text-size', textSizeExpression as any)
 
-      // Force text to show over other pins for selected location
-      const textAllowOverlapExpression = [
-        'case',
-        ['==', ['get', 'uuid'], uuid],
-        true,
-        false,
-      ]
-      map.setLayoutProperty('location-icon', 'text-allow-overlap', textAllowOverlapExpression as any)
+      // Allow text overlap globally when we have a selected pin (symbol-sort-key handles priority)
+      map.setLayoutProperty('location-icon', 'text-allow-overlap', true)
 
       // Make text non-optional for selected location (always show)
       const textOptionalExpression = [
