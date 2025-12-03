@@ -1,5 +1,11 @@
 import type { Point } from '~/types/geo'
 
+interface NimiqGeoIpResponse {
+  location?: { longitude: string, latitude: string, accuracy_radius: number }
+  country?: string
+  city?: string
+}
+
 export function useUserLocation() {
   const route = useRoute()
 
@@ -7,9 +13,45 @@ export function useUserLocation() {
   const queryLng = route.query.lng ? Number(route.query.lng) : undefined
   const hasQueryParams = queryLat !== undefined && queryLng !== undefined
 
-  // Cloudflare geolocation (city-level accuracy)
-  const { data: cfGeo, status: cfGeoStatus } = useFetch<{ lat: number | null, lng: number | null }>('/api/geolocation', { lazy: true, server: false })
-  const isGeoReady = computed(() => cfGeoStatus.value === 'success' || cfGeoStatus.value === 'error')
+  // Nimiq GeoIP (client-side fetch)
+  const ipPoint = ref<Point | null>(null)
+  const ipAccuracy = ref<number | null>(null) // in meters
+  const ipCountry = ref<string | null>(null)
+  const ipGeoStatus = ref<'idle' | 'pending' | 'success' | 'error'>('idle')
+
+  async function fetchIpGeolocation() {
+    if (ipGeoStatus.value !== 'idle')
+      return
+    ipGeoStatus.value = 'pending'
+
+    try {
+      const response = await fetch('https://geoip.nimiq-network.com:8443/v1/locate')
+      const json: NimiqGeoIpResponse = await response.json()
+
+      if (json?.location?.latitude && json?.location?.longitude) {
+        ipPoint.value = {
+          lat: Number.parseFloat(json.location.latitude),
+          lng: Number.parseFloat(json.location.longitude),
+        }
+        ipAccuracy.value = (json.location.accuracy_radius || 300) * 1000 // km -> meters
+        ipCountry.value = json.country || null
+        ipGeoStatus.value = 'success'
+      }
+      else {
+        ipGeoStatus.value = 'error'
+      }
+    }
+    catch {
+      ipGeoStatus.value = 'error'
+    }
+  }
+
+  // Auto-fetch on client
+  if (import.meta.client) {
+    fetchIpGeolocation()
+  }
+
+  const isGeoReady = computed(() => ipGeoStatus.value === 'success' || ipGeoStatus.value === 'error')
 
   const gpsPoint = ref<Point | null>(null)
   const gpsAccuracy = ref<number | null>(null)
@@ -50,30 +92,33 @@ export function useUserLocation() {
 
   // Initial map center point (for centering map, not for blue dot)
   const initialPoint = computed<Point | null>(() => {
-    // Priority 1: URL query params
     if (hasQueryParams)
       return { lng: queryLng!, lat: queryLat! }
-
-    // Priority 2: Cloudflare geolocation
-    if (cfGeo.value?.lat && cfGeo.value?.lng)
-      return { lng: cfGeo.value.lng, lat: cfGeo.value.lat }
-
-    // No initial location available
+    if (ipPoint.value)
+      return ipPoint.value
     return null
   })
 
-  const source = computed<'gps' | 'query' | 'cloudflare' | 'none'>(() => {
+  // Accuracy for initial zoom calculation (only from IP geolocation)
+  const initialAccuracy = computed<number | null>(() => {
+    if (hasQueryParams)
+      return null // Query params don't have accuracy
+    return ipAccuracy.value
+  })
+
+  const source = computed<'gps' | 'query' | 'nimiq-geoip' | 'none'>(() => {
     if (gpsPoint.value)
       return 'gps'
     if (hasQueryParams)
       return 'query'
-    if (cfGeo.value?.lat && cfGeo.value?.lng)
-      return 'cloudflare'
+    if (ipPoint.value)
+      return 'nimiq-geoip'
     return 'none'
   })
 
   return {
     initialPoint,
+    initialAccuracy,
     isGeoReady,
     source,
     hasQueryParams,
@@ -84,5 +129,6 @@ export function useUserLocation() {
     showUserLocation,
     userLocationPoint,
     userLocationAccuracy,
+    ipCountry,
   }
 }

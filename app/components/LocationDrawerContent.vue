@@ -105,7 +105,7 @@ const { addressRef, showCopiedTooltip } = useAddressCopy()
     <header bg-neutral-0 relative f-px-md>
       <!-- Close Button -->
       <div flex="~ shrink-0 gap-8" right-16 top-4 absolute z-20>
-        <button bg="neutral-500 hocus:neutral-600" stack rounded-full size-24 shrink-0 transition-colors @click.stop="emit('close')">
+        <button bg="neutral-500 hocus:neutral-600" stack rounded-full shrink-0 size-24 transition-colors @click.stop="emit('close')">
           <Icon name="i-nimiq:cross-bold" text-neutral-0 size-10 />
         </button>
       </div>

@@ -90,6 +90,9 @@ export default defineNuxtConfig({
       cache: { maxAge: 3600, swr: true, staleMaxAge: 43200 },
     },
     '/api/locations': { cache: false },
+    '/api/locations/country-counts': {
+      cache: { maxAge: 86400, swr: true, staleMaxAge: 604800 }, // 24h cache, 7d stale
+    },
     '/api/locations/*': {
       cache: { maxAge: 900, swr: true, staleMaxAge: 900 },
     },

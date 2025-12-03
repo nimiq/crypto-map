@@ -139,17 +139,13 @@ export function useMapIcons() {
         source: 'user-location',
         paint: {
           'circle-radius': [
-            'max',
-            6, // Minimum visible radius
-            [
-              'interpolate',
-              ['exponential', 2],
-              ['zoom'],
-              0,
-              0,
-              20,
-              ['/', ['get', 'accuracy'], 0.075], // Rough meter-to-pixel conversion at zoom 20
-            ],
+            'interpolate',
+            ['exponential', 2],
+            ['zoom'],
+            0,
+            6, // Minimum visible radius at low zoom
+            20,
+            ['max', 6, ['/', ['get', 'accuracy'], 0.075]], // Rough meter-to-pixel conversion at zoom 20
           ] as any,
           'circle-color': '#4285F4',
           'circle-opacity': 0.1,

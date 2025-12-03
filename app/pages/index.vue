@@ -11,13 +11,14 @@ definePageMeta({
 const { query, category, autocompleteResults, categories, openNow } = useSearch()
 const { initialCenter, initialZoom, isInitialized, initializeView, viewCenter, setMapInstance, mapInstance, flyTo } = useMapControls()
 const { setSearchResults, setSelectedLocation, initializeLayers, updateUserLocation } = useMapIcons()
-const { showUserLocation, userLocationPoint, userLocationAccuracy, initialPoint: _initialPoint, isGeoReady } = useUserLocation()
+const { showUserLocation, userLocationPoint, userLocationAccuracy, isGeoReady } = useUserLocation()
 const { width: windowWidth, height: windowHeight } = useWindowSize()
+const { locationCount, clusterCount } = useVisibleLocations()
 
-// Initialize map view with optimal zoom once CF geolocation resolves
-watch([isGeoReady, windowWidth], async () => {
+// Initialize map view with accuracy-based zoom once IP geolocation resolves
+watch([isGeoReady, windowWidth], () => {
   if (!isInitialized.value && isGeoReady.value && windowWidth.value > 0) {
-    await initializeView(windowWidth.value, windowHeight.value)
+    initializeView(windowWidth.value, windowHeight.value)
   }
 }, { immediate: true })
 
@@ -63,6 +64,18 @@ watch([userLocationPoint, userLocationAccuracy, showUserLocation, mapInstance], 
   else {
     updateUserLocation(map as any, null, null)
   }
+})
+
+// Hide cluster circles when country bubbles should show (1-2 clusters, no individual locations)
+watch([locationCount, clusterCount, mapInstance], ([locCount, clusCount, map]) => {
+  if (!map)
+    return
+  const showClusterBubbles = locCount === 0 && clusCount >= 1 && clusCount <= 2
+  const visibility = showClusterBubbles ? 'none' : 'visible'
+  if (map.getLayer('location-clusters'))
+    map.setLayoutProperty('location-clusters', 'visibility', visibility)
+  if (map.getLayer('location-cluster-count'))
+    map.setLayoutProperty('location-cluster-count', 'visibility', visibility)
 })
 
 // Filter map to show only search results and highlight them
@@ -243,6 +256,7 @@ async function onMapLoad(event: { map: Map }) {
       </div>
     </ClientOnly>
     <MapControls />
+    <CountryBubbles />
     <LocationCounter />
     <DevOnly><MapDebugPanel /></DevOnly>
 

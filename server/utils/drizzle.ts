@@ -7,9 +7,13 @@ export { and, eq, or, sql } from 'drizzle-orm'
 
 export const tables = schema
 
-// Fresh connection per request to avoid stale connections in CF Workers
-// TODO: Consider Hyperdrive for connection pooling if latency becomes an issue
+const DB_KEY = '__drizzle_db__' as const
+
 export function useDrizzle(): PostgresJsDatabase<typeof schema> {
-  const connectionString = useRuntimeConfig().databaseUrl
-  return drizzle(postgres(connectionString), { schema })
+  // Use globalThis to persist across HMR in dev
+  if (!(globalThis as any)[DB_KEY]) {
+    const connectionString = useRuntimeConfig().databaseUrl
+    ;(globalThis as any)[DB_KEY] = drizzle(postgres(connectionString, { max: 1 }), { schema })
+  }
+  return (globalThis as any)[DB_KEY]
 }

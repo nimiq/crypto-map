@@ -209,7 +209,7 @@ export function getMapStyle(origin: string): StyleSpecification {
         },
       },
 
-      // Administrative boundaries
+      // Administrative boundaries (fade out at higher zooms to show more city labels)
       {
         'id': 'admin_country',
         'type': 'line',
@@ -219,7 +219,7 @@ export function getMapStyle(origin: string): StyleSpecification {
         'paint': {
           'line-color': NIMIQ_COLORS.neutral600,
           'line-width': 1,
-          'line-opacity': 0.6,
+          'line-opacity': ['interpolate', ['linear'], ['zoom'], 3, 0.6, 5, 0.3, 8, 0.15],
         },
       },
       {
@@ -231,7 +231,7 @@ export function getMapStyle(origin: string): StyleSpecification {
         'paint': {
           'line-color': NIMIQ_COLORS.neutral400,
           'line-width': 0.5,
-          'line-opacity': 0.4,
+          'line-opacity': ['interpolate', ['linear'], ['zoom'], 3, 0.4, 5, 0.2, 8, 0.1],
         },
       },
 
@@ -368,11 +368,11 @@ export function getMapStyle(origin: string): StyleSpecification {
         'source': 'openmaptiles',
         'source-layer': 'place',
         'filter': ['in', 'class', 'city', 'town'],
-        'minzoom': 8,
+        'minzoom': 4,
         'layout': {
           'text-field': ['coalesce', ['get', 'name:en'], ['get', 'name:latin'], ['get', 'name']],
           'text-font': ['Noto Sans Regular'],
-          'text-size': ['interpolate', ['exponential', 1.2], ['zoom'], 8, 10, 12, 12, 16, 16],
+          'text-size': ['interpolate', ['exponential', 1.2], ['zoom'], 4, 9, 8, 11, 12, 13, 16, 16],
           'text-anchor': 'center',
         },
         'paint': {
