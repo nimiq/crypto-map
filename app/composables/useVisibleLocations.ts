@@ -1,5 +1,5 @@
 import type { MapGeoJSONFeature } from 'maplibre-gl'
-import { useThrottleFn } from '@vueuse/core'
+import { useDebounceFn } from '@vueuse/core'
 
 export interface ClusterInfo {
   lng: number
@@ -54,15 +54,14 @@ const useVisibleLocationsBase = createSharedComposable(() => {
     clusters.value = clusterList
   }
 
-  // Throttle updates during drag to avoid excessive re-renders
-  const updateVisibleCount = useThrottleFn(doUpdateVisibleCount, 50)
+  // Debounce updates to avoid excessive re-renders
+  const updateVisibleCount = useDebounceFn(doUpdateVisibleCount, 150)
 
   // Update on map move/zoom and when tiles load
   watch(mapInstance, (map) => {
     if (!map)
       return
 
-    map.on('move', updateVisibleCount) // Update during drag for smooth bubble movement
     map.on('moveend', updateVisibleCount)
     map.on('zoomend', updateVisibleCount)
     map.on('sourcedata', (e) => {

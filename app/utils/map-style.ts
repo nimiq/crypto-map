@@ -33,7 +33,7 @@ export function getMapStyle(origin: string): StyleSpecification {
     zoom: 1,
     bearing: 0,
     pitch: 0,
-    sprite: 'https://protomaps.github.io/basemaps-assets/sprites/v4/light',
+    // No sprite - we load custom icons via map.addImage() in useMapIcons.ts
     glyphs: 'https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf',
     sources: {
       openmaptiles: {
@@ -408,6 +408,7 @@ export function getMapStyle(origin: string): StyleSpecification {
         'source': 'locations',
         'source-layer': 'locations',
         'filter': ['has', 'point_count'],
+        'minzoom': 6,
         'maxzoom': 9, // Hide clusters above zoom 8
         'paint': {
           'circle-color': NIMIQ_COLORS.darkblue,
@@ -431,6 +432,7 @@ export function getMapStyle(origin: string): StyleSpecification {
         'source': 'locations',
         'source-layer': 'locations',
         'filter': ['has', 'point_count'],
+        'minzoom': 6,
         'maxzoom': 9, // Hide cluster labels above zoom 8
         'layout': {
           'text-field': ['get', 'point_count'],

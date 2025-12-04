@@ -36,6 +36,7 @@ function useMapControlsBase() {
 
   // View center tracks current map position (for search API)
   const viewCenter = ref<{ lat: number, lng: number }>({ lat: 0, lng: 0 })
+  const zoom = ref(DEFAULT_ZOOM)
   const bearing = ref(0)
   const pitch = ref(0)
 
@@ -90,6 +91,11 @@ function useMapControlsBase() {
     bearing.value = map.getBearing()
     pitch.value = map.getPitch()
     updateViewCenter(map)
+
+    map.on('zoom', () => {
+      zoom.value = map.getZoom()
+    })
+    zoom.value = map.getZoom()
   }
 
   function zoomIn() {
@@ -117,6 +123,7 @@ function useMapControlsBase() {
     isInitialized,
     initializeView,
     viewCenter,
+    zoom,
     bearing,
     pitch,
     isRotated,

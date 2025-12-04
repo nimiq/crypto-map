@@ -1,8 +1,14 @@
 <script setup lang="ts">
-const { query, category, autocompleteResults } = useSearch()
+const { query, category, autocompleteLocations, autocompleteGeo, autocompleteGeoWeak } = useSearch()
 
-async function handleNavigate(uuid: string) {
-  await navigateTo(`/location/${uuid}`)
+async function handleNavigate(uuid: string | undefined, latitude: number, longitude: number) {
+  if (uuid) {
+    await navigateTo(`/location/${uuid}`)
+  }
+  else {
+    // Geo result - navigate to map at location
+    await navigateTo(`/?lat=${latitude}&lng=${longitude}`)
+  }
 }
 </script>
 
@@ -12,7 +18,9 @@ async function handleNavigate(uuid: string) {
       <Search
         v-model:query="query"
         v-model:category="category"
-        :autocomplete-results
+        :autocomplete-locations
+        :autocomplete-geo
+        :autocomplete-geo-weak
         @navigate="handleNavigate"
       />
     </header>

@@ -15,7 +15,7 @@ export interface SearchLocationOptions {
   fetchLimit?: number
 }
 
-export type LocationResponse = Omit<Location, 'location' | 'street' | 'city' | 'postalCode' | 'region' | 'country'> & {
+export type LocationResponse = Omit<Location, 'location' | 'street' | 'postalCode' | 'region'> & {
   address: string
   latitude: number
   longitude: number
@@ -36,7 +36,7 @@ export interface CategorySuggestion {
   source: 'embedding' | 'keyword'
 }
 
-export type LocationDetailResponse = Omit<Location, 'location' | 'street' | 'city' | 'postalCode' | 'region' | 'country'> & {
+export type LocationDetailResponse = Omit<Location, 'location' | 'street' | 'postalCode' | 'region'> & {
   address: string
   latitude: number
   longitude: number
@@ -51,4 +51,21 @@ export interface QuickCategoryItem {
   icon: string
   color: 'orange' | 'gold' | 'red' | 'purple' | 'green' | 'neutral'
   isHistory?: boolean
+}
+
+export type GeoType = 'city' | 'address' | 'region'
+
+export interface GeoResult {
+  kind: 'geo'
+  name: string
+  displayName: string
+  latitude: number
+  longitude: number
+  geoType: GeoType
+}
+
+export interface AutocompleteResponse {
+  locations: SearchLocationResponse[]
+  geo: GeoResult[] // Strong matches (show before locations)
+  geoWeak: GeoResult[] // Weak matches (show after locations)
 }

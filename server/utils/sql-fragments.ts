@@ -191,6 +191,8 @@ export const baseLocationSelect = {
   uuid: tables.locations.uuid,
   name: tables.locations.name,
   address,
+  city: tables.locations.city,
+  country: tables.locations.country,
   latitude,
   longitude,
   rating: tables.locations.rating,

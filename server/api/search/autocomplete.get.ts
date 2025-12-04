@@ -1,4 +1,3 @@
-import { consola } from 'consola'
 import * as v from 'valibot'
 
 const querySchema = v.object({
@@ -7,36 +6,46 @@ const querySchema = v.object({
   lng: v.optional(v.pipe(v.string(), v.transform(Number), v.number())),
 })
 
+// Check if geo result is a strong match (name closely matches query)
+function isStrongGeoMatch(geo: GeoResult, query: string): boolean {
+  const q = query.toLowerCase().trim()
+  const name = geo.name.toLowerCase()
+  // Exact match or query is prefix of name
+  return name === q || name.startsWith(q) || q.startsWith(name)
+}
+
 export default defineCachedEventHandler(async (event) => {
   const { q: searchQuery, lat, lng } = await getValidatedQuery(event, data => v.parse(querySchema, data))
 
   // Precompute embedding in background (non-blocking)
-  // waitUntil ensures the task completes even after response is sent
-  event.waitUntil(
-    generateEmbeddingCached(searchQuery).catch((error) => {
-      consola.error('Failed to cache embedding:', error, { tag: 'autocomplete' })
-    }),
-  )
+  event.waitUntil(generateEmbeddingCached(searchQuery).catch(() => {}))
 
   const origin = lat !== undefined && lng !== undefined ? { lat, lng } : undefined
-  const results = await searchLocationsByText(searchQuery, { fetchLimit: 10, origin })
+
+  // Fetch both in parallel
+  const [dbResults, geoResults] = await Promise.all([
+    searchLocationsByText(searchQuery, { fetchLimit: 10, origin }),
+    searchNominatim(searchQuery, { lat, lng, limit: 3 }),
+  ])
 
   // Compute primary category for each location
   const locationCategories = new Map<string, string[]>()
-  for (const location of results) {
+  for (const location of dbResults) {
     locationCategories.set(location.uuid, location.categories.map(c => c.id))
   }
   const primaryCategoryIds = await getMostSpecificCategoriesBatch(locationCategories)
 
-  // Add primaryCategory to results
-  for (const location of results) {
+  for (const location of dbResults) {
     const primaryCategoryId = primaryCategoryIds.get(location.uuid)
-    if (primaryCategoryId) {
+    if (primaryCategoryId)
       location.primaryCategory = location.categories.find(c => c.id === primaryCategoryId)
-    }
   }
 
-  return results
+  // Split geo results: strong matches go first, weak matches go after locations
+  const strongGeoMatches = geoResults.filter(g => isStrongGeoMatch(g, searchQuery))
+  const weakGeoMatches = geoResults.filter(g => !isStrongGeoMatch(g, searchQuery))
+
+  return { locations: dbResults, geo: strongGeoMatches, geoWeak: weakGeoMatches }
 }, {
   maxAge: 60 * 60 * 24 * 7, // Cache for 7 days
   getKey: (event) => {

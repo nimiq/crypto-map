@@ -136,7 +136,7 @@ export function useMapIcons() {
           'icon-image': 'active',
           'icon-size': 0.09492188, // 1.5x larger
           'icon-allow-overlap': true, // Always visible
-          'icon-ignore-placement': true, // Don't affect other icons' placement
+          'icon-ignore-placement': false, // Block other icons from rendering here
           'icon-anchor': 'bottom',
           'icon-offset': [0, 0],
           'symbol-sort-key': -999999, // Highest priority
@@ -147,7 +147,7 @@ export function useMapIcons() {
           'text-justify': 'left',
           'text-size': 16,
           'text-allow-overlap': true, // Always show text
-          'text-ignore-placement': true, // Don't affect other text placement
+          'text-ignore-placement': false, // Block other text from rendering here
         },
         'paint': {
           'icon-opacity': 1,

@@ -8,7 +8,7 @@ definePageMeta({
   layout: false,
 })
 
-const { query, category, autocompleteResults, categories, openNow } = useSearch()
+const { query, category, autocompleteLocations, autocompleteGeo, autocompleteGeoWeak, categories, openNow } = useSearch()
 const { initialCenter, initialZoom, isInitialized, initializeView, viewCenter, setMapInstance, mapInstance, flyTo } = useMapControls()
 const { setSearchResults, setSelectedLocation, initializeLayers, updateUserLocation } = useMapIcons()
 const { showUserLocation, userLocationPoint, userLocationAccuracy, isGeoReady } = useUserLocation()
@@ -92,19 +92,23 @@ watch([searchResults, mapInstance], ([results, map]) => {
   }
 })
 
-function handleNavigate(uuid: string, latitude: number, longitude: number) {
-  // Open drawer
-  selectedLocationUuid.value = uuid
-  isDrawerOpen.value = true
+function handleNavigate(uuid: string | undefined, latitude: number, longitude: number) {
+  if (uuid) {
+    // Location result - open drawer
+    selectedLocationUuid.value = uuid
+    isDrawerOpen.value = true
 
-  // Highlight on map and fly if outside view
-  if (mapInstance.value) {
-    setSelectedLocation(mapInstance.value as any, uuid)
-
-    const bounds = mapInstance.value.getBounds()
-    if (!bounds.contains([longitude, latitude])) {
-      flyTo({ lat: latitude, lng: longitude }, 14)
+    if (mapInstance.value) {
+      setSelectedLocation(mapInstance.value as any, uuid)
+      const bounds = mapInstance.value.getBounds()
+      if (!bounds.contains([longitude, latitude])) {
+        flyTo({ lat: latitude, lng: longitude }, 14)
+      }
     }
+  }
+  else {
+    // Geo result - just pan to location
+    flyTo({ lat: latitude, lng: longitude }, 12)
   }
 }
 
@@ -205,7 +209,7 @@ async function onMapLoad(event: { map: Map }) {
 
 <template>
   <main min-h-screen>
-    <Search v-model:query="query" v-model:category="category" :autocomplete-results @navigate="handleNavigate" />
+    <Search v-model:query="query" v-model:category="category" :autocomplete-locations :autocomplete-geo :autocomplete-geo-weak @navigate="handleNavigate" />
     <ClientOnly>
       <template #fallback>
         <div flex="~ items-center justify-center" bg-neutral-100 size-screen>

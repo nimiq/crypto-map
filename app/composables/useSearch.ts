@@ -18,7 +18,9 @@ export function useSearch() {
     maxWait: 1000,
   })
 
-  const autocompleteResults = ref<SearchLocationResponse[]>([])
+  const autocompleteLocations = ref<SearchLocationResponse[]>([])
+  const autocompleteGeo = ref<GeoResult[]>([]) // Strong geo matches (before locations)
+  const autocompleteGeoWeak = ref<GeoResult[]>([]) // Weak geo matches (after locations)
   const categorySuggestion = ref<CategorySuggestion | null>(null)
   let abortController: AbortController | null = null
   let suggestionAbortController: AbortController | null = null
@@ -36,7 +38,9 @@ export function useSearch() {
     }
 
     if (trimmed.length < 2) {
-      autocompleteResults.value = []
+      autocompleteLocations.value = []
+      autocompleteGeo.value = []
+      autocompleteGeoWeak.value = []
       categorySuggestion.value = null
       return
     }
@@ -57,7 +61,7 @@ export function useSearch() {
     abortController = new AbortController()
 
     try {
-      autocompleteResults.value = await $fetch<SearchLocationResponse[]>('/api/search/autocomplete', {
+      const response = await $fetch<AutocompleteResponse>('/api/search/autocomplete', {
         query: {
           q: trimmed,
           lat: viewCenter.value.lat,
@@ -65,11 +69,16 @@ export function useSearch() {
         },
         signal: abortController.signal,
       })
+      autocompleteLocations.value = response.locations
+      autocompleteGeo.value = response.geo
+      autocompleteGeoWeak.value = response.geoWeak
     }
     catch (error: any) {
       if (error.name !== 'AbortError') {
         logger.error('Autocomplete fetch failed:', error)
-        autocompleteResults.value = []
+        autocompleteLocations.value = []
+        autocompleteGeo.value = []
+        autocompleteGeoWeak.value = []
       }
     }
 
@@ -155,7 +164,9 @@ export function useSearch() {
     query.value = ''
     category.value = undefined
     localSearchInput.value = ''
-    autocompleteResults.value = []
+    autocompleteLocations.value = []
+    autocompleteGeo.value = []
+    autocompleteGeoWeak.value = []
     categorySuggestion.value = null
   }
 
@@ -166,7 +177,9 @@ export function useSearch() {
     localSearchInput,
     openNow,
     nearMe,
-    autocompleteResults,
+    autocompleteLocations,
+    autocompleteGeo,
+    autocompleteGeoWeak,
     categorySuggestion,
     hasSearchParams,
     formatCategoryLabel,

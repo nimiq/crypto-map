@@ -2,6 +2,8 @@
 import { consola } from 'consola'
 
 const { mapInstance } = useMapControls()
+const { locationCount, clusterCount } = useVisibleLocations()
+const hasVisibleFeatures = computed(() => locationCount.value > 0 || clusterCount.value > 0)
 const count = ref<number | null>(null)
 const loading = ref(false)
 
@@ -55,7 +57,7 @@ watch(mapInstance, (map) => {
     leave-to-class="opacity-0 translate-y-4"
   >
     <div
-      v-if="count !== null && count > 0"
+      v-if="hasVisibleFeatures && count !== null && count > 0"
 
       flex pointer-events-none bottom-8 left-0 right-0 justify-center fixed z-10
     >

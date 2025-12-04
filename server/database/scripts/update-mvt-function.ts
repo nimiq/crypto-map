@@ -20,7 +20,7 @@ async function updateMvtFunction() {
 
   try {
     logger.info('Reading MVT function SQL...')
-    const sql = await readFile('database/functions/get_tile_mvt.sql', 'utf-8')
+    const sql = await readFile('server/database/functions/get_tile_mvt.sql', 'utf-8')
 
     logger.info('Updating get_tile_mvt function...')
     await db.execute(sql)

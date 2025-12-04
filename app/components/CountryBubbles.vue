@@ -275,7 +275,7 @@ function flyToCountry(country: CountryHotspot) {
         v-for="bubble in edgeBubbles"
         :key="`edge-${bubble.code}`"
         :style="{ left: `${bubble.edge!.x}px`, top: `${bubble.edge!.y}px` }"
-        cursor-pointer fixed z-50
+        cursor-pointer fixed z-40
         translate-x="-1/2" translate-y="-1/2"
         @click="flyToCountry(bubble)"
       >

@@ -42,7 +42,7 @@ AS $$
       category_id,
       location,
       CASE
-        WHEN z <= 8 THEN ST_ClusterDBSCAN(
+        WHEN z >= 6 AND z <= 8 THEN ST_ClusterDBSCAN(
           ST_Transform(location, 3857),
           -- Dynamic cluster radius based on screen pixels converted to meters
           -- Formula: pixels_on_screen * meters_per_pixel_at_zoom
@@ -69,7 +69,7 @@ AS $$
       COUNT(*) as point_count,
       ST_Centroid(ST_Collect(ST_Transform(location, 3857))) as geom_3857
     FROM clustered
-    WHERE cluster_id IS NOT NULL AND z <= 8
+    WHERE cluster_id IS NOT NULL AND z >= 6 AND z <= 8
     GROUP BY cluster_id
     HAVING COUNT(*) >= CASE
       WHEN z <= 4 THEN 2    -- Very low threshold at world view

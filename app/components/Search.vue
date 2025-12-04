@@ -5,12 +5,15 @@ type SearchItem
   = | { kind: 'location', uuid: string, name: string, latitude: number, longitude: number }
     | { kind: 'query', query: string }
     | { kind: 'category', category: string, label: string }
+    | { kind: 'geo', name: string, displayName: string, latitude: number, longitude: number, geoType: GeoType }
 
 interface Props {
-  autocompleteResults?: SearchLocationResponse[]
+  autocompleteLocations?: SearchLocationResponse[]
+  autocompleteGeo?: GeoResult[] // Strong matches (before locations)
+  autocompleteGeoWeak?: GeoResult[] // Weak matches (after locations)
 }
 interface Emits {
-  (e: 'navigate', uuid: string, latitude: number, longitude: number): void
+  (e: 'navigate', uuid: string | undefined, latitude: number, longitude: number): void
 }
 
 defineProps<Props>()
@@ -57,6 +60,8 @@ function getItemValue(item: SearchItem) {
       return item.query
     case 'category':
       return item.label
+    case 'geo':
+      return item.name
   }
 }
 
@@ -70,6 +75,19 @@ function getDisplayValue(item: SearchItem, displayValue?: string) {
       return item.query
     case 'category':
       return item.label
+    case 'geo':
+      return item.displayName
+  }
+}
+
+function getGeoIcon(geoType: GeoType): string {
+  switch (geoType) {
+    case 'city':
+      return 'i-tabler:buildings'
+    case 'address':
+      return 'i-tabler:map-pin'
+    case 'region':
+      return 'i-tabler:world'
   }
 }
 
@@ -120,6 +138,10 @@ async function handleItemClick(item: SearchItem) {
       query.value = undefined
       collapseCombobox()
       await navigateTo('/')
+      break
+    case 'geo':
+      emit('navigate', undefined, item.latitude, item.longitude)
+      collapseCombobox()
       break
   }
 }
@@ -186,6 +208,7 @@ async function handleItemClick(item: SearchItem) {
               </template>
             </template>
             <template v-else>
+              <!-- 1. Category suggestion or search query -->
               <Item
                 v-if="categorySuggestion && searchQuery.trim().length > 0"
                 key="category-suggestion"
@@ -203,18 +226,42 @@ async function handleItemClick(item: SearchItem) {
                 :display-value="searchQuery"
                 icon="i-tabler:search"
               />
+
+              <!-- 2. Strong geo matches (cities/regions matching query) -->
               <ComboboxSeparator
-                v-if="
-                  searchQuery.trim().length > 0
-                    && autocompleteResults
-                    && autocompleteResults.length > 0
-                "
+                v-if="searchQuery.trim().length > 0 && autocompleteGeo && autocompleteGeo.length > 0"
                 border="t-1 neutral-400" w="[calc(100%-60px+var(--f-p))]" ml-60
               />
-              <template v-for="({ uuid, name, address, icon, latitude, longitude }, i) in autocompleteResults" :key="uuid">
-                <Item :item="{ kind: 'location', uuid, name, latitude, longitude }" :icon="icon || 'i-tabler:map-pin'" :subline="address" />
+              <template v-for="(geo, i) in autocompleteGeo" :key="`geo-${geo.latitude}-${geo.longitude}`">
+                <Item :item="geo" :icon="getGeoIcon(geo.geoType)" />
                 <ComboboxSeparator
-                  v-if="i < autocompleteResults!.length - 1"
+                  v-if="i < autocompleteGeo!.length - 1 || (autocompleteLocations && autocompleteLocations.length > 0)"
+                  border="t-1 neutral-400"
+                  w="[calc(100%-60px+var(--f-p))]"
+                  ml-60
+                />
+              </template>
+
+              <!-- 3. Location results from DB -->
+              <ComboboxSeparator
+                v-if="searchQuery.trim().length > 0 && (!autocompleteGeo || autocompleteGeo.length === 0) && autocompleteLocations && autocompleteLocations.length > 0"
+                border="t-1 neutral-400" w="[calc(100%-60px+var(--f-p))]" ml-60
+              />
+              <template v-for="({ uuid, name, city, country, icon, latitude, longitude }, i) in autocompleteLocations" :key="uuid">
+                <Item :item="{ kind: 'location', uuid, name, latitude, longitude }" :icon="icon || 'i-tabler:map-pin'" :subline="[city, country].filter(Boolean).join(', ')" />
+                <ComboboxSeparator
+                  v-if="i < autocompleteLocations!.length - 1 || (autocompleteGeoWeak && autocompleteGeoWeak.length > 0)"
+                  border="t-1 neutral-400"
+                  w="[calc(100%-60px+var(--f-p))]"
+                  ml-60
+                />
+              </template>
+
+              <!-- 4. Weak geo matches (less relevant geographic results) -->
+              <template v-for="(geo, i) in autocompleteGeoWeak" :key="`geo-weak-${geo.latitude}-${geo.longitude}`">
+                <Item :item="geo" :icon="getGeoIcon(geo.geoType)" />
+                <ComboboxSeparator
+                  v-if="i < autocompleteGeoWeak!.length - 1"
                   border="t-1 neutral-400"
                   w="[calc(100%-60px+var(--f-p))]"
                   ml-60
