@@ -3,6 +3,7 @@ import process from 'node:process'
 import { createConsola } from 'consola'
 import { join } from 'pathe'
 import postgres from 'postgres'
+import 'dotenv/config'
 
 const consola = createConsola().withTag('apply-naka-data')
 
