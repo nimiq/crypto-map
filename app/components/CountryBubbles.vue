@@ -130,9 +130,9 @@ const bubbles = computed<Bubble[]>(() => {
   })
 })
 
-// Separate computed for each type
+// Separate computed for each type - if any country is in view, hide all edge bubbles
 const latlngBubbles = computed(() => bubbles.value.filter(b => b.latlng))
-const edgeBubbles = computed(() => bubbles.value.filter(b => b.edge))
+const edgeBubbles = computed(() => latlngBubbles.value.length > 0 ? [] : bubbles.value.filter(b => b.edge))
 
 // Create marker element programmatically
 function createMarkerElement(country: CountryHotspot): HTMLElement {
