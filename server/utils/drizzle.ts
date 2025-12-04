@@ -7,13 +7,29 @@ export { and, eq, or, sql } from 'drizzle-orm'
 
 export const tables = schema
 
-const DB_KEY = '__drizzle_db__' as const
+let cachedDb: PostgresJsDatabase<typeof schema> | null = null
 
 export function useDrizzle(): PostgresJsDatabase<typeof schema> {
-  // Use globalThis to persist across HMR in dev
-  if (!(globalThis as any)[DB_KEY]) {
-    const connectionString = useRuntimeConfig().databaseUrl
-    ;(globalThis as any)[DB_KEY] = drizzle(postgres(connectionString, { max: 1 }), { schema })
+  // Try to get Hyperdrive from Cloudflare context via Nitro's async context
+  let hyperdrive: { connectionString: string } | undefined
+  try {
+    const event = useEvent()
+    hyperdrive = event?.context?.cloudflare?.env?.HYPERDRIVE as { connectionString: string } | undefined
   }
-  return (globalThis as any)[DB_KEY]
+  catch {
+    // useEvent() may fail outside of request context (e.g., in scripts)
+  }
+
+  // If we have Hyperdrive, always use its connection string (it handles pooling)
+  if (hyperdrive?.connectionString) {
+    // Don't cache Hyperdrive connections - they're pooled by Cloudflare
+    return drizzle(postgres(hyperdrive.connectionString, { max: 1 }), { schema })
+  }
+
+  // Fallback: cache connection for local dev
+  if (!cachedDb) {
+    const connectionString = useRuntimeConfig().databaseUrl
+    cachedDb = drizzle(postgres(connectionString, { max: 1 }), { schema })
+  }
+  return cachedDb
 }

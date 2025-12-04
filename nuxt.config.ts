@@ -103,5 +103,8 @@ export default defineNuxtConfig({
       include: ['maplibre-gl'],
     },
   },
+  nitro: {
+    preset: 'cloudflare-module',
+  },
   compatibilityDate: '2025-10-01',
 })

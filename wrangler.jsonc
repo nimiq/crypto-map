@@ -11,5 +11,8 @@
   "r2_buckets": [
     { "binding": "BLOB", "bucket_name": "crypto-map-blob" }
   ],
+  "hyperdrive": [
+    { "binding": "HYPERDRIVE", "id": "9543ac52589a425eb2bb588958eeb304" }
+  ],
   "observability": { "enabled": true, "logs": { "enabled": true, "head_sampling_rate": 1, "invocation_logs": true } }
 }
