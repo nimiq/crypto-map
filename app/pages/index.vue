@@ -13,8 +13,6 @@ const { initialCenter, initialZoom, isInitialized, initializeView, viewCenter, s
 const { setSearchResults, setSelectedLocation, initializeLayers, updateUserLocation } = useMapIcons()
 const { showUserLocation, userLocationPoint, userLocationAccuracy, isGeoReady } = useUserLocation()
 const { width: windowWidth, height: windowHeight } = useWindowSize()
-const { locationCount, clusterCount } = useVisibleLocations()
-
 // Initialize map view with accuracy-based zoom once IP geolocation resolves
 watch([isGeoReady, windowWidth], () => {
   if (!isInitialized.value && isGeoReady.value && windowWidth.value > 0) {
@@ -66,55 +64,31 @@ watch([userLocationPoint, userLocationAccuracy, showUserLocation, mapInstance], 
   }
 })
 
-// Hide cluster circles when country bubbles should show (1-2 clusters, no individual locations)
-watch([locationCount, clusterCount, mapInstance], ([locCount, clusCount, map]) => {
-  if (!map)
-    return
-  const showClusterBubbles = locCount === 0 && clusCount >= 1 && clusCount <= 2
-  const visibility = showClusterBubbles ? 'none' : 'visible'
-  if (map.getLayer('location-clusters'))
-    map.setLayoutProperty('location-clusters', 'visibility', visibility)
-  if (map.getLayer('location-cluster-count'))
-    map.setLayoutProperty('location-cluster-count', 'visibility', visibility)
-})
-
-// Filter map to show only search results and highlight them
+// Style search results on map (all pins visible, search results get priority styling)
 watch([searchResults, mapInstance], ([results, map]) => {
-  logger.info('[Map] Search results watcher triggered:', {
-    resultsCount: results?.length || 0,
-    hasMap: !!map,
-    results: results?.map(r => ({ uuid: r.uuid, name: r.name })),
-  })
+  logger.info('[Map] Search results watcher triggered:', { resultsCount: results?.length || 0, hasMap: !!map })
 
   if (!map)
     return
 
   try {
-    const iconLayer = map.getLayer('location-icon')
-    if (!iconLayer) {
+    if (!map.getLayer('location-icon')) {
       logger.warn('[Map] location-icon layer not found')
       return
     }
 
     if (!results || !Array.isArray(results) || results.length === 0) {
-      // No search - show all locations with normal styling
-      logger.info('[Map] No search results - showing all locations')
-      map.setFilter('location-icon', null)
+      // No search - reset to normal styling
       setSearchResults(map as any, null)
     }
     else {
-      // Filter to show only search result UUIDs
+      // Highlight search results (other pins still visible but lower priority)
       const uuids = results.map((r: SearchLocationResponse) => r.uuid)
-      logger.info('[Map] Applying search filter:', { count: uuids.length, uuids })
-      const filter = ['in', ['get', 'uuid'], ['literal', uuids]] as any
-      map.setFilter('location-icon', filter)
-
-      // Highlight all search results with active pins
       setSearchResults(map as any, uuids)
     }
   }
   catch (error) {
-    logger.error('Error filtering map:', error)
+    logger.error('Error styling search results:', error)
   }
 })
 

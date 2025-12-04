@@ -4,6 +4,10 @@ import { buildColorMatches, buildIconMatches, defaultColor } from '~/utils/categ
 
 const logger = consola.withTag('map-markers')
 
+// State tracking for search results and selection
+const currentSearchUuids = ref<string[] | null>(null)
+const currentSelectedUuid = ref<string | null>(null)
+
 export function useMapIcons() {
   const layersAdded = ref(false)
 
@@ -43,6 +47,9 @@ export function useMapIcons() {
 
       try {
         const img = new Image()
+        // Set explicit dimensions to ensure SVG renders correctly
+        img.width = 349
+        img.height = 397
         img.src = `/assets/map-pins/${icon}.svg`
         await new Promise((resolve, reject) => {
           img.onload = resolve
@@ -113,6 +120,43 @@ export function useMapIcons() {
         },
       })
       logger.info('Added location-icon layer')
+    }
+
+    // Selected location layer - always visible, renders on top
+    if (!map.getLayer('selected-location')) {
+      map.addLayer({
+        'id': 'selected-location',
+        'type': 'symbol',
+        'source': 'locations',
+        'source-layer': 'locations',
+        'filter': ['==', ['get', 'uuid'], ''], // Initially hidden (matches nothing)
+        'minzoom': 9,
+        'maxzoom': 24,
+        'layout': {
+          'icon-image': 'active',
+          'icon-size': 0.09492188, // 1.5x larger
+          'icon-allow-overlap': true, // Always visible
+          'icon-ignore-placement': true, // Don't affect other icons' placement
+          'icon-anchor': 'bottom',
+          'icon-offset': [0, 0],
+          'symbol-sort-key': -999999, // Highest priority
+          'text-field': ['get', 'name'],
+          'text-font': ['Mulish Regular'],
+          'text-anchor': 'left',
+          'text-offset': [1, -0.95],
+          'text-justify': 'left',
+          'text-size': 16,
+          'text-allow-overlap': true, // Always show text
+          'text-ignore-placement': true, // Don't affect other text placement
+        },
+        'paint': {
+          'icon-opacity': 1,
+          'text-color': '#B31412',
+          'text-halo-color': '#FFFFFF',
+          'text-halo-width': 2,
+        },
+      })
+      logger.info('Added selected-location layer')
     }
   }
 
@@ -221,190 +265,141 @@ export function useMapIcons() {
   }
 
   /**
-   * Highlight search results with active pins
+   * Apply styling to location-icon layer based on current search state
+   */
+  function applyLocationIconStyling(map: Map) {
+    if (!map.getLayer('location-icon'))
+      return
+
+    const uuids = currentSearchUuids.value
+
+    if (uuids && uuids.length > 0) {
+      // Search results get active styling with priority
+      const iconExpression = [
+        'case',
+        ['in', ['get', 'uuid'], ['literal', uuids]],
+        'active',
+        buildIconExpression(),
+      ]
+      map.setLayoutProperty('location-icon', 'icon-image', iconExpression as any)
+
+      const iconSizeExpression = [
+        'case',
+        ['in', ['get', 'uuid'], ['literal', uuids]],
+        0.09492188, // 1.5x larger
+        0.06328125,
+      ]
+      map.setLayoutProperty('location-icon', 'icon-size', iconSizeExpression as any)
+
+      const symbolSortKeyExpression = [
+        'case',
+        ['in', ['get', 'uuid'], ['literal', uuids]],
+        -999999, // High priority for search results
+        ['-', 0, ['coalesce', ['get', 'rating'], 0]],
+      ]
+      map.setLayoutProperty('location-icon', 'symbol-sort-key', symbolSortKeyExpression as any)
+
+      const textSizeExpression = [
+        'case',
+        ['in', ['get', 'uuid'], ['literal', uuids]],
+        16,
+        14,
+      ]
+      map.setLayoutProperty('location-icon', 'text-size', textSizeExpression as any)
+
+      const textColorExpression = [
+        'case',
+        ['in', ['get', 'uuid'], ['literal', uuids]],
+        '#B31412',
+        buildColorExpression(),
+      ]
+      map.setPaintProperty('location-icon', 'text-color', textColorExpression as any)
+
+      // Keep default collision behavior - search results win via symbol-sort-key
+      map.setLayoutProperty('location-icon', 'text-allow-overlap', false)
+      map.setLayoutProperty('location-icon', 'text-optional', true)
+    }
+    else {
+      // Reset to normal styling
+      map.setLayoutProperty('location-icon', 'icon-image', buildIconExpression() as any)
+      map.setLayoutProperty('location-icon', 'icon-size', 0.06328125)
+      map.setLayoutProperty('location-icon', 'symbol-sort-key', ['-', 0, ['coalesce', ['get', 'rating'], 0]] as any)
+      map.setLayoutProperty('location-icon', 'text-size', 14)
+      map.setPaintProperty('location-icon', 'text-color', buildColorExpression() as any)
+      map.setLayoutProperty('location-icon', 'text-allow-overlap', false)
+      map.setLayoutProperty('location-icon', 'text-optional', true)
+    }
+  }
+
+  /**
+   * Update location-icon filter to exclude selected uuid (rendered on separate layer)
+   */
+  function updateLocationIconFilter(map: Map) {
+    if (!map.getLayer('location-icon'))
+      return
+
+    const baseFilter = ['!', ['has', 'point_count']] // Always exclude clusters
+
+    if (currentSelectedUuid.value) {
+      // Exclude selected uuid from main layer (it's on selected-location layer)
+      map.setFilter('location-icon', ['all', baseFilter, ['!=', ['get', 'uuid'], currentSelectedUuid.value]] as any)
+    }
+    else {
+      map.setFilter('location-icon', baseFilter as any)
+    }
+  }
+
+  /**
+   * Highlight search results with active pins (keeps all pins visible, just styles search results)
    */
   function setSearchResults(map: Map, uuids: string[] | null) {
-    logger.info('[setSearchResults] Called with:', { uuidsCount: uuids?.length || 0, uuids })
+    logger.info('[setSearchResults] Called with:', { uuidsCount: uuids?.length || 0 })
+
+    // Store state
+    currentSearchUuids.value = uuids
 
     if (!map.getLayer('location-icon')) {
       logger.warn('[setSearchResults] location-icon layer not found')
       return
     }
 
-    if (uuids && uuids.length > 0) {
-      logger.info('[setSearchResults] Setting active pins for search results')
-      // All search results use active pin
-      const iconExpression = [
-        'case',
-        ['in', ['get', 'uuid'], ['literal', uuids]],
-        'active',
-        buildIconExpression(),
-      ]
-      map.setLayoutProperty('location-icon', 'icon-image', iconExpression as any)
-
-      // Larger size for active pins
-      const iconSizeExpression = [
-        'case',
-        ['in', ['get', 'uuid'], ['literal', uuids]],
-        0.09492188, // 1.5x larger (0.06328125 * 1.5)
-        0.06328125,
-      ]
-      map.setLayoutProperty('location-icon', 'icon-size', iconSizeExpression as any)
-
-      // Higher priority (lower sort key) for active pins so they're always shown
-      const symbolSortKeyExpression = [
-        'case',
-        ['in', ['get', 'uuid'], ['literal', uuids]],
-        -999999, // Very high priority
-        ['-', 0, ['coalesce', ['get', 'rating'], 0]], // Normal priority by rating
-      ]
-      map.setLayoutProperty('location-icon', 'symbol-sort-key', symbolSortKeyExpression as any)
-
-      // Larger text for active pins
-      const textSizeExpression = [
-        'case',
-        ['in', ['get', 'uuid'], ['literal', uuids]],
-        16, // 14 * 1.14 ≈ 16
-        14,
-      ]
-      map.setLayoutProperty('location-icon', 'text-size', textSizeExpression as any)
-
-      // Allow text overlap globally when we have active pins (symbol-sort-key handles priority)
-      map.setLayoutProperty('location-icon', 'text-allow-overlap', true)
-
-      // Make text non-optional for active locations (always show)
-      const textOptionalExpression = [
-        'case',
-        ['in', ['get', 'uuid'], ['literal', uuids]],
-        false, // Force text to show
-        true, // Allow text to be hidden if it collides
-      ]
-      map.setLayoutProperty('location-icon', 'text-optional', textOptionalExpression as any)
-
-      // Red text for search results
-      const textColorExpression = [
-        'case',
-        ['in', ['get', 'uuid'], ['literal', uuids]],
-        '#B31412',
-        buildColorExpression(),
-      ]
-      map.setPaintProperty('location-icon', 'text-color', textColorExpression as any)
-      logger.info('[setSearchResults] Active pins applied')
-    }
-    else {
-      logger.info('[setSearchResults] Resetting to normal pins')
-      // Reset to normal icons
-      const iconExpression = buildIconExpression()
-      map.setLayoutProperty('location-icon', 'icon-image', iconExpression as any)
-
-      // Reset to normal size
-      map.setLayoutProperty('location-icon', 'icon-size', 0.06328125)
-
-      // Reset symbol priority to default
-      map.setLayoutProperty('location-icon', 'symbol-sort-key', ['-', 0, ['coalesce', ['get', 'rating'], 0]] as any)
-
-      // Reset to normal text size
-      map.setLayoutProperty('location-icon', 'text-size', 14)
-
-      // Reset text overlap to default
-      map.setLayoutProperty('location-icon', 'text-allow-overlap', false)
-
-      // Reset text optional to default
-      map.setLayoutProperty('location-icon', 'text-optional', true)
-
-      const colorExpression = buildColorExpression()
-      map.setPaintProperty('location-icon', 'text-color', colorExpression as any)
-      logger.info('[setSearchResults] Normal pins applied')
-    }
+    // Apply styling based on search state
+    applyLocationIconStyling(map)
+    logger.info('[setSearchResults] Styling applied')
   }
 
   /**
-   * Highlight selected location (single pin within search results)
+   * Highlight selected location using dedicated layer (always visible)
    */
   function setSelectedLocation(map: Map, uuid: string | null) {
-    if (!map.getLayer('location-icon'))
+    logger.info('[setSelectedLocation] Called with:', { uuid })
+
+    // Store state
+    currentSelectedUuid.value = uuid
+
+    if (!map.getLayer('location-icon') || !map.getLayer('selected-location'))
       return
 
     if (uuid) {
-      // Update icon expression to use active pin for selected location
-      const iconExpression = [
-        'case',
-        ['==', ['get', 'uuid'], uuid],
-        'active',
-        buildIconExpression(),
-      ]
-      map.setLayoutProperty('location-icon', 'icon-image', iconExpression as any)
+      // Show selected pin on dedicated layer
+      map.setFilter('selected-location', ['==', ['get', 'uuid'], uuid] as any)
 
-      // Larger size for selected location
-      const iconSizeExpression = [
-        'case',
-        ['==', ['get', 'uuid'], uuid],
-        0.09492188, // 1.5x larger (0.06328125 * 1.5)
-        0.06328125,
-      ]
-      map.setLayoutProperty('location-icon', 'icon-size', iconSizeExpression as any)
+      // Exclude from main layer to avoid double rendering
+      updateLocationIconFilter(map)
 
-      // Higher priority (lower sort key) for selected location so it's always shown
-      const symbolSortKeyExpression = [
-        'case',
-        ['==', ['get', 'uuid'], uuid],
-        -999999, // Very high priority
-        ['-', 0, ['coalesce', ['get', 'rating'], 0]], // Normal priority by rating
-      ]
-      map.setLayoutProperty('location-icon', 'symbol-sort-key', symbolSortKeyExpression as any)
-
-      // Larger text for selected location
-      const textSizeExpression = [
-        'case',
-        ['==', ['get', 'uuid'], uuid],
-        16, // 14 * 1.14 ≈ 16
-        14,
-      ]
-      map.setLayoutProperty('location-icon', 'text-size', textSizeExpression as any)
-
-      // Allow text overlap globally when we have a selected pin (symbol-sort-key handles priority)
-      map.setLayoutProperty('location-icon', 'text-allow-overlap', true)
-
-      // Make text non-optional for selected location (always show)
-      const textOptionalExpression = [
-        'case',
-        ['==', ['get', 'uuid'], uuid],
-        false, // Force text to show
-        true, // Allow text to be hidden if it collides
-      ]
-      map.setLayoutProperty('location-icon', 'text-optional', textOptionalExpression as any)
-
-      // Update text color to red for selected location
-      const textColorExpression = [
-        'case',
-        ['==', ['get', 'uuid'], uuid],
-        '#B31412',
-        buildColorExpression(),
-      ]
-      map.setPaintProperty('location-icon', 'text-color', textColorExpression as any)
+      logger.info('[setSelectedLocation] Selected location set:', uuid)
     }
     else {
-      // Reset to normal icons
-      const iconExpression = buildIconExpression()
-      map.setLayoutProperty('location-icon', 'icon-image', iconExpression as any)
+      // Hide selected layer
+      map.setFilter('selected-location', ['==', ['get', 'uuid'], ''] as any)
 
-      // Reset to normal size
-      map.setLayoutProperty('location-icon', 'icon-size', 0.06328125)
+      // Restore main layer filter
+      updateLocationIconFilter(map)
 
-      // Reset symbol priority to default
-      map.setLayoutProperty('location-icon', 'symbol-sort-key', ['-', 0, ['coalesce', ['get', 'rating'], 0]] as any)
+      // Restore search styling if active
+      applyLocationIconStyling(map)
 
-      // Reset to normal text size
-      map.setLayoutProperty('location-icon', 'text-size', 14)
-
-      // Reset text overlap to default
-      map.setLayoutProperty('location-icon', 'text-allow-overlap', false)
-
-      // Reset text optional to default
-      map.setLayoutProperty('location-icon', 'text-optional', true)
-
-      const colorExpression = buildColorExpression()
-      map.setPaintProperty('location-icon', 'text-color', colorExpression as any)
+      logger.info('[setSelectedLocation] Selection cleared, search styling restored')
     }
   }
 
