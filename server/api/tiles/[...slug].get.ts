@@ -1,6 +1,3 @@
-import { Buffer } from 'node:buffer'
-import { createGzip } from 'node:zlib'
-import { consola } from 'consola'
 import { z } from 'zod'
 
 const tileParamSchema = z.object({
@@ -37,26 +34,7 @@ export default defineEventHandler(async (event) => {
     return ''
   }
 
-  // Check if client accepts gzip
-  const acceptEncoding = getRequestHeader(event, 'accept-encoding')
-  if (acceptEncoding?.includes('gzip')) {
-    try {
-      const zippedMvt = await new Promise<Buffer>((resolve, reject) => {
-        const chunks: Buffer[] = []
-        createGzip().on('data', chunk => chunks.push(chunk)).once('end', () => resolve(Buffer.concat(chunks))).once('error', reject).end(mvt)
-      })
-      setResponseHeader(event, 'Content-Type', 'application/vnd.mapbox-vector-tile')
-      setResponseHeader(event, 'Content-Encoding', 'gzip')
-      setResponseHeader(event, 'Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400')
-      return zippedMvt
-    }
-    catch (error) {
-      // If any error occurs during gzip, log it and fall back to uncompressed MVT
-      consola.error('Error gzipping MVT tile, falling back to uncompressed:', error)
-    }
-  }
-
-  // Fallback: no gzip or gzip failed
+  // Return uncompressed MVT - Cloudflare handles compression at the edge
   setResponseHeader(event, 'Content-Type', 'application/vnd.mapbox-vector-tile')
   setResponseHeader(event, 'Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400')
   return mvt
