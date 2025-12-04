@@ -39,9 +39,7 @@ export default defineNuxtConfig({
     openaiApiKey: process.env.OPENAI_API_KEY || '',
     databaseUrl: process.env.DATABASE_URL || '',
     public: {
-      siteURL: import.meta.dev
-        ? ' http://localhost:3000'
-        : 'https://crypto-map-next.je-cf9.workers.dev/',
+      siteUrl: '', // Set via NUXT_PUBLIC_SITE_URL in production
     },
   },
   safeRuntimeConfig: {
@@ -49,7 +47,7 @@ export default defineNuxtConfig({
       googleApiKey: v.pipe(v.string(), v.minLength(1, 'GOOGLE_API_KEY is required')),
       openaiApiKey: v.pipe(v.string(), v.minLength(1, 'OPENAI_API_KEY is required')),
       databaseUrl: v.pipe(v.string(), v.minLength(1, 'DATABASE_URL is required')),
-      public: v.object({ siteURL: v.string() }),
+      public: v.object({ siteUrl: v.string() }),
     }),
   },
   icon: {
@@ -71,6 +69,9 @@ export default defineNuxtConfig({
     providers: {
       cloudflareOnProd: {
         provider: '~/providers/cloudflareOnProd.ts',
+        options: {
+          siteUrl: process.env.NUXT_PUBLIC_SITE_URL || '',
+        },
       },
     },
   },
@@ -86,17 +87,12 @@ export default defineNuxtConfig({
     langDir: 'locales',
   },
   routeRules: {
-    '/api/categories': {
-      cache: { maxAge: 3600, swr: true, staleMaxAge: 43200 },
-    },
+    '/api/categories': { cache: { maxAge: 3600, swr: true, staleMaxAge: 43200 } },
     '/api/locations': { cache: false },
-    '/api/locations/country-counts': {
-      cache: { maxAge: 86400, swr: true, staleMaxAge: 604800 }, // 24h cache, 7d stale
-    },
-    '/api/locations/*': {
-      cache: { maxAge: 900, swr: true, staleMaxAge: 900 },
-    },
+    '/api/locations/country-counts': { cache: { maxAge: 86400, swr: true, staleMaxAge: 604800 } },
+    '/api/locations/*': { cache: { maxAge: 900, swr: true, staleMaxAge: 900 } },
     '/api/tiles/**': { cache: false },
+    '/blob/**': { ssr: false }, // Prevent Vue Router warnings for blob images
   },
   vite: {
     optimizeDeps: {
