@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Map as MapLibreMap } from 'maplibre-gl'
-import type { ClusterInfo } from '~/composables/useVisibleLocations'
 import { Marker } from 'maplibre-gl'
+import { icons as nimiqFlags } from 'nimiq-flags'
 
 interface CountryHotspot {
   code: 'SV' | 'CH'
@@ -12,8 +12,8 @@ interface CountryHotspot {
 }
 
 const COUNTRY_HOTSPOTS: CountryHotspot[] = [
-  { code: 'SV', name: 'El Salvador', center: { lat: 13.8, lng: -88.9 }, flagIcon: 'nimiq-flags:sv-hexagon', zoom: 8 },
-  { code: 'CH', name: 'Switzerland', center: { lat: 46.8, lng: 8.2 }, flagIcon: 'nimiq-flags:ch-hexagon', zoom: 5.9 },
+  { code: 'SV', name: 'El Salvador', center: { lat: 13.7942, lng: -88.8965 }, flagIcon: 'nimiq-flags:sv-hexagon', zoom: 6.8 },
+  { code: 'CH', name: 'Switzerland', center: { lat: 46.8, lng: 8.2 }, flagIcon: 'nimiq-flags:ch-hexagon', zoom: 6.5 },
 ]
 
 const BUBBLE_PADDING = 8
@@ -21,83 +21,37 @@ const BUBBLE_WIDTH = 160
 const BUBBLE_HEIGHT = 56
 
 const { mapInstance, flyTo, viewCenter } = useMapControls()
-const { locationCount, clusterCount, clusters } = useVisibleLocations()
+const { locationCount, clusterCount } = useVisibleLocations()
 const { width: windowWidth, height: windowHeight } = useWindowSize()
 
-// Fetch country counts (cached, for edge bubbles)
+// Fetch country counts (cached)
 const { data: countryCounts } = useFetch<Record<string, number>>('/api/locations/country-counts', {
   default: () => ({}),
   lazy: true,
 })
 
-// Track MapLibre markers for cluster bubbles
-const clusterMarkers = shallowRef(new Map<string, Marker>())
-const markerRefs = shallowRef(new Map<string, HTMLElement>())
+// Track MapLibre markers for lat/lng bubbles
+type CountryCode = 'SV' | 'CH'
+const markers = new Map<CountryCode, Marker>()
 
-// Match cluster to closest country hotspot
-function matchClusterToCountry(cluster: ClusterInfo): CountryHotspot {
-  return COUNTRY_HOTSPOTS.reduce((prev, curr) => {
-    const prevDist = Math.abs(prev.center.lat - cluster.lat) + Math.abs(prev.center.lng - cluster.lng)
-    const currDist = Math.abs(curr.center.lat - cluster.lat) + Math.abs(curr.center.lng - cluster.lng)
-    return currDist < prevDist ? curr : prev
-  })
+// Hide bubbles during fly animation
+const isFlying = ref(false)
+
+// Show bubbles when nothing visible on map and not flying
+const showBubbles = computed(() => !isFlying.value && locationCount.value === 0 && clusterCount.value === 0)
+
+// Check if a point is within current map viewport
+function isPointInViewport(point: { lat: number, lng: number }): boolean {
+  if (!mapInstance.value)
+    return false
+  try {
+    const bounds = mapInstance.value.getBounds()
+    return bounds.contains([point.lng, point.lat])
+  }
+  catch {
+    return false
+  }
 }
-
-// Cluster bubbles to show (via MapLibre Markers)
-const clusterBubbles = computed(() => {
-  // Show cluster bubbles when we have 1-2 clusters and no individual locations
-  if (locationCount.value > 0 || clusterCount.value === 0 || clusterCount.value > 2)
-    return []
-
-  return clusters.value.map((cluster) => {
-    const country = matchClusterToCountry(cluster)
-    return { ...country, lng: cluster.lng, lat: cluster.lat, count: cluster.pointCount }
-  })
-})
-
-// Manage MapLibre markers lifecycle
-watch([clusterBubbles, mapInstance], async ([bubbles, map]) => {
-  if (!map)
-    return
-
-  // Wait for Vue to render elements
-  await nextTick()
-
-  const currentKeys = new Set(bubbles.map(b => b.code))
-
-  // Remove markers that are no longer needed
-  for (const [key, marker] of clusterMarkers.value.entries()) {
-    if (!currentKeys.has(key as 'SV' | 'CH')) {
-      marker.remove()
-      clusterMarkers.value.delete(key)
-      markerRefs.value.delete(key)
-    }
-  }
-
-  // Add/update markers
-  for (const bubble of bubbles) {
-    let marker = clusterMarkers.value.get(bubble.code)
-    const el = markerRefs.value.get(bubble.code)
-
-    if (!marker && el) {
-      marker = new Marker({ element: el, anchor: 'center' })
-        .setLngLat([bubble.lng, bubble.lat])
-        .addTo(map as unknown as MapLibreMap)
-      clusterMarkers.value.set(bubble.code, marker)
-    }
-    else if (marker) {
-      marker.setLngLat([bubble.lng, bubble.lat])
-    }
-  }
-}, { immediate: true })
-
-// Cleanup on unmount
-onUnmounted(() => {
-  for (const marker of clusterMarkers.value.values()) {
-    marker.remove()
-  }
-  clusterMarkers.value.clear()
-})
 
 // Calculate rhumb line bearing (straight line on Mercator projection)
 function calculateMercatorBearing(from: { lat: number, lng: number }, to: { lat: number, lng: number }): number {
@@ -143,13 +97,15 @@ function getEdgePosition(bearing: number, vpWidth: number, vpHeight: number): { 
   }
 }
 
-// Edge bubbles: shown when no locations/clusters visible
-const edgeBubbles = computed(() => {
-  if (!mapInstance.value)
-    return []
+interface Bubble extends CountryHotspot {
+  count: number | null
+  latlng?: { lat: number, lng: number }
+  edge?: { x: number, y: number, arrowAngle: number }
+}
 
-  const total = locationCount.value + clusterCount.value
-  if (total > 0)
+// Compute bubbles - either at country center (in view) or at edge (out of view)
+const bubbles = computed<Bubble[]>(() => {
+  if (!showBubbles.value || !mapInstance.value)
     return []
 
   const vpWidth = windowWidth.value
@@ -157,25 +113,157 @@ const edgeBubbles = computed(() => {
   if (!vpWidth || !vpHeight)
     return []
 
-  const center = viewCenter.value
   return COUNTRY_HOTSPOTS.map((country) => {
-    const bearing = calculateMercatorBearing(center, country.center)
-    const position = getEdgePosition(bearing, vpWidth, vpHeight)
-    const arrowAngle = bearing
     const count = countryCounts.value?.[country.code] || null
+    const inView = isPointInViewport(country.center)
 
-    return { ...country, position, arrowAngle, count }
+    if (inView) {
+      // Show at country center (MapLibre Marker)
+      return { ...country, count, latlng: country.center }
+    }
+    else {
+      // Show at edge with arrow
+      const bearing = calculateMercatorBearing(viewCenter.value, country.center)
+      const position = getEdgePosition(bearing, vpWidth, vpHeight)
+      return { ...country, count, edge: { ...position, arrowAngle: bearing } }
+    }
   })
 })
 
-function flyToCountry(country: CountryHotspot) {
-  flyTo(country.center, country.zoom)
+// Separate computed for each type
+const latlngBubbles = computed(() => bubbles.value.filter(b => b.latlng))
+const edgeBubbles = computed(() => bubbles.value.filter(b => b.edge))
+
+// Create marker element programmatically
+function createMarkerElement(country: CountryHotspot): HTMLElement {
+  const button = document.createElement('button')
+  button.className = 'country-bubble-marker'
+  button.style.cssText = 'cursor: pointer; background: none; border: none; padding: 0;'
+  button.addEventListener('click', () => flyToCountry(country))
+
+  const container = document.createElement('div')
+  container.style.cssText = `
+    display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 12px;
+    background: white; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    outline: 1.5px solid rgb(0 0 0 / 0.2); outline-offset: -1.5px;
+  `
+
+  const flagContainer = document.createElement('span')
+  flagContainer.style.cssText = 'flex-shrink: 0; width: 28px; height: 28px;'
+
+  const textContainer = document.createElement('div')
+  textContainer.style.cssText = 'display: flex; flex-direction: column; text-align: left;'
+
+  const nameSpan = document.createElement('span')
+  nameSpan.style.cssText = 'font-size: 14px; color: #1f2937; line-height: 1.25; font-weight: 600;'
+  nameSpan.textContent = country.name
+
+  const countSpan = document.createElement('span')
+  countSpan.style.cssText = 'font-size: 12px; color: #374151; line-height: 1.25;'
+  countSpan.className = 'location-count'
+
+  textContainer.appendChild(nameSpan)
+  textContainer.appendChild(countSpan)
+  container.appendChild(flagContainer)
+  container.appendChild(textContainer)
+  button.appendChild(container)
+
+  // Load icon from bundled package
+  loadIcon(country.flagIcon, flagContainer)
+
+  return button
 }
 
-function setMarkerRef(code: string, el: HTMLElement | null) {
-  if (el) {
-    markerRefs.value.set(code, el)
+// Load icon from bundled nimiq-flags
+function loadIcon(iconName: string, container: HTMLElement, size = 28) {
+  // Parse icon name (format: "nimiq-flags:icon-name")
+  const [collection, name] = iconName.split(':')
+  if (collection !== 'nimiq-flags' || !name)
+    return
+
+  const iconData = nimiqFlags.icons[name]
+  if (!iconData)
+    return
+
+  const width = nimiqFlags.width || 32
+  const height = nimiqFlags.height || 32
+  container.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${width} ${height}">${iconData.body}</svg>`
+}
+
+// Update marker count text
+function updateMarkerCount(marker: Marker, count: number | null) {
+  const el = marker.getElement()
+  const countSpan = el.querySelector('.location-count') as HTMLElement
+  if (countSpan) {
+    countSpan.textContent = count ? `${count} locations` : ''
   }
+}
+
+// Sync markers: create/remove/update as needed
+function syncMarkers() {
+  const map = mapInstance.value
+  if (!map)
+    return
+
+  const currentCodes = new Set(latlngBubbles.value.map(b => b.code))
+
+  // Remove markers for countries no longer visible at lat/lng
+  for (const [code, marker] of markers.entries()) {
+    if (!currentCodes.has(code)) {
+      marker.remove()
+      markers.delete(code)
+    }
+  }
+
+  // Create/update markers for current latlng bubbles
+  for (const bubble of latlngBubbles.value) {
+    if (!bubble.latlng)
+      continue
+
+    const country = COUNTRY_HOTSPOTS.find(c => c.code === bubble.code)!
+    let marker = markers.get(bubble.code)
+
+    if (!marker) {
+      const el = createMarkerElement(country)
+      marker = new Marker({ element: el, anchor: 'center' })
+        .setLngLat([bubble.latlng.lng, bubble.latlng.lat])
+        .addTo(map as unknown as MapLibreMap)
+      markers.set(bubble.code, marker)
+    }
+    else {
+      marker.setLngLat([bubble.latlng.lng, bubble.latlng.lat])
+    }
+
+    updateMarkerCount(marker, bubble.count)
+  }
+}
+
+// Sync when bubbles or map changes
+watch([latlngBubbles, mapInstance, countryCounts], syncMarkers, { immediate: true })
+
+// Cleanup on unmount
+onUnmounted(() => {
+  for (const marker of markers.values()) {
+    marker.remove()
+  }
+  markers.clear()
+})
+
+function flyToCountry(country: CountryHotspot) {
+  isFlying.value = true
+
+  // Immediately remove all markers so both bubbles disappear
+  for (const marker of markers.values()) {
+    marker.remove()
+  }
+  markers.clear()
+
+  flyTo(country.center, country.zoom)
+
+  // Reset after fly animation completes (flyTo uses 1000ms duration)
+  mapInstance.value?.once('moveend', () => {
+    isFlying.value = false
+  })
 }
 </script>
 
@@ -183,39 +271,12 @@ function setMarkerRef(code: string, el: HTMLElement | null) {
   <ClientOnly>
     <!-- Edge bubbles: fixed position DOM elements -->
     <Teleport to="body">
-      <TransitionGroup name="bubble">
-        <Motion
-          is="button"
-          v-for="bubble in edgeBubbles"
-          :key="bubble.code"
-          :style="{ left: `${bubble.position.x}px`, top: `${bubble.position.y}px` }"
-          cursor-pointer fixed z-50
-          translate-x="-1/2" translate-y="-1/2"
-          :initial="{ opacity: 0, scale: 0.8, filter: 'blur(4px)' }"
-          :animate="{ opacity: 1, scale: 1, filter: 'blur(0px)' }"
-          :exit="{ opacity: 0, scale: 0.8, filter: 'blur(4px)' }"
-          :transition="{ type: 'spring', stiffness: 300, damping: 25 }"
-          @click="flyToCountry(bubble)"
-        >
-          <div flex="~ items-center gap-8" outline="~ offset--1.5 1.5 neutral/20" p-8 rounded-12 bg-neutral-0 shadow-lg>
-            <Icon :name="bubble.flagIcon" shrink-0 size-28 />
-            <div flex="~ col" text-left>
-              <span text="14 neutral-900" lh-tight font-semibold>{{ bubble.name }}</span>
-              <span v-if="bubble.count" text="12 neutral-700" lh-tight>{{ bubble.count }} locations</span>
-            </div>
-            <Icon name="i-tabler:navigation-filled" text-neutral-600 size-14 :style="{ transform: `rotate(${bubble.arrowAngle}deg)` }" />
-          </div>
-        </Motion>
-      </TransitionGroup>
-    </Teleport>
-
-    <!-- Cluster bubbles: rendered offscreen, MapLibre Marker moves them to correct position -->
-    <Teleport to="body">
       <button
-        v-for="bubble in clusterBubbles"
-        :key="`marker-${bubble.code}`"
-        :ref="(el) => setMarkerRef(bubble.code, el as HTMLElement)"
-        cursor-pointer absolute left--9999
+        v-for="bubble in edgeBubbles"
+        :key="`edge-${bubble.code}`"
+        :style="{ left: `${bubble.edge!.x}px`, top: `${bubble.edge!.y}px` }"
+        cursor-pointer fixed z-50
+        translate-x="-1/2" translate-y="-1/2"
         @click="flyToCountry(bubble)"
       >
         <div flex="~ items-center gap-8" outline="~ offset--1.5 1.5 neutral/20" p-8 rounded-12 bg-neutral-0 shadow-lg>
@@ -224,27 +285,11 @@ function setMarkerRef(code: string, el: HTMLElement | null) {
             <span text="14 neutral-900" lh-tight font-semibold>{{ bubble.name }}</span>
             <span v-if="bubble.count" text="12 neutral-700" lh-tight>{{ bubble.count }} locations</span>
           </div>
+          <Icon name="i-tabler:navigation-filled" text-neutral-600 size-14 :style="{ transform: `rotate(${bubble.edge!.arrowAngle}deg)` }" />
         </div>
       </button>
     </Teleport>
+
+    <!-- Lat/lng bubbles are created programmatically as MapLibre Markers -->
   </ClientOnly>
 </template>
-
-<style scoped>
-.bubble-move,
-.bubble-enter-active,
-.bubble-leave-active {
-  transition: all 0.3s ease;
-}
-
-.bubble-enter-from,
-.bubble-leave-to {
-  opacity: 0;
-  transform: translate(-50%, -50%) scale(0.8);
-  filter: blur(4px);
-}
-
-.bubble-leave-active {
-  position: fixed;
-}
-</style>
