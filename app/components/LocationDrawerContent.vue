@@ -50,7 +50,7 @@ function useOpeningHours() {
     if (s.variant === 'closed')
       return { text: t(s.messageKey), color: 'text-red' }
     if (s.variant === 'closing-soon')
-      return { text: t('hours.open'), color: 'text-green', extra: { text: t(s.messageKey), color: 'text-orange' } }
+      return { text: t(s.messageKey), color: 'text-orange' }
     if (s.variant === 'open')
       return { text: t(s.messageKey), color: 'text-green' }
     return null
@@ -129,11 +129,7 @@ const { addressRef, showCopiedTooltip } = useAddressCopy()
         <!-- Opening Status -->
         <div v-if="statusInfo" flex="~ items-center gap-6">
           <span :class="statusInfo.color" font-medium>{{ statusInfo.text }}</span>
-          <template v-if="statusInfo.extra">
-            <div aria-hidden rounded-full bg-neutral-600 size-3 />
-            <span :class="statusInfo.extra.color" font-medium>{{ statusInfo.extra.text }}</span>
-          </template>
-          <template v-else-if="nextChangeText">
+          <template v-if="nextChangeText">
             <div aria-hidden rounded-full bg-neutral-600 size-3 />
             <span text-neutral-700>{{ nextChangeText }}</span>
           </template>
