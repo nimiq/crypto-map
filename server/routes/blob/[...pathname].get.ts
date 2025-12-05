@@ -74,7 +74,10 @@ export default eventHandler(async (event) => {
     const existingImage = await blob.head(pathname).catch(() => null)
     if (existingImage) {
       const size = Number(existingImage.size ?? Number.NaN)
-      if (!Number.isNaN(size) && size < MIN_VALID_IMAGE_BYTES) {
+      const cachedContentType = existingImage.contentType
+
+      // Delete invalid cached images (too small or wrong content type)
+      if (!Number.isNaN(size) && (size < MIN_VALID_IMAGE_BYTES || !cachedContentType?.startsWith('image/'))) {
         event.waitUntil(
           blob.delete(pathname).catch((error: unknown) => {
             consola.warn(`Failed to delete invalid cached image for ${uuid}:`, error, { tag: 'image-proxy' })
@@ -82,6 +85,7 @@ export default eventHandler(async (event) => {
         )
       }
       else {
+        setHeader(event, 'Cache-Control', 'public, max-age=31536000, immutable')
         return blob.serve(event, pathname)
       }
     }
