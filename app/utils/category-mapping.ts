@@ -181,6 +181,7 @@ const iconMappings: Record<string, string[]> = {
   bus: ['bus_station', 'bus_stop', 'taxi_stand', 'ferry_terminal'],
   golf: ['golf_course'],
   gym: ['gym', 'fitness_center'],
+  health: ['wellness_center'],
 }
 
 // Color group → categories (derived from icon mappings)
@@ -189,7 +190,7 @@ const colorGroups = {
   commercial: [...iconMappings.shopping!, ...iconMappings.grocery!, ...iconMappings.convenience!, ...iconMappings.gas!],
   service: [...iconMappings.bank!, ...iconMappings.atm!, ...iconMappings.post_office!],
   entertainment: [...iconMappings.movie!, ...iconMappings.museum!, ...iconMappings.theater!, ...iconMappings.aquarium!, ...iconMappings.historic!],
-  health: [...iconMappings.pharmacy!],
+  health: [...iconMappings.pharmacy!, ...iconMappings.health!],
   lodging: [...iconMappings.lodging!],
   transportation: [...iconMappings.airport!, ...iconMappings.train!, ...iconMappings.bus!],
   sports: [...iconMappings.golf!, ...iconMappings.gym!],

@@ -143,7 +143,7 @@ function createMarkerElement(country: CountryHotspot): HTMLElement {
 
   const container = document.createElement('div')
   container.style.cssText = `
-    display: flex; flex-direction: column; gap: 2px; padding: 8px; border-radius: 12px;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px; border-radius: 12px;
     background: white; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
     outline: 1.5px solid rgb(0 0 0 / 0.2); outline-offset: -1.5px;
   `
@@ -153,7 +153,7 @@ function createMarkerElement(country: CountryHotspot): HTMLElement {
   row1.style.cssText = 'display: flex; align-items: center; gap: 4px;'
 
   const flagContainer = document.createElement('span')
-  flagContainer.style.cssText = 'flex-shrink: 0; border-radius: 2px; overflow: hidden; display: flex;'
+  flagContainer.style.cssText = 'flex-shrink: 0; border-radius: 2px; overflow: hidden; display: flex; width: 16px; height: 16px;'
 
   const nameSpan = document.createElement('span')
   nameSpan.style.cssText = 'font-size: 14px; color: #1f2937; line-height: 1.25; font-weight: 600;'
@@ -263,9 +263,9 @@ function flyToCountry(country: CountryHotspot) {
 
   flyTo(country.center, country.zoom)
 
-  // Reset after fly animation completes (flyTo uses 1000ms duration)
+  // Reset after fly animation completes + delay for clusters to load
   mapInstance.value?.once('moveend', () => {
-    isFlying.value = false
+    setTimeout(() => isFlying.value = false, 200)
   })
 }
 </script>

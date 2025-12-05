@@ -88,5 +88,3 @@ watch(mapInstance, (map) => {
     </div>
   </Transition>
 </template>
-
-

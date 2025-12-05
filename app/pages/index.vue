@@ -199,6 +199,10 @@ async function onMapLoad(event: { map: Map }) {
       map.getCanvas().style.cursor = ''
     })
 
+    // Collapse attribution by default (maplibre expands it on init)
+    const attribButton = map.getContainer().querySelector('.maplibregl-ctrl-attrib-button') as HTMLElement
+    attribButton?.click()
+
     setMapInstance(map)
   }
   catch (error) {
@@ -287,6 +291,7 @@ main {
 }
 
 .maplibregl-ctrl-attrib.maplibregl-compact-show {
-  padding: 2px 24px 2px 6px;
+  padding: 2px 28px 2px 8px;
+  border-radius: 12px;
 }
 </style>

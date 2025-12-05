@@ -28,6 +28,8 @@ export function useMapIcons() {
       'gas',
       'golf',
       'grocery',
+      'gym',
+      'health',
       'historic',
       'lodging',
       'misc',
