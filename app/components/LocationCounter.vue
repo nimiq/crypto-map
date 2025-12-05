@@ -16,7 +16,7 @@ watch(count, (newCount) => {
   if (newCount === null)
     return
   animate(animatedCount, newCount, {
-    duration: 0.4,
+    duration: 0.15,
     ease: 'easeOut',
     onUpdate: (latest: number) => {
       displayCount.value = Math.round(latest)
@@ -83,7 +83,7 @@ watch(mapInstance, (map) => {
         outline="~ 1.5 neutral/8 offset--1.5"
         font-medium px-8 py-3 rounded-full pointer-events-auto shadow-lg
       >
-        There are <span align-middle inline-flex h-16 items-center overflow-hidden><span :key="displayCount" class="animate-slide-in" inline-block tabular-nums>{{ displayCount }}</span></span> locations in this area
+        There are <span inline-flex items-baseline overflow-hidden><span :key="displayCount" class="animate-slide-in" inline-block tabular-nums>{{ displayCount }}</span></span> locations in this area
       </div>
     </div>
   </Transition>
@@ -91,7 +91,7 @@ watch(mapInstance, (map) => {
 
 <style scoped>
 .animate-slide-in {
-  animation: slideIn 0.3s ease-out;
+  animation: slideIn 0.15s ease-out;
 }
 
 @keyframes slideIn {
