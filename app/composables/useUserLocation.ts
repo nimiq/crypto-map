@@ -58,8 +58,6 @@ export function useUserLocation() {
   const isLocating = ref(false)
   const { coords, resume, pause } = useGeolocation({ immediate: false })
 
-  const ACCURACY_THRESHOLD = 100 // meters - only show blue dot if accuracy is better than this
-
   function locateMe() {
     isLocating.value = true
     resume()
@@ -73,9 +71,9 @@ export function useUserLocation() {
     })
   }
 
-  // Show blue dot only for GPS location with good accuracy
+  // Show blue dot when GPS location is available (accuracy circle indicates precision)
   const showUserLocation = computed(() => {
-    return gpsPoint.value !== null && gpsAccuracy.value !== null && gpsAccuracy.value <= ACCURACY_THRESHOLD
+    return gpsPoint.value !== null && gpsAccuracy.value !== null
   })
 
   const userLocationPoint = computed(() => {
