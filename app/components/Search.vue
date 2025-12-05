@@ -213,10 +213,9 @@ async function handleItemClick(item: SearchItem) {
                 v-if="categorySuggestion && searchQuery.trim().length > 0"
                 key="category-suggestion"
                 color="red"
-                :item="{ kind: 'category', category: categorySuggestion.categoryId, label: searchQuery }"
+                :item="{ kind: 'category', category: categorySuggestion.categoryId, label: formatCategoryLabel(categorySuggestion.categoryId) }"
                 :display-value="searchDisplayValue"
                 icon="i-tabler:search"
-                :subline="`Category: ${formatCategoryLabel(categorySuggestion.categoryId)}`"
               />
               <Item
                 v-else-if="searchQuery.trim().length > 0"
