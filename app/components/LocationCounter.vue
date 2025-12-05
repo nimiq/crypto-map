@@ -83,25 +83,10 @@ watch(mapInstance, (map) => {
         outline="~ 1.5 neutral/8 offset--1.5"
         font-medium px-8 py-3 rounded-full pointer-events-auto shadow-lg
       >
-        There are <span inline-flex items-baseline overflow-hidden><span :key="displayCount" class="animate-slide-in" inline-block tabular-nums>{{ displayCount }}</span></span> locations in this area
+        There are <span tabular-nums>{{ displayCount }}</span> locations in this area
       </div>
     </div>
   </Transition>
 </template>
 
-<style scoped>
-.animate-slide-in {
-  animation: slideIn 0.15s ease-out;
-}
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(100%);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-</style>
