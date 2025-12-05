@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Map as MapLibreMap } from 'maplibre-gl'
+import { icons as flagIcons } from '@iconify-json/flag'
 import { Marker } from 'maplibre-gl'
-import { icons as nimiqFlags } from 'nimiq-flags'
 
 interface CountryHotspot {
   code: 'SV' | 'CH'
@@ -12,8 +12,8 @@ interface CountryHotspot {
 }
 
 const COUNTRY_HOTSPOTS: CountryHotspot[] = [
-  { code: 'SV', name: 'El Salvador', center: { lat: 13.7942, lng: -88.8965 }, flagIcon: 'nimiq-flags:sv-hexagon', zoom: 6.8 },
-  { code: 'CH', name: 'Switzerland', center: { lat: 46.8, lng: 8.2 }, flagIcon: 'nimiq-flags:ch-hexagon', zoom: 6.5 },
+  { code: 'SV', name: 'El Salvador', center: { lat: 13.7942, lng: -88.8965 }, flagIcon: 'flag:sv-4x3', zoom: 6.8 },
+  { code: 'CH', name: 'Switzerland', center: { lat: 46.8, lng: 8.2 }, flagIcon: 'flag:ch-4x3', zoom: 6.5 },
 ]
 
 const BUBBLE_PADDING = 8
@@ -134,7 +134,7 @@ const bubbles = computed<Bubble[]>(() => {
 const latlngBubbles = computed(() => bubbles.value.filter(b => b.latlng))
 const edgeBubbles = computed(() => latlngBubbles.value.length > 0 ? [] : bubbles.value.filter(b => b.edge))
 
-// Create marker element programmatically
+// Create marker element programmatically (lat/lng bubbles - no navigation icon)
 function createMarkerElement(country: CountryHotspot): HTMLElement {
   const button = document.createElement('button')
   button.className = 'country-bubble-marker'
@@ -148,8 +148,9 @@ function createMarkerElement(country: CountryHotspot): HTMLElement {
     outline: 1.5px solid rgb(0 0 0 / 0.2); outline-offset: -1.5px;
   `
 
+  // Flag container with rounded corners
   const flagContainer = document.createElement('span')
-  flagContainer.style.cssText = 'flex-shrink: 0; width: 28px; height: 28px;'
+  flagContainer.style.cssText = 'flex-shrink: 0; width: 24px; height: 18px; border-radius: 4px; overflow: hidden; display: flex;'
 
   const textContainer = document.createElement('div')
   textContainer.style.cssText = 'display: flex; flex-direction: column; text-align: left;'
@@ -174,20 +175,20 @@ function createMarkerElement(country: CountryHotspot): HTMLElement {
   return button
 }
 
-// Load icon from bundled nimiq-flags
-function loadIcon(iconName: string, container: HTMLElement, size = 28) {
-  // Parse icon name (format: "nimiq-flags:icon-name")
+// Load icon from bundled @iconify-json/flag
+function loadIcon(iconName: string, container: HTMLElement) {
+  // Parse icon name (format: "flag:sv-4x3")
   const [collection, name] = iconName.split(':')
-  if (collection !== 'nimiq-flags' || !name)
+  if (collection !== 'flag' || !name)
     return
 
-  const iconData = nimiqFlags.icons[name]
+  const iconData = flagIcons.icons[name]
   if (!iconData)
     return
 
-  const width = nimiqFlags.width || 32
-  const height = nimiqFlags.height || 32
-  container.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${width} ${height}">${iconData.body}</svg>`
+  const width = flagIcons.width || 640
+  const height = flagIcons.height || 480
+  container.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid slice">${iconData.body}</svg>`
 }
 
 // Update marker count text
@@ -280,12 +281,18 @@ function flyToCountry(country: CountryHotspot) {
         @click="flyToCountry(bubble)"
       >
         <div flex="~ items-center gap-8" outline="~ offset--1.5 1.5 neutral/20" p-8 rounded-12 bg-neutral-0 shadow-lg>
-          <Icon :name="bubble.flagIcon" shrink-0 size-28 />
+          <!-- Navigation icon with background -->
+          <div flex="~ items-center justify-center" rounded-8 bg-neutral-100 shrink-0 size-32 :style="{ transform: `rotate(${bubble.edge!.arrowAngle}deg)` }">
+            <Icon name="i-tabler:navigation-filled" text-neutral-600 size-16 />
+          </div>
+          <!-- Flag with rounded corners -->
+          <span rounded-4 flex shrink-0 h-18 w-24 overflow-hidden>
+            <Icon :name="bubble.flagIcon" h-full w-full />
+          </span>
           <div flex="~ col" text-left>
             <span text="14 neutral-900" lh-tight font-semibold>{{ bubble.name }}</span>
             <span v-if="bubble.count" text="12 neutral-700" lh-tight>{{ bubble.count }} locations</span>
           </div>
-          <Icon name="i-tabler:navigation-filled" text-neutral-600 size-14 :style="{ transform: `rotate(${bubble.edge!.arrowAngle}deg)` }" />
         </div>
       </button>
     </Teleport>
