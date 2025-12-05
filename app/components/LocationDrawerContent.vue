@@ -148,9 +148,7 @@ const { addressRef, showCopiedTooltip } = useAddressCopy()
       </div>
     </header>
 
-    <div pt-24>
-      <PhotoCarousel v-if="location.gmapsPlaceId" v-bind="location" mx--8 />
-    </div>
+    <PhotoCarousel v-if="location.gmapsPlaceId" :uuid="location.uuid" mx--8 pt-24 empty="!pt-0 !mx-0" />
 
     <div mt-24 flex-1 f-px-md>
       <!-- Weekly Hours -->
