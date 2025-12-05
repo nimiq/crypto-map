@@ -196,7 +196,6 @@ export const baseLocationSelect = {
   latitude,
   longitude,
   rating: tables.locations.rating,
-  photos: tables.locations.photos,
   gmapsPlaceId: tables.locations.gmapsPlaceId,
   gmapsUrl: tables.locations.gmapsUrl,
   website: tables.locations.website,

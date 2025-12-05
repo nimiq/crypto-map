@@ -69,15 +69,13 @@ export default eventHandler(async (event) => {
     if (Number.isNaN(photoIndex) || photoIndex < 0 || photoIndex > 2)
       throw createError({ statusCode: 400, message: 'Photo index must be 0-2' })
 
-    const blob = hubBlob()
-
     // Check if image exists in cache
     const existingImage = await blob.head(pathname).catch(() => null)
     if (existingImage) {
       const size = Number(existingImage.size ?? Number.NaN)
       if (!Number.isNaN(size) && size < MIN_VALID_IMAGE_BYTES) {
         event.waitUntil(
-          blob.delete(pathname).catch((error) => {
+          blob.delete(pathname).catch((error: unknown) => {
             consola.warn(`Failed to delete invalid cached image for ${uuid}:`, error, { tag: 'image-proxy' })
           }),
         )
@@ -87,10 +85,10 @@ export default eventHandler(async (event) => {
       }
     }
 
-    // Fetch image from database and external sources
+    // Fetch gmapsPlaceId from database
     const db = useDrizzle()
     const location = await db
-      .select({ photos: tables.locations.photos, gmapsPlaceId: tables.locations.gmapsPlaceId })
+      .select({ gmapsPlaceId: tables.locations.gmapsPlaceId })
       .from(tables.locations)
       .where(eq(tables.locations.uuid, uuid))
       .limit(1)
@@ -102,33 +100,7 @@ export default eventHandler(async (event) => {
     let imageBuffer: ArrayBuffer | null = null
     let contentType = 'image/jpeg'
 
-    const photoUrl = location.photos?.[photoIndex]
-    if (photoUrl) {
-      try {
-        const response = await fetch(photoUrl)
-        if (response.ok) {
-          const fetchedBuffer = await response.arrayBuffer()
-          const fetchedContentType = response.headers.get('content-type') || 'image/jpeg'
-          const bufferSize = fetchedBuffer.byteLength
-          if (isValidImage(fetchedContentType, fetchedBuffer)) {
-            imageBuffer = fetchedBuffer
-            contentType = fetchedContentType
-          }
-          else {
-            consola.warn(`Discarded invalid direct photo for ${uuid}`, {
-              tag: 'image-proxy',
-              contentType: fetchedContentType,
-              size: bufferSize,
-            })
-          }
-        }
-      }
-      catch {
-        // Fallback to Google Maps if external URL fails
-      }
-    }
-
-    if (!imageBuffer && location.gmapsPlaceId) {
+    if (location.gmapsPlaceId) {
       const { data, contentType: gmapsContentType, error } = await fetchPhotoFromGoogle(location.gmapsPlaceId, photoIndex)
       if (!error && data) {
         const resolvedContentType = gmapsContentType || 'image/jpeg'
@@ -156,7 +128,7 @@ export default eventHandler(async (event) => {
     // Cache in background (fire-and-forget)
     // waitUntil ensures the task completes even after response is sent
     event.waitUntil(
-      blob.put(pathname, imageBuffer, { contentType }).catch((error) => {
+      blob.put(pathname, imageBuffer, { contentType }).catch((error: unknown) => {
         consola.error(`Failed to cache image for ${uuid}:`, error, { tag: 'image-proxy' })
       }),
     )

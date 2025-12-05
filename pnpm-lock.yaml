@@ -70,8 +70,8 @@ catalogs:
       specifier: ^2.0.0
       version: 2.0.0
     '@nuxthub/core-nightly':
-      specifier: latest
-      version: 0.10.0-20251204-154415-81faba6
+      specifier: 0.10.0-20251205-001323-943b30c
+      version: 0.10.0-20251205-001323-943b30c
     '@nuxtjs/i18n':
       specifier: ^10.2.1
       version: 10.2.1
@@ -189,7 +189,7 @@ importers:
         version: 2.0.0(@vercel/blob@2.0.0)(aws4fetch@1.0.20)(db0@0.3.4(@electric-sql/pglite@0.3.14)(drizzle-orm@0.44.7(@cloudflare/workers-types@4.20251202.0)(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.0)(postgres@3.4.7)))(ioredis@5.8.2)(magicast@0.5.1)
       '@nuxthub/core-nightly':
         specifier: catalog:framework
-        version: 0.10.0-20251204-154415-81faba6(@vercel/blob@2.0.0)(aws4fetch@1.0.20)(db0@0.3.4(@electric-sql/pglite@0.3.14)(drizzle-orm@0.44.7(@cloudflare/workers-types@4.20251202.0)(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.0)(postgres@3.4.7)))(ioredis@5.8.2)(magicast@0.5.1)(synckit@0.11.11)(typescript@5.9.3)
+        version: 0.10.0-20251205-001323-943b30c(@vercel/blob@2.0.0)(aws4fetch@1.0.20)(db0@0.3.4(@electric-sql/pglite@0.3.14)(drizzle-orm@0.44.7(@cloudflare/workers-types@4.20251202.0)(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.0)(postgres@3.4.7)))(ioredis@5.8.2)(magicast@0.5.1)(synckit@0.11.11)(typescript@5.9.3)
       '@nuxtjs/i18n':
         specifier: catalog:framework
         version: 10.2.1(@vercel/blob@2.0.0)(@vue/compiler-dom@3.5.25)(aws4fetch@1.0.20)(db0@0.3.4(@electric-sql/pglite@0.3.14)(drizzle-orm@0.44.7(@cloudflare/workers-types@4.20251202.0)(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.0)(postgres@3.4.7)))(eslint@9.39.1(jiti@2.6.1))(ioredis@5.8.2)(magicast@0.5.1)(rollup@4.53.3)(vue@3.5.25(typescript@5.9.3))
@@ -1945,8 +1945,8 @@ packages:
       rolldown:
         optional: true
 
-  '@nuxthub/core-nightly@0.10.0-20251204-154415-81faba6':
-    resolution: {integrity: sha512-p2f7UjETFlK5wXTw8imztw4xSOTDiXud1+ome1cr0rpF9oHG3ydtQFH3HELz5hXUGDjNrbFNyetagUGJV9Tf6g==}
+  '@nuxthub/core-nightly@0.10.0-20251205-001323-943b30c':
+    resolution: {integrity: sha512-Bp7cMlxMkv1ywnvKA5R1YGuv2xq3ylWHGdO7vC6Z9ox5ms2XxdZNUyEUg0WtLGKBEJWmzaTK1NCaqxVjxa3SXA==}
     hasBin: true
 
   '@nuxtjs/i18n@10.2.1':
@@ -9128,7 +9128,7 @@ snapshots:
       - vue-tsc
       - yaml
 
-  '@nuxthub/core-nightly@0.10.0-20251204-154415-81faba6(@vercel/blob@2.0.0)(aws4fetch@1.0.20)(db0@0.3.4(@electric-sql/pglite@0.3.14)(drizzle-orm@0.44.7(@cloudflare/workers-types@4.20251202.0)(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.0)(postgres@3.4.7)))(ioredis@5.8.2)(magicast@0.5.1)(synckit@0.11.11)(typescript@5.9.3)':
+  '@nuxthub/core-nightly@0.10.0-20251205-001323-943b30c(@vercel/blob@2.0.0)(aws4fetch@1.0.20)(db0@0.3.4(@electric-sql/pglite@0.3.14)(drizzle-orm@0.44.7(@cloudflare/workers-types@4.20251202.0)(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.0)(postgres@3.4.7)))(ioredis@5.8.2)(magicast@0.5.1)(synckit@0.11.11)(typescript@5.9.3)':
     dependencies:
       '@cloudflare/workers-types': 4.20251202.0
       '@nuxt/kit': 4.2.1(magicast@0.5.1)

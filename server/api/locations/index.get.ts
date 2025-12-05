@@ -117,7 +117,6 @@ export default defineEventHandler(async (event) => {
     tables.locations.location,
     tables.locations.rating,
     tables.locations.ratingCount,
-    tables.locations.photos,
     tables.locations.gmapsPlaceId,
     tables.locations.gmapsUrl,
     tables.locations.website,

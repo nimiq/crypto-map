@@ -30,7 +30,6 @@ CREATE TABLE "locations" (
 	"location" geometry(point) NOT NULL,
 	"rating" double precision,
 	"rating_count" double precision,
-	"photos" text[],
 	"gmaps_place_id" text,
 	"gmaps_url" text,
 	"website" text,

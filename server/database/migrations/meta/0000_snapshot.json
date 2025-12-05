@@ -1,5 +1,5 @@
 {
-  "id": "1f5efbeb-c66a-40a5-9553-44b6b4cc1d07",
+  "id": "16e927b0-081f-4bb3-9972-46df7df7345a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -318,12 +318,6 @@
         "rating_count": {
           "name": "rating_count",
           "type": "double precision",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "photos": {
-          "name": "photos",
-          "type": "text[]",
           "primaryKey": false,
           "notNull": false
         },

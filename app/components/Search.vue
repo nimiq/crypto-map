@@ -167,11 +167,11 @@ async function handleItemClick(item: SearchItem) {
           >
             <Icon :name="icon" text-18 />
           </div>
-          <div v-if="subline" flex="~ col gap-2">
-            <span text-neutral-800 v-html="getDisplayValue(item, displayValue)" />
+          <div v-if="subline" flex="~ col gap-2" min-w-0>
+            <span text-neutral-800 truncate v-html="getDisplayValue(item, displayValue)" />
             <span text="f-xs neutral-600">{{ subline }}</span>
           </div>
-          <span v-else text-neutral-800 v-html="getDisplayValue(item, displayValue)" />
+          <span v-else text-neutral-800 truncate v-html="getDisplayValue(item, displayValue)" />
         </button>
       </ComboboxItem>
     </DefineComboboxItemTemplate>

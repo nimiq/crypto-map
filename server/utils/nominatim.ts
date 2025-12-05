@@ -60,10 +60,9 @@ function formatDisplayName(result: NominatimResult): string {
   if (locality && !parts.includes(locality))
     parts.push(locality)
 
-  if (addr.state)
-    parts.push(addr.state)
+  // Use first country name only (handles "Schweiz/Suisse/Svizzera" -> "Schweiz")
   if (addr.country)
-    parts.push(addr.country)
+    parts.push(addr.country.split('/')[0]!.trim())
 
   return parts.length > 0 ? parts.join(', ') : result.display_name
 }
@@ -79,10 +78,11 @@ export async function searchNominatim(query: string, options?: { lat?: number, l
   const { lat, lng, limit = 3 } = options ?? {}
 
   const params = new URLSearchParams({
-    q: query,
-    format: 'jsonv2',
-    limit: String(limit),
-    addressdetails: '1',
+    'q': query,
+    'format': 'jsonv2',
+    'limit': String(limit),
+    'addressdetails': '1',
+    'accept-language': 'en',
   })
 
   if (lat !== undefined && lng !== undefined) {
