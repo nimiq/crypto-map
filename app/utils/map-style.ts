@@ -411,7 +411,7 @@ export function getMapStyle(origin: string): StyleSpecification {
         'minzoom': 6,
         'maxzoom': 9, // Hide clusters above zoom 8
         'paint': {
-          'circle-color': NIMIQ_COLORS.darkblue,
+          'circle-color': NIMIQ_COLORS.white,
           'circle-radius': [
             'step',
             ['get', 'point_count'],
@@ -421,8 +421,8 @@ export function getMapStyle(origin: string): StyleSpecification {
             500,
             22, // 500+ locations
           ],
-          'circle-stroke-width': 2,
-          'circle-stroke-color': NIMIQ_COLORS.white,
+          'circle-stroke-width': 1.5,
+          'circle-stroke-color': 'rgba(0, 0, 0, 0.2)',
         },
       },
       // Cluster count labels
@@ -442,7 +442,7 @@ export function getMapStyle(origin: string): StyleSpecification {
           'text-ignore-placement': true,
         },
         'paint': {
-          'text-color': NIMIQ_COLORS.white,
+          'text-color': NIMIQ_COLORS.darkblue,
         },
       },
 

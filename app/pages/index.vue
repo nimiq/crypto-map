@@ -256,19 +256,6 @@ main {
   --uno: bg-neutral-100 transition-colors;
 }
 
-/* Attribution position - match MapControls margins */
-.maplibregl-ctrl-bottom-left {
-  left: 12px;
-  bottom: 12px;
-}
-
-@media (min-width: 768px) {
-  .maplibregl-ctrl-bottom-left {
-    left: 16px;
-    bottom: 16px;
-  }
-}
-
 /* Style compact attribution */
 .maplibregl-ctrl-attrib {
   background: rgba(255, 255, 255, 0.9);

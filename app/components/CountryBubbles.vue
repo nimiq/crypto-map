@@ -143,30 +143,32 @@ function createMarkerElement(country: CountryHotspot): HTMLElement {
 
   const container = document.createElement('div')
   container.style.cssText = `
-    display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 12px;
+    display: flex; flex-direction: column; gap: 2px; padding: 8px; border-radius: 12px;
     background: white; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
     outline: 1.5px solid rgb(0 0 0 / 0.2); outline-offset: -1.5px;
   `
 
-  // Flag container with rounded corners (original icon size, clipped)
-  const flagContainer = document.createElement('span')
-  flagContainer.style.cssText = 'flex-shrink: 0; border-radius: 4px; overflow: hidden; display: flex;'
+  // Row 1: Flag + Country name
+  const row1 = document.createElement('div')
+  row1.style.cssText = 'display: flex; align-items: center; gap: 4px;'
 
-  const textContainer = document.createElement('div')
-  textContainer.style.cssText = 'display: flex; flex-direction: column; text-align: left;'
+  const flagContainer = document.createElement('span')
+  flagContainer.style.cssText = 'flex-shrink: 0; border-radius: 2px; overflow: hidden; display: flex;'
 
   const nameSpan = document.createElement('span')
   nameSpan.style.cssText = 'font-size: 14px; color: #1f2937; line-height: 1.25; font-weight: 600;'
   nameSpan.textContent = country.name
 
+  row1.appendChild(flagContainer)
+  row1.appendChild(nameSpan)
+
+  // Row 2: Location count
   const countSpan = document.createElement('span')
   countSpan.style.cssText = 'font-size: 12px; color: #374151; line-height: 1.25;'
   countSpan.className = 'location-count'
 
-  textContainer.appendChild(nameSpan)
-  textContainer.appendChild(countSpan)
-  container.appendChild(flagContainer)
-  container.appendChild(textContainer)
+  container.appendChild(row1)
+  container.appendChild(countSpan)
   button.appendChild(container)
 
   // Load icon from bundled package
@@ -280,12 +282,10 @@ function flyToCountry(country: CountryHotspot) {
         translate-x="-1/2" translate-y="-1/2"
         @click="flyToCountry(bubble)"
       >
-        <div flex="~ items-center gap-8" outline="~ offset--1.5 1.5 neutral/20" p-8 rounded-12 bg-neutral-0 shadow-lg>
-          <!-- Navigation icon with background -->
-          <div flex="~ items-center justify-center" rounded-full bg-neutral-100 shrink-0 size-32 :style="{ transform: `rotate(${bubble.edge!.arrowAngle}deg)` }">
-            <Icon name="i-tabler:navigation-filled" text-neutral-600 size-16 />
-          </div>
-          <div flex="~ col" text-left>
+        <div flex="~ items-center gap-6" outline="~ offset--1.5 1.5 neutral/20" p-8 rounded-12 bg-neutral-0 shadow-lg>
+          <!-- Navigation icon -->
+          <Icon name="i-tabler:navigation-filled" text-neutral-700 shrink-0 size-13 :style="{ transform: `rotate(${bubble.edge!.arrowAngle}deg)` }" />
+          <div flex="~ col gap-2" text-left>
             <div flex="~ items-center gap-4">
               <span rounded-2 flex shrink-0 overflow-hidden>
                 <Icon :name="bubble.flagIcon" size-16 />
