@@ -1,11 +1,28 @@
 <script setup lang="ts">
 import { consola } from 'consola'
+import { animate, useMotionValue } from 'motion-v'
 
 const { mapInstance } = useMapControls()
 const { locationCount, clusterCount } = useVisibleLocations()
 const hasVisibleFeatures = computed(() => locationCount.value > 0 || clusterCount.value > 0)
 const count = ref<number | null>(null)
 const loading = ref(false)
+
+// Animated count using motion value
+const animatedCount = useMotionValue(0)
+const displayCount = ref(0)
+
+watch(count, (newCount) => {
+  if (newCount === null)
+    return
+  animate(animatedCount, newCount, {
+    duration: 0.4,
+    ease: 'easeOut',
+    onUpdate: (latest: number) => {
+      displayCount.value = Math.round(latest)
+    },
+  })
+}, { immediate: true })
 
 const updateCount = useDebounceFn(async () => {
   if (!mapInstance.value)
@@ -58,18 +75,33 @@ watch(mapInstance, (map) => {
   >
     <div
       v-if="hasVisibleFeatures && count !== null && count > 0"
-
       flex pointer-events-none bottom-8 left-0 right-0 justify-center fixed z-10
     >
       <div
         bg="white/90 backdrop-blur"
         text="neutral-700 f-xs"
-
         outline="~ 1.5 neutral/8 offset--1.5"
         font-medium px-8 py-3 rounded-full pointer-events-auto shadow-lg
       >
-        There are {{ count }} locations in this area
+        There are <span align-middle inline-flex h-16 items-center overflow-hidden><span :key="displayCount" class="animate-slide-in" inline-block tabular-nums>{{ displayCount }}</span></span> locations in this area
       </div>
     </div>
   </Transition>
 </template>
+
+<style scoped>
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>

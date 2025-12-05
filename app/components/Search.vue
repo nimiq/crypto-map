@@ -178,8 +178,8 @@ async function handleItemClick(item: SearchItem) {
 
     <ComboboxAnchor as="div" inset-x-0 top-0 absolute z-60>
       <div mt-12 px-12 w-screen relative>
-        <ComboboxInput ref="search-input" v-model="searchQuery" outline="0.5 neutral-400" name="search" placeholder="Search here" v-bind="$attrs" text-neutral px-47 py-10 rounded-full bg-neutral-0 w-full shadow transition-colors />
-        <button p-0 border-0 bg-transparent cursor-pointer translate-y-13.5 left-24 top-0 absolute @click="handleClose">
+        <ComboboxInput ref="search-input" v-model="searchQuery" outline="0.5 neutral-400" name="search" placeholder="Search here" v-bind="$attrs" text-neutral px-47 pb-12 pt-10 rounded-full bg-neutral-0 w-full shadow transition-colors />
+        <button p-0 border-0 bg-transparent cursor-pointer translate-y-13.5 left-28 top-0 absolute @click="handleClose">
           <Icon v-if="!isComboboxOpen" name="i-tabler:search" op-70 size-18 />
           <Icon v-else name="i-tabler:arrow-left" op-70 size-18 />
         </button>

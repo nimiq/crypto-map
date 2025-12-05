@@ -148,9 +148,9 @@ function createMarkerElement(country: CountryHotspot): HTMLElement {
     outline: 1.5px solid rgb(0 0 0 / 0.2); outline-offset: -1.5px;
   `
 
-  // Flag container with rounded corners
+  // Flag container with rounded corners (original icon size, clipped)
   const flagContainer = document.createElement('span')
-  flagContainer.style.cssText = 'flex-shrink: 0; width: 24px; height: 18px; border-radius: 4px; overflow: hidden; display: flex;'
+  flagContainer.style.cssText = 'flex-shrink: 0; border-radius: 4px; overflow: hidden; display: flex;'
 
   const textContainer = document.createElement('div')
   textContainer.style.cssText = 'display: flex; flex-direction: column; text-align: left;'
@@ -286,8 +286,8 @@ function flyToCountry(country: CountryHotspot) {
             <Icon name="i-tabler:navigation-filled" text-neutral-600 size-16 />
           </div>
           <!-- Flag with rounded corners -->
-          <span rounded-4 flex shrink-0 h-18 w-24 overflow-hidden>
-            <Icon :name="bubble.flagIcon" h-full w-full />
+          <span rounded-4 flex shrink-0 overflow-hidden>
+            <Icon :name="bubble.flagIcon" />
           </span>
           <div flex="~ col" text-left>
             <span text="14 neutral-900" lh-tight font-semibold>{{ bubble.name }}</span>
