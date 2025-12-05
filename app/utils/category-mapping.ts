@@ -11,7 +11,7 @@ const colors = {
   health: '#DC3B45',
   lodging: '#E430B1',
   transportation: '#2763B1',
-  sports: '#17a773',
+  sports: '#228B65',
   misc: '#546E7A',
 } as const
 
@@ -180,7 +180,7 @@ const iconMappings: Record<string, string[]> = {
   train: ['train_station', 'transit_station', 'subway_station', 'light_rail_station', 'transit_depot'],
   bus: ['bus_station', 'bus_stop', 'taxi_stand', 'ferry_terminal'],
   golf: ['golf_course'],
-  misc: ['gym', 'fitness_center'],
+  gym: ['gym', 'fitness_center'],
 }
 
 // Color group → categories (derived from icon mappings)
@@ -192,7 +192,7 @@ const colorGroups = {
   health: [...iconMappings.pharmacy!],
   lodging: [...iconMappings.lodging!],
   transportation: [...iconMappings.airport!, ...iconMappings.train!, ...iconMappings.bus!],
-  sports: [...iconMappings.golf!, ...iconMappings.misc!],
+  sports: [...iconMappings.golf!, ...iconMappings.gym!],
   misc: [] as string[], // default fallback, no explicit categories
 } satisfies Record<keyof typeof colors, string[]>
 
