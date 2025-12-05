@@ -1,4 +1,5 @@
 import { consola } from 'consola'
+import { blob } from 'hub:blob'
 
 const MIN_VALID_IMAGE_BYTES = 1024
 const IMAGE_MIME_PATTERN = /^image\//i
