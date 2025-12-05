@@ -13,7 +13,7 @@ interface CountryHotspot {
 
 const COUNTRY_HOTSPOTS: CountryHotspot[] = [
   { code: 'SV', name: 'El Salvador', center: { lat: 13.7942, lng: -88.8965 }, flagIcon: 'flag:sv-4x3', zoom: 6.8 },
-  { code: 'CH', name: 'Switzerland', center: { lat: 46.8, lng: 8.2 }, flagIcon: 'flag:ch-4x3', zoom: 6.5 },
+  { code: 'CH', name: 'Switzerland', center: { lat: 46.8, lng: 8.2 }, flagIcon: 'flag:ch-1x1', zoom: 6.5 },
 ]
 
 const BUBBLE_PADDING = 8
@@ -282,15 +282,16 @@ function flyToCountry(country: CountryHotspot) {
       >
         <div flex="~ items-center gap-8" outline="~ offset--1.5 1.5 neutral/20" p-8 rounded-12 bg-neutral-0 shadow-lg>
           <!-- Navigation icon with background -->
-          <div flex="~ items-center justify-center" rounded-8 bg-neutral-100 shrink-0 size-32 :style="{ transform: `rotate(${bubble.edge!.arrowAngle}deg)` }">
+          <div flex="~ items-center justify-center" rounded-full bg-neutral-100 shrink-0 size-32 :style="{ transform: `rotate(${bubble.edge!.arrowAngle}deg)` }">
             <Icon name="i-tabler:navigation-filled" text-neutral-600 size-16 />
           </div>
-          <!-- Flag with rounded corners -->
-          <span rounded-4 flex shrink-0 overflow-hidden>
-            <Icon :name="bubble.flagIcon" />
-          </span>
           <div flex="~ col" text-left>
-            <span text="14 neutral-900" lh-tight font-semibold>{{ bubble.name }}</span>
+            <div flex="~ items-center gap-4">
+              <span rounded-2 flex shrink-0 overflow-hidden>
+                <Icon :name="bubble.flagIcon" size-16 />
+              </span>
+              <span text="14 neutral-900" lh-tight font-semibold>{{ bubble.name }}</span>
+            </div>
             <span v-if="bubble.count" text="12 neutral-700" lh-tight>{{ bubble.count }} locations</span>
           </div>
         </div>

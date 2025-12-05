@@ -224,12 +224,11 @@ async function onMapLoad(event: { map: Map }) {
           :zoom="initialZoom"
           :min-zoom="3"
           :map-style
+          :attribution-control="false"
           @map:load="onMapLoad"
           @map:error="(e: any) => logger.error('Map error:', e.event?.error || e)"
         >
-          <template #default>
-            <!-- Map loaded marker -->
-          </template>
+          <MglAttributionControl position="bottom-left" compact />
         </MglMap>
       </div>
     </ClientOnly>
@@ -255,5 +254,40 @@ async function onMapLoad(event: { map: Map }) {
 <style>
 main {
   --uno: bg-neutral-100 transition-colors;
+}
+
+/* Attribution position - match MapControls margins */
+.maplibregl-ctrl-bottom-left {
+  left: 12px;
+  bottom: 12px;
+}
+
+@media (min-width: 768px) {
+  .maplibregl-ctrl-bottom-left {
+    left: 16px;
+    bottom: 16px;
+  }
+}
+
+/* Style compact attribution */
+.maplibregl-ctrl-attrib {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(4px);
+  border-radius: 6px;
+  font-size: 10px;
+}
+
+.maplibregl-ctrl-attrib.maplibregl-compact {
+  min-height: 24px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.maplibregl-ctrl-attrib.maplibregl-compact .maplibregl-ctrl-attrib-button {
+  background-color: transparent;
+}
+
+.maplibregl-ctrl-attrib.maplibregl-compact-show {
+  padding: 2px 24px 2px 6px;
 }
 </style>
