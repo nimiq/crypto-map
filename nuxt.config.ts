@@ -5,6 +5,11 @@ import { defineNuxtConfig } from 'nuxt/config'
 import * as v from 'valibot'
 
 export default defineNuxtConfig({
+  app: {
+    head: {
+      base: { target: '_blank' },
+    },
+  },
   modules: [
     '@nuxthub/core-nightly',
     '@unocss/nuxt',
