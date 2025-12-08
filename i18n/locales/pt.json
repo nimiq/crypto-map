@@ -1,4 +1,11 @@
 {
+  "search": {
+    "placeholder": "Pesquisar aqui"
+  },
+  "countries": {
+    "SV": "El Salvador",
+    "CH": "Suíça"
+  },
   "error": {
     "notFound": {
       "title": "Local não encontrado",
@@ -50,6 +57,8 @@
     "closesAt": "Fecha"
   },
   "locations": {
+    "inArea": "Existem {count} locais nesta área",
+    "count": "{count} locais",
     "noResults": {
       "title": "Nenhum resultado encontrado",
       "description": "Tente ajustar sua busca ou filtros",

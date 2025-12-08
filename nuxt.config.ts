@@ -11,7 +11,7 @@ export default defineNuxtConfig({
     },
   },
   modules: [
-    '@nuxthub/core-nightly',
+    '@nuxthub/core',
     '@unocss/nuxt',
     '@vueuse/nuxt',
     'motion-v/nuxt',
@@ -78,6 +78,8 @@ export default defineNuxtConfig({
       { code: 'pt', name: 'Português', file: 'pt.json' },
     ],
     langDir: 'locales',
+    strategy: 'no_prefix',
+    detectBrowserLanguage: { useCookie: true, cookieKey: 'i18n_locale', fallbackLocale: 'en' },
   },
   routeRules: {
     '/api/categories': { cache: { maxAge: 3600, swr: true, staleMaxAge: 43200 } },

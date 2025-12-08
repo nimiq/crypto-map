@@ -3,6 +3,8 @@ import type { Map as MapLibreMap } from 'maplibre-gl'
 import { icons as flagIcons } from '@iconify-json/flag'
 import { Marker } from 'maplibre-gl'
 
+const { t } = useI18n()
+
 interface CountryHotspot {
   code: 'SV' | 'CH'
   name: string
@@ -135,7 +137,7 @@ const latlngBubbles = computed(() => bubbles.value.filter(b => b.latlng))
 const edgeBubbles = computed(() => latlngBubbles.value.length > 0 ? [] : bubbles.value.filter(b => b.edge))
 
 // Create marker element programmatically (lat/lng bubbles - no navigation icon)
-function createMarkerElement(country: CountryHotspot): HTMLElement {
+function createMarkerElement(country: CountryHotspot, translatedName: string): HTMLElement {
   const button = document.createElement('button')
   button.className = 'country-bubble-marker'
   button.style.cssText = 'cursor: pointer; background: none; border: none; padding: 0;'
@@ -157,7 +159,7 @@ function createMarkerElement(country: CountryHotspot): HTMLElement {
 
   const nameSpan = document.createElement('span')
   nameSpan.style.cssText = 'font-size: 14px; color: #1f2937; line-height: 1.25; font-weight: 600;'
-  nameSpan.textContent = country.name
+  nameSpan.textContent = translatedName
 
   row1.appendChild(flagContainer)
   row1.appendChild(nameSpan)
@@ -198,7 +200,7 @@ function updateMarkerCount(marker: Marker, count: number | null) {
   const el = marker.getElement()
   const countSpan = el.querySelector('.location-count') as HTMLElement
   if (countSpan) {
-    countSpan.textContent = count ? `${count} locations` : ''
+    countSpan.textContent = count ? t('locations.count', { count }) : ''
   }
 }
 
@@ -227,7 +229,7 @@ function syncMarkers() {
     let marker = markers.get(bubble.code)
 
     if (!marker) {
-      const el = createMarkerElement(country)
+      const el = createMarkerElement(country, t(`countries.${country.code}`))
       marker = new Marker({ element: el, anchor: 'center' })
         .setLngLat([bubble.latlng.lng, bubble.latlng.lat])
         .addTo(map as unknown as MapLibreMap)
@@ -290,9 +292,9 @@ function flyToCountry(country: CountryHotspot) {
               <span rounded-2 flex shrink-0 overflow-hidden>
                 <Icon :name="bubble.flagIcon" size-16 />
               </span>
-              <span text="14 neutral-900" lh-tight font-semibold>{{ bubble.name }}</span>
+              <span text="14 neutral-900" lh-tight font-semibold>{{ t(`countries.${bubble.code}`) }}</span>
             </div>
-            <span v-if="bubble.count" text="12 neutral-700" lh-tight>{{ bubble.count }} locations</span>
+            <span v-if="bubble.count" text="12 neutral-700" lh-tight>{{ t('locations.count', { count: bubble.count }) }}</span>
           </div>
         </div>
       </button>

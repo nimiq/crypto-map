@@ -2,6 +2,7 @@
 import { consola } from 'consola'
 import { animate, useMotionValue } from 'motion-v'
 
+const { t } = useI18n()
 const { mapInstance } = useMapControls()
 const { locationCount, clusterCount } = useVisibleLocations()
 const hasVisibleFeatures = computed(() => locationCount.value > 0 || clusterCount.value > 0)
@@ -83,7 +84,7 @@ watch(mapInstance, (map) => {
         outline="~ 1.5 neutral/8 offset--1.5"
         font-medium px-8 py-3 rounded-full pointer-events-auto shadow-lg
       >
-        There are <span tabular-nums>{{ displayCount }}</span> locations in this area
+        {{ t('locations.inArea', { count: displayCount }) }}
       </div>
     </div>
   </Transition>
