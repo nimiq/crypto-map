@@ -28,6 +28,9 @@ catalogs:
     '@vueuse/core':
       specifier: ^13.8.0
       version: 13.9.0
+    unstorage:
+      specifier: ^0.0.0
+      version: 0.0.0
     zod:
       specifier: ^3.25.56
       version: 3.25.76
@@ -253,8 +256,8 @@ importers:
         specifier: catalog:ui
         version: 2.6.0(typescript@5.9.3)(vue@3.5.25(typescript@5.9.3))
       unstorage:
-        specifier: ^1.17.3
-        version: 1.17.3(@vercel/blob@2.0.0)(aws4fetch@1.0.20)(db0@0.3.4(@electric-sql/pglite@0.3.14)(drizzle-orm@0.44.7(@cloudflare/workers-types@4.20251202.0)(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.0)(postgres@3.4.7)))(ioredis@5.8.2)
+        specifier: 'catalog:'
+        version: 0.0.0
       valibot:
         specifier: catalog:utils
         version: 1.2.0(typescript@5.9.3)
@@ -6736,6 +6739,9 @@ packages:
     peerDependenciesMeta:
       synckit:
         optional: true
+
+  unstorage@0.0.0:
+    resolution: {integrity: sha512-PRjFKK0IErTt4bUbZ/oxgK4NHhFWjaIcsng8DCbtMY1dWzV/8gnr3T8crSnnah9yiLwJgGfdhy8H8nXsVrrA0Q==}
 
   unstorage@1.17.3:
     resolution: {integrity: sha512-i+JYyy0DoKmQ3FximTHbGadmIYb8JEpq7lxUjnjeB702bCPum0vzo6oy5Mfu0lpqISw7hCyMW2yj4nWC8bqJ3Q==}
@@ -14375,6 +14381,8 @@ snapshots:
       rolldown: 1.0.0-beta.53
     optionalDependencies:
       synckit: 0.11.11
+
+  unstorage@0.0.0: {}
 
   unstorage@1.17.3(@vercel/blob@2.0.0)(aws4fetch@1.0.20)(db0@0.3.4(@electric-sql/pglite@0.3.14)(drizzle-orm@0.44.7(@cloudflare/workers-types@4.20251202.0)(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.0)(postgres@3.4.7)))(ioredis@5.8.2):
     dependencies:
