@@ -24,7 +24,6 @@ catalogs:
   framework:
     '@nuxt/fonts': ^0.12.1
     '@nuxt/icon': ^2.1.0
-    '@nuxt/image': ^2.0.0
     '@nuxthub/core-nightly': 0.10.0-20251205-001323-943b30c
     '@nuxtjs/i18n': ^10.2.1
     '@vueuse/nuxt': ^13.8.0

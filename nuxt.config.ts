@@ -20,7 +20,6 @@ export default defineNuxtConfig({
     '@nuxt/fonts',
     '@nuxt/icon',
     'reka-ui/nuxt',
-    '@nuxt/image',
     '@nuxtjs/i18n',
     'nuxt-maplibre',
   ],
@@ -67,16 +66,6 @@ export default defineNuxtConfig({
         dir: './public/providers',
       },
     ],
-  },
-  image: {
-    providers: {
-      cloudflareOnProd: {
-        provider: '~/providers/cloudflareOnProd.ts',
-        options: {
-          siteUrl: process.env.NUXT_PUBLIC_SITE_URL || '',
-        },
-      },
-    },
   },
   i18n: {
     defaultLocale: 'en',

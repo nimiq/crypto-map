@@ -282,7 +282,7 @@ function flyToCountry(country: CountryHotspot) {
         translate-x="-1/2" translate-y="-1/2"
         @click="flyToCountry(bubble)"
       >
-        <div flex="~ items-center gap-6" outline="~ offset--1.5 1.5 neutral-0/4" py-8 px-12 rounded-12 bg-neutral-0 shadow-lg>
+        <div flex="~ items-center gap-6" outline="~ offset--1.5 1.5 neutral-0/4" px-12 py-8 rounded-12 bg-neutral-0 shadow-lg>
           <!-- Navigation icon -->
           <Icon name="i-tabler:navigation-filled" text-neutral-700 shrink-0 size-13 :style="{ transform: `rotate(${bubble.edge!.arrowAngle}deg)` }" />
           <div flex="~ col gap-2" text-left>
