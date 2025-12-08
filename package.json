@@ -53,6 +53,7 @@
     "pathe": "catalog:utils",
     "postgres": "catalog:database",
     "reka-ui": "catalog:ui",
+    "unstorage": "catalog:",
     "valibot": "catalog:utils",
     "vaul-vue": "catalog:ui",
     "vue-sonner": "catalog:ui",

@@ -1,6 +1,13 @@
 {
   "search": {
-    "placeholder": "Rechercher ici"
+    "placeholder": "Rechercher ici",
+    "nearYou": "{query} près de vous"
+  },
+  "map": {
+    "loading": "Chargement de la carte..."
+  },
+  "photo": {
+    "alt": "Photo {number}"
   },
   "countries": {
     "SV": "El Salvador",

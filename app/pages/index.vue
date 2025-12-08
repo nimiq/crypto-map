@@ -2,6 +2,7 @@
 import type { Map } from 'maplibre-gl'
 import { consola } from 'consola'
 
+const { t } = useI18n()
 const logger = consola.withTag('map')
 
 definePageMeta({
@@ -221,7 +222,7 @@ async function onMapLoad(event: { map: Map }) {
       <template #fallback>
         <div flex="~ items-center justify-center" bg-neutral-100 size-screen>
           <p text-neutral-700>
-            Loading map...
+            {{ t('map.loading') }}
           </p>
         </div>
       </template>

@@ -6,11 +6,11 @@ interface SearchHistoryItem {
 
 const MAX_ITEMS = 8
 
-const DEFAULT_CATEGORIES: QuickCategoryItem[] = [
-  { category: 'restaurant', label: 'Restaurant', icon: 'i-tabler:tools-kitchen-2', color: 'orange' },
-  { category: 'cafe', label: 'Cafe', icon: 'i-tabler:coffee', color: 'gold' },
-  { category: 'bar', label: 'Bar', icon: 'i-tabler:beer', color: 'green' },
-  { category: 'pharmacy', label: 'Pharmacy', icon: 'i-tabler:pill', color: 'purple' },
+const DEFAULT_CATEGORY_IDS = [
+  { category: 'restaurant', icon: 'i-tabler:tools-kitchen-2', color: 'orange' as const },
+  { category: 'cafe', icon: 'i-tabler:coffee', color: 'gold' as const },
+  { category: 'bar', icon: 'i-tabler:beer', color: 'green' as const },
+  { category: 'pharmacy', icon: 'i-tabler:pill', color: 'purple' as const },
 ]
 
 export function useSearchHistory() {
@@ -36,7 +36,12 @@ export function useSearchHistory() {
     })
 
     const remaining = 4 - historyItems.length
-    const defaults = DEFAULT_CATEGORIES.slice(0, remaining)
+    const defaults = DEFAULT_CATEGORY_IDS.slice(0, remaining).map(({ category, icon, color }): QuickCategoryItem => ({
+      category,
+      label: formatCategoryLabel(category),
+      icon,
+      color,
+    }))
     return [...historyItems, ...defaults]
   }
 

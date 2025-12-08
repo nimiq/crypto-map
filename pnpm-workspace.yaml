@@ -1,7 +1,10 @@
+patchedDependencies:
+  '@nuxthub/core-nightly@0.10.0-20251205-001323-943b30c': patches/@nuxthub__core-nightly.patch
 catalog:
   '@iconify-json/flag': ^1.2.10
   '@protomaps/basemaps': ^5.7.0
   '@vueuse/core': ^13.8.0
+  unstorage: ^0.0.0
   zod: ^3.25.56
 
 catalogs:
@@ -66,6 +69,3 @@ onlyBuiltDependencies:
   - unrs-resolver
   - vue-demi
   - workerd
-
-patchedDependencies:
-  '@nuxthub/core-nightly@0.10.0-20251205-001323-943b30c': patches/@nuxthub__core-nightly.patch
