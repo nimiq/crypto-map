@@ -22,6 +22,7 @@ export function useSearch() {
   const autocompleteGeo = ref<GeoResult[]>([]) // Strong geo matches (before locations)
   const autocompleteGeoWeak = ref<GeoResult[]>([]) // Weak geo matches (after locations)
   const categorySuggestion = ref<CategorySuggestion | null>(null)
+  const isSearching = ref(false)
   let abortController: AbortController | null = null
   let suggestionAbortController: AbortController | null = null
 
@@ -42,6 +43,7 @@ export function useSearch() {
       autocompleteGeo.value = []
       autocompleteGeoWeak.value = []
       categorySuggestion.value = null
+      isSearching.value = false
       return
     }
 
@@ -59,19 +61,24 @@ export function useSearch() {
     }
 
     abortController = new AbortController()
+    suggestionAbortController = new AbortController()
+    isSearching.value = true
 
     try {
-      const response = await $fetch<AutocompleteResponse>('/api/search/autocomplete', {
-        query: {
-          q: trimmed,
-          lat: viewCenter.value.lat,
-          lng: viewCenter.value.lng,
-        },
-        signal: abortController.signal,
-      })
+      const [response, suggestion] = await Promise.all([
+        $fetch<AutocompleteResponse>('/api/search/autocomplete', {
+          query: { q: trimmed, lat: viewCenter.value.lat, lng: viewCenter.value.lng },
+          signal: abortController.signal,
+        }),
+        $fetch<CategorySuggestion | null>('/api/search/category-suggestion', {
+          query: { q: trimmed },
+          signal: suggestionAbortController.signal,
+        }),
+      ])
       autocompleteLocations.value = response.locations
       autocompleteGeo.value = response.geo
       autocompleteGeoWeak.value = response.geoWeak
+      categorySuggestion.value = suggestion
     }
     catch (error: any) {
       if (error.name !== 'AbortError') {
@@ -79,22 +86,11 @@ export function useSearch() {
         autocompleteLocations.value = []
         autocompleteGeo.value = []
         autocompleteGeoWeak.value = []
-      }
-    }
-
-    suggestionAbortController = new AbortController()
-
-    try {
-      categorySuggestion.value = await $fetch<CategorySuggestion | null>('/api/search/category-suggestion', {
-        query: { q: trimmed },
-        signal: suggestionAbortController.signal,
-      })
-    }
-    catch (error: any) {
-      if (error.name !== 'AbortError') {
-        logger.error('Category suggestion fetch failed:', error)
         categorySuggestion.value = null
       }
+    }
+    finally {
+      isSearching.value = false
     }
   })
 
@@ -181,6 +177,7 @@ export function useSearch() {
     autocompleteGeo,
     autocompleteGeoWeak,
     categorySuggestion,
+    isSearching,
     hasSearchParams,
     formatCategoryLabel,
     updateQuery,

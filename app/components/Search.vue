@@ -26,7 +26,7 @@ const query = defineModel<string | undefined>('query')
 const category = defineModel<string | undefined>('category')
 
 // Use the composable's localSearchInput for autocomplete triggering
-const { localSearchInput, clearSearch, categorySuggestion, formatCategoryLabel } = useSearch()
+const { localSearchInput, clearSearch, categorySuggestion, formatCategoryLabel, isSearching } = useSearch()
 
 // Computed getter/setter for combobox binding
 const searchQuery = computed({
@@ -41,7 +41,7 @@ const searchDisplayValue = computed(() => {
   const label = categorySuggestion.value
     ? formatCategoryLabel(categorySuggestion.value.categoryId)
     : searchQuery.value
-  return `<mark>${label}</mark> near you`
+  return t('search.nearYou', { query: `<mark>${label}</mark>` })
 })
 const input
   = useTemplateRef<InstanceType<typeof ComboboxInput>>('search-input')
@@ -187,8 +187,9 @@ async function handleItemClick(item: SearchItem) {
           <Icon v-else name="i-tabler:arrow-left" op-70 size-18 />
         </button>
         <ComboboxCancel v-if="searchQuery.length > 0 || query || category" as-child translate-y-0 right-16 top-0 absolute>
-          <button flex="~ items-center justify-center" size-36 @click="handleClearSearch">
-            <Icon name="i-tabler:x" text-16 op-65 translate-y-1 />
+          <button flex="~ items-center justify-center" size-46 @click="handleClearSearch">
+            <Icon v-if="isSearching" name="i-tabler:loader-2" text-16 op-65 translate-y-1 animate-spin />
+            <Icon v-else name="i-tabler:x" text-16 op-65 translate-y-1 />
           </button>
         </ComboboxCancel>
       </div>
