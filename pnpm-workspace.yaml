@@ -24,7 +24,7 @@ catalogs:
   framework:
     '@nuxt/fonts': ^0.12.1
     '@nuxt/icon': ^2.1.0
-    '@nuxthub/core-nightly': 0.10.0-20251205-001323-943b30c
+    '@nuxthub/core': npm:@nuxthub/core-nightly@0.10.0-20251205-001323-943b30c
     '@nuxtjs/i18n': ^10.2.1
     '@vueuse/nuxt': ^13.8.0
     '@vueuse/router': ^13.8.0
@@ -66,3 +66,6 @@ onlyBuiltDependencies:
   - unrs-resolver
   - vue-demi
   - workerd
+
+patchedDependencies:
+  '@nuxthub/core-nightly@0.10.0-20251205-001323-943b30c': patches/@nuxthub__core-nightly.patch

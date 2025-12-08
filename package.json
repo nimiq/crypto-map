@@ -32,7 +32,7 @@
     "@electric-sql/pglite": "catalog:database",
     "@nuxt/fonts": "catalog:framework",
     "@nuxt/icon": "catalog:framework",
-    "@nuxthub/core-nightly": "catalog:framework",
+    "@nuxthub/core": "catalog:framework",
     "@nuxtjs/i18n": "catalog:framework",
     "@protomaps/basemaps": "catalog:",
     "@vueuse/nuxt": "catalog:framework",

@@ -1,0 +1,13 @@
+diff --git a/dist/module.mjs b/dist/module.mjs
+index c3375edf19583f9579b7580254a5cb5a25417d31..7d476893229fb905274726e40bfde1875db066b7 100644
+--- a/dist/module.mjs
++++ b/dist/module.mjs
+@@ -331,7 +331,7 @@ const db = drizzle(d1HttpDriver, { schema })
+ export { db, schema }
+ `;
+   }
+-  if (["postgres-js", "mysql2"].includes(driver) && hub.hosting.includes("cloudflare")) {
++  if (["postgres-js", "mysql2"].includes(driver) && hub.hosting.includes("cloudflare") && !nuxt.options.dev) {
+     const bindingName = driver === "postgres-js" ? "POSTGRES" : "MYSQL";
+     drizzleOrmContent = `import { drizzle } from 'drizzle-orm/${driver}'
+ import * as schema from './db/schema.mjs'
