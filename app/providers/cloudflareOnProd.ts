@@ -22,7 +22,7 @@ export default defineProvider({
       params.push(`format=${format}`)
 
     // Cloudflare Image Resizing needs full URL for same-origin API routes
-    const fullSrc = src.startsWith('/') && siteUrl ? `${siteUrl}${src}` : src
+    const fullSrc = src.startsWith('/') && siteUrl ? `${siteUrl.replace(/\/$/, '')}${src}` : src
 
     return { url: `/cdn-cgi/image/${params.join(',')}/${fullSrc}` }
   },
