@@ -95,7 +95,6 @@ export default defineNuxtConfig({
     '/api/locations/country-counts': { cache: { maxAge: 86400, swr: true, staleMaxAge: 604800 } },
     '/api/locations/*': { cache: { maxAge: 900, swr: true, staleMaxAge: 900 } },
     '/api/tiles/**': { cache: false },
-    '/blob/**': { ssr: false }, // Prevent Vue Router warnings for blob images
   },
   vite: {
     optimizeDeps: {

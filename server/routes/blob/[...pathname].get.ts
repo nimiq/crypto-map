@@ -69,24 +69,22 @@ export default eventHandler(async (event) => {
     if (Number.isNaN(photoIndex) || photoIndex < 0 || photoIndex > 2)
       throw createError({ statusCode: 400, message: 'Photo index must be 0-2' })
 
-    // Check if image exists in cache
-    const existingImage = await blob.head(pathname).catch(() => null)
-    if (existingImage) {
-      const size = Number(existingImage.size ?? 0)
-      const cachedContentType = existingImage.contentType
+    // Check if valid image exists in cache (fetch actual content to validate)
+    const cachedBlob = await blob.get(pathname).catch(() => null)
+    if (cachedBlob) {
+      const cachedBuffer = await cachedBlob.arrayBuffer()
+      const cachedContentType = cachedBlob.type
 
-      // Only serve if we can verify it's valid (size known and large enough, correct content type)
-      if (size >= MIN_VALID_IMAGE_BYTES && cachedContentType?.startsWith('image/')) {
+      if (isValidImage(cachedContentType, cachedBuffer)) {
+        setHeader(event, 'Content-Type', cachedContentType)
         setHeader(event, 'Cache-Control', 'public, max-age=31536000, immutable')
-        return blob.serve(event, pathname)
+        return cachedBuffer
       }
 
-      // Delete invalid cached images in background
-      event.waitUntil(
-        blob.delete(pathname).catch((error: unknown) => {
-          consola.warn(`Failed to delete invalid cached image for ${uuid}:`, error, { tag: 'image-proxy' })
-        }),
-      )
+      // Delete invalid cached images
+      await blob.delete(pathname).catch((error: unknown) => {
+        consola.warn(`Deleted invalid cached image for ${uuid}:`, error, { tag: 'image-proxy' })
+      })
     }
 
     // Fetch gmapsPlaceId from database
