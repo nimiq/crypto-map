@@ -422,7 +422,7 @@ export function getMapStyle(origin: string): StyleSpecification {
             22, // 500+ locations
           ],
           'circle-stroke-width': 1.5,
-          'circle-stroke-color': 'rgba(0, 0, 0, 0.2)',
+          'circle-stroke-color': 'rgba(31, 35, 72, 0.05)',
         },
       },
       // Cluster count labels
