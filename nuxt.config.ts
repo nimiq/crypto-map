@@ -45,7 +45,6 @@ export default defineNuxtConfig({
     },
   },
   safeRuntimeConfig: {
-    validateOnBuild: false,
     $schema: v.object({
       googleApiKey: v.pipe(v.string(), v.minLength(1, 'GOOGLE_API_KEY is required')),
       openaiApiKey: v.pipe(v.string(), v.minLength(1, 'OPENAI_API_KEY is required')),
