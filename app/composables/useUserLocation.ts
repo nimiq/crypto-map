@@ -6,6 +6,53 @@ interface NimiqGeoIpResponse {
   city?: string
 }
 
+// Module-level shared state (singleton across all components)
+const ipPoint = ref<Point | null>(null)
+const ipAccuracy = ref<number | null>(null)
+const ipCountry = ref<string | null>(null)
+const ipGeoStatus = ref<'idle' | 'pending' | 'success' | 'error'>('idle')
+
+const gpsPoint = ref<Point | null>(null)
+const gpsAccuracy = ref<number | null>(null)
+const isLocating = ref(false)
+
+// Shared useGeolocation instance (lazy initialized)
+let geoInstance: ReturnType<typeof useGeolocation> | null = null
+function getGeoInstance() {
+  if (!geoInstance)
+    geoInstance = useGeolocation({ immediate: false })
+  return geoInstance
+}
+
+async function fetchIpGeolocation() {
+  if (ipGeoStatus.value !== 'idle')
+    return
+  ipGeoStatus.value = 'pending'
+
+  try {
+    const response = await fetch('https://geoip.nimiq-network.com:8443/v1/locate')
+    const json: NimiqGeoIpResponse = await response.json()
+
+    if (json?.location?.latitude && json?.location?.longitude) {
+      ipPoint.value = { lat: Number.parseFloat(json.location.latitude), lng: Number.parseFloat(json.location.longitude) }
+      ipAccuracy.value = (json.location.accuracy_radius || 300) * 1000 // km -> meters
+      ipCountry.value = json.country || null
+      ipGeoStatus.value = 'success'
+    }
+    else {
+      ipGeoStatus.value = 'error'
+    }
+  }
+  catch {
+    ipGeoStatus.value = 'error'
+  }
+}
+
+// Auto-fetch on client (only runs once due to ipGeoStatus check)
+if (import.meta.client) {
+  fetchIpGeolocation()
+}
+
 export function useUserLocation() {
   const route = useRoute()
 
@@ -13,52 +60,10 @@ export function useUserLocation() {
   const queryLng = route.query.lng ? Number(route.query.lng) : undefined
   const hasQueryParams = queryLat !== undefined && queryLng !== undefined
 
-  // Nimiq GeoIP (client-side fetch)
-  const ipPoint = ref<Point | null>(null)
-  const ipAccuracy = ref<number | null>(null) // in meters
-  const ipCountry = ref<string | null>(null)
-  const ipGeoStatus = ref<'idle' | 'pending' | 'success' | 'error'>('idle')
-
-  async function fetchIpGeolocation() {
-    if (ipGeoStatus.value !== 'idle')
-      return
-    ipGeoStatus.value = 'pending'
-
-    try {
-      const response = await fetch('https://geoip.nimiq-network.com:8443/v1/locate')
-      const json: NimiqGeoIpResponse = await response.json()
-
-      if (json?.location?.latitude && json?.location?.longitude) {
-        ipPoint.value = {
-          lat: Number.parseFloat(json.location.latitude),
-          lng: Number.parseFloat(json.location.longitude),
-        }
-        ipAccuracy.value = (json.location.accuracy_radius || 300) * 1000 // km -> meters
-        ipCountry.value = json.country || null
-        ipGeoStatus.value = 'success'
-      }
-      else {
-        ipGeoStatus.value = 'error'
-      }
-    }
-    catch {
-      ipGeoStatus.value = 'error'
-    }
-  }
-
-  // Auto-fetch on client
-  if (import.meta.client) {
-    fetchIpGeolocation()
-  }
-
   const isGeoReady = computed(() => ipGeoStatus.value === 'success' || ipGeoStatus.value === 'error')
 
-  const gpsPoint = ref<Point | null>(null)
-  const gpsAccuracy = ref<number | null>(null)
-  const isLocating = ref(false)
-  const { coords, resume, pause } = useGeolocation({ immediate: false })
-
   function locateMe() {
+    const { coords, resume, pause } = getGeoInstance()
     isLocating.value = true
     resume()
     watchOnce(coords, (newCoords) => {
