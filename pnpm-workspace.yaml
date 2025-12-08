@@ -4,7 +4,7 @@ catalog:
   '@iconify-json/flag': ^1.2.10
   '@protomaps/basemaps': ^5.7.0
   '@vueuse/core': ^13.8.0
-  unstorage: ^0.0.0
+  unstorage: ^1.17.3
   zod: ^3.25.56
 
 catalogs:
