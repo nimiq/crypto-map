@@ -1,5 +1,4 @@
 import { defineProvider } from '@nuxt/image/runtime'
-import { joinURL } from 'ufo'
 
 export default defineProvider({
   getImage: (src, options) => {
@@ -25,6 +24,6 @@ export default defineProvider({
     // Cloudflare Image Resizing needs full URL for same-origin API routes
     const fullSrc = src.startsWith('/') && siteUrl ? `${siteUrl}${src}` : src
 
-    return { url: joinURL('/cdn-cgi/image', params.join(','), fullSrc) }
+    return { url: `/cdn-cgi/image/${params.join(',')}/${fullSrc}` }
   },
 })
