@@ -161,7 +161,7 @@ async function onMapLoad(event: { map: Map }) {
       }
     })
 
-    // Add click handler to cluster circles - zoom in
+    // Add click handler to cluster circles - fit to cluster bounds
     map.on('click', 'location-clusters', (e) => {
       if (!e.features || e.features.length === 0)
         return
@@ -170,15 +170,18 @@ async function onMapLoad(event: { map: Map }) {
       if (!feature?.geometry || feature.geometry.type !== 'Point')
         return
 
-      const coordinates = feature.geometry.coordinates as [number, number]
-      const currentZoom = map.getZoom()
+      const props = feature.properties
+      const { bbox_west, bbox_south, bbox_east, bbox_north } = props || {}
 
-      // Zoom in by 3 levels to reveal clustered locations
-      map.flyTo({
-        center: coordinates,
-        zoom: Math.min(currentZoom + 3, 18), // Cap at zoom 18
-        duration: 800,
-      })
+      // Use fitBounds if bbox available (shows all locations in cluster)
+      if (bbox_west != null && bbox_south != null && bbox_east != null && bbox_north != null) {
+        map.fitBounds([[bbox_west, bbox_south], [bbox_east, bbox_north]], { padding: 80, duration: 800, maxZoom: 16 })
+      }
+      else {
+        // Fallback: zoom in by 3 levels on centroid
+        const coordinates = feature.geometry.coordinates as [number, number]
+        map.flyTo({ center: coordinates, zoom: Math.min(map.getZoom() + 3, 18), duration: 800 })
+      }
     })
 
     // Change cursor on hover for individual locations

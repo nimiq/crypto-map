@@ -62,12 +62,17 @@ AS $$
       END AS cluster_id
     FROM tile_locations
   ),
-  -- Generate cluster points (centroids with counts)
+  -- Generate cluster points (centroids with counts + bounding box for fitBounds)
   cluster_points AS (
     SELECT
       cluster_id,
       COUNT(*) as point_count,
-      ST_Centroid(ST_Collect(ST_Transform(location, 3857))) as geom_3857
+      ST_Centroid(ST_Collect(ST_Transform(location, 3857))) as geom_3857,
+      -- Bounding box in WGS84 for client-side fitBounds
+      ST_XMin(ST_Extent(location)) as bbox_west,
+      ST_YMin(ST_Extent(location)) as bbox_south,
+      ST_XMax(ST_Extent(location)) as bbox_east,
+      ST_YMax(ST_Extent(location)) as bbox_north
     FROM clustered
     WHERE cluster_id IS NOT NULL AND z >= 6 AND z <= 8
     GROUP BY cluster_id
@@ -107,6 +112,10 @@ AS $$
       NULL::numeric as rating,
       NULL::text as category_id,
       point_count,
+      bbox_west,
+      bbox_south,
+      bbox_east,
+      bbox_north,
       geom_3857
     FROM cluster_points
 
@@ -119,6 +128,10 @@ AS $$
       rating,
       category_id,
       point_count,
+      NULL::double precision as bbox_west,
+      NULL::double precision as bbox_south,
+      NULL::double precision as bbox_east,
+      NULL::double precision as bbox_north,
       geom_3857
     FROM individual_locations
   ),
@@ -130,6 +143,10 @@ AS $$
       rating,
       category_id,
       point_count,
+      bbox_west,
+      bbox_south,
+      bbox_east,
+      bbox_north,
       ST_AsMVTGeom(
         geom_3857,
         bounds.geom,

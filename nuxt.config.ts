@@ -30,9 +30,7 @@ export default defineNuxtConfig({
   hub: {
     blob: true,
     kv: true,
-    database: {
-      dialect: 'postgresql',
-    },
+    db: 'postgresql',
   },
   eslint: {
     config: {

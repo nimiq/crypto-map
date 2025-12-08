@@ -101,7 +101,7 @@ export function useMapIcons() {
         'maxzoom': 24,
         'layout': {
           'icon-image': iconExpression,
-          'icon-size': 0.06328125,
+          'icon-size': 0.095,
           'icon-allow-overlap': false,
           'icon-anchor': 'bottom',
           'icon-offset': [0, 0],
@@ -111,7 +111,7 @@ export function useMapIcons() {
           'text-anchor': 'left',
           'text-offset': [1, -0.95],
           'text-justify': 'left',
-          'text-size': 14,
+          'text-size': 16,
           'text-optional': true, // Hide text if it collides, but keep the icon
         },
         'paint': {
@@ -136,7 +136,7 @@ export function useMapIcons() {
         'maxzoom': 24,
         'layout': {
           'icon-image': 'active',
-          'icon-size': 0.09492188, // 1.5x larger
+          'icon-size': 0.127,
           'icon-allow-overlap': true, // Always visible
           'icon-ignore-placement': false, // Block other icons from rendering here
           'icon-anchor': 'bottom',
@@ -147,7 +147,7 @@ export function useMapIcons() {
           'text-anchor': 'left',
           'text-offset': [1, -0.95],
           'text-justify': 'left',
-          'text-size': 16,
+          'text-size': 18,
           'text-allow-overlap': true, // Always show text
           'text-ignore-placement': false, // Block other text from rendering here
         },
@@ -288,8 +288,8 @@ export function useMapIcons() {
       const iconSizeExpression = [
         'case',
         ['in', ['get', 'uuid'], ['literal', uuids]],
-        0.09492188, // 1.5x larger
-        0.06328125,
+        0.127,
+        0.095,
       ]
       map.setLayoutProperty('location-icon', 'icon-size', iconSizeExpression as any)
 
@@ -304,8 +304,8 @@ export function useMapIcons() {
       const textSizeExpression = [
         'case',
         ['in', ['get', 'uuid'], ['literal', uuids]],
+        18,
         16,
-        14,
       ]
       map.setLayoutProperty('location-icon', 'text-size', textSizeExpression as any)
 
@@ -324,9 +324,9 @@ export function useMapIcons() {
     else {
       // Reset to normal styling
       map.setLayoutProperty('location-icon', 'icon-image', buildIconExpression() as any)
-      map.setLayoutProperty('location-icon', 'icon-size', 0.06328125)
+      map.setLayoutProperty('location-icon', 'icon-size', 0.095)
       map.setLayoutProperty('location-icon', 'symbol-sort-key', ['-', 0, ['coalesce', ['get', 'rating'], 0]] as any)
-      map.setLayoutProperty('location-icon', 'text-size', 14)
+      map.setLayoutProperty('location-icon', 'text-size', 16)
       map.setPaintProperty('location-icon', 'text-color', buildColorExpression() as any)
       map.setLayoutProperty('location-icon', 'text-allow-overlap', false)
       map.setLayoutProperty('location-icon', 'text-optional', true)

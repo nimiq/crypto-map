@@ -143,9 +143,9 @@ function createMarkerElement(country: CountryHotspot): HTMLElement {
 
   const container = document.createElement('div')
   container.style.cssText = `
-    display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px; border-radius: 12px;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px 12px; border-radius: 12px;
     background: white; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-    outline: 1.5px solid rgb(0 0 0 / 0.2); outline-offset: -1.5px;
+    outline: 1.5px solid rgb(31 35 72 / 0.04); outline-offset: -1.5px;
   `
 
   // Row 1: Flag + Country name
@@ -282,7 +282,7 @@ function flyToCountry(country: CountryHotspot) {
         translate-x="-1/2" translate-y="-1/2"
         @click="flyToCountry(bubble)"
       >
-        <div flex="~ items-center gap-6" outline="~ offset--1.5 1.5 neutral/20" p-8 rounded-12 bg-neutral-0 shadow-lg>
+        <div flex="~ items-center gap-6" outline="~ offset--1.5 1.5 neutral-0/4" py-8 px-12 rounded-12 bg-neutral-0 shadow-lg>
           <!-- Navigation icon -->
           <Icon name="i-tabler:navigation-filled" text-neutral-700 shrink-0 size-13 :style="{ transform: `rotate(${bubble.edge!.arrowAngle}deg)` }" />
           <div flex="~ col gap-2" text-left>
