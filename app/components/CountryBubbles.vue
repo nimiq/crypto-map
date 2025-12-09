@@ -11,18 +11,20 @@ interface CountryHotspot {
   center: { lat: number, lng: number }
   flagIcon: string
   zoom: number
+  // Bounding box to detect if user is already viewing this country
+  bounds: { north: number, south: number, east: number, west: number }
 }
 
 const COUNTRY_HOTSPOTS: CountryHotspot[] = [
-  { code: 'SV', name: 'El Salvador', center: { lat: 13.7942, lng: -88.8965 }, flagIcon: 'flag:sv-4x3', zoom: 6.8 },
-  { code: 'CH', name: 'Switzerland', center: { lat: 46.8, lng: 8.2 }, flagIcon: 'flag:ch-1x1', zoom: 6.5 },
+  { code: 'SV', name: 'El Salvador', center: { lat: 13.7942, lng: -88.8965 }, flagIcon: 'flag:sv-4x3', zoom: 6.8, bounds: { north: 14.45, south: 13.15, east: -87.7, west: -90.13 } },
+  { code: 'CH', name: 'Switzerland', center: { lat: 46.8, lng: 8.2 }, flagIcon: 'flag:ch-1x1', zoom: 6.5, bounds: { north: 47.81, south: 45.82, east: 10.49, west: 5.96 } },
 ]
 
 const BUBBLE_PADDING = 8
 const BUBBLE_WIDTH = 160
 const BUBBLE_HEIGHT = 56
 
-const { mapInstance, flyTo, viewCenter } = useMapControls()
+const { mapInstance, flyTo, viewCenter, zoom } = useMapControls()
 const { locationCount, clusterCount } = useVisibleLocations()
 const { width: windowWidth, height: windowHeight } = useWindowSize()
 
@@ -39,8 +41,20 @@ const markers = new Map<CountryCode, Marker>()
 // Hide bubbles during fly animation
 const isFlying = ref(false)
 
-// Show bubbles when nothing visible on map and not flying
-const showBubbles = computed(() => !isFlying.value && locationCount.value === 0 && clusterCount.value === 0)
+// At zoom 9+, individual location pins are visible - never show bubbles
+// This prevents race condition where queryRenderedFeatures returns 0 while tiles are loading on slow devices
+const MIN_ZOOM_FOR_PINS = 9
+
+// Show bubbles when: not flying, zoomed out enough, and nothing visible
+const showBubbles = computed(() => {
+  if (isFlying.value)
+    return false
+  // Primary gate: if zoomed in enough for pins to render, never show bubbles
+  if (zoom.value >= MIN_ZOOM_FOR_PINS)
+    return false
+  // Secondary check: at low zoom, only show if no clusters visible
+  return locationCount.value === 0 && clusterCount.value === 0
+})
 
 // Check if a point is within current map viewport
 function isPointInViewport(point: { lat: number, lng: number }): boolean {
@@ -49,6 +63,35 @@ function isPointInViewport(point: { lat: number, lng: number }): boolean {
   try {
     const bounds = mapInstance.value.getBounds()
     return bounds.contains([point.lng, point.lat])
+  }
+  catch {
+    return false
+  }
+}
+
+// Check if viewport significantly overlaps with country bounds (user is "within" the country)
+function isViewportWithinCountry(country: CountryHotspot): boolean {
+  if (!mapInstance.value)
+    return false
+  try {
+    const vp = mapInstance.value.getBounds()
+    const cb = country.bounds
+
+    // Calculate intersection area
+    const intersectNorth = Math.min(vp.getNorth(), cb.north)
+    const intersectSouth = Math.max(vp.getSouth(), cb.south)
+    const intersectEast = Math.min(vp.getEast(), cb.east)
+    const intersectWest = Math.max(vp.getWest(), cb.west)
+
+    // No intersection
+    if (intersectNorth <= intersectSouth || intersectEast <= intersectWest)
+      return false
+
+    const intersectArea = (intersectNorth - intersectSouth) * (intersectEast - intersectWest)
+    const vpArea = (vp.getNorth() - vp.getSouth()) * (vp.getEast() - vp.getWest())
+
+    // If >50% of viewport is within country bounds, user is "in" the country
+    return vpArea > 0 && (intersectArea / vpArea) > 0.5
   }
   catch {
     return false
@@ -106,6 +149,7 @@ interface Bubble extends CountryHotspot {
 }
 
 // Compute bubbles - either at country center (in view) or at edge (out of view)
+// Skip countries where user is already within the country's bounds
 const bubbles = computed<Bubble[]>(() => {
   if (!showBubbles.value || !mapInstance.value)
     return []
@@ -115,7 +159,7 @@ const bubbles = computed<Bubble[]>(() => {
   if (!vpWidth || !vpHeight)
     return []
 
-  return COUNTRY_HOTSPOTS.map((country) => {
+  return COUNTRY_HOTSPOTS.filter(country => !isViewportWithinCountry(country)).map((country) => {
     const count = countryCounts.value?.[country.code] || null
     const inView = isPointInViewport(country.center)
 
@@ -263,7 +307,7 @@ function flyToCountry(country: CountryHotspot) {
   }
   markers.clear()
 
-  flyTo(country.center, country.zoom)
+  flyTo(country.center, { zoom: country.zoom })
 
   // Reset after fly animation completes + delay for clusters to load
   mapInstance.value?.once('moveend', () => {
