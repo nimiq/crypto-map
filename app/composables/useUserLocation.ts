@@ -53,12 +53,32 @@ if (import.meta.client) {
   fetchIpGeolocation()
 }
 
+// Parse #@lat,lng,zoomz format from hash (e.g., #@55.8334602,13.23455,16z)
+function parseMapHash(hash: string): { lat?: number, lng?: number, zoom?: number, bearing?: number, pitch?: number } {
+  // Match: #@lat,lng,zoomz or #@lat,lng,zoomz,bearingb,pitchp
+  const match = hash.match(/^#@(-?\d+(?:\.\d*)?),(-?\d+(?:\.\d*)?),(\d+(?:\.\d*)?)z(?:,(\d+(?:\.\d*)?)b)?(?:,(\d+(?:\.\d*)?)p)?/)
+  if (!match || !match[1] || !match[2] || !match[3])
+    return {}
+  return {
+    lat: Number.parseFloat(match[1]),
+    lng: Number.parseFloat(match[2]),
+    zoom: Number.parseFloat(match[3]),
+    bearing: match[4] ? Number.parseFloat(match[4]) : undefined,
+    pitch: match[5] ? Number.parseFloat(match[5]) : undefined,
+  }
+}
+
 export function useUserLocation() {
   const route = useRoute()
 
-  const queryLat = route.query.lat ? Number(route.query.lat) : undefined
-  const queryLng = route.query.lng ? Number(route.query.lng) : undefined
-  const hasQueryParams = queryLat !== undefined && queryLng !== undefined
+  // Parse hash format #@lat,lng,zoomz
+  const hashParams = computed(() => parseMapHash(route.hash))
+  const queryLat = computed(() => hashParams.value.lat)
+  const queryLng = computed(() => hashParams.value.lng)
+  const queryZoom = computed(() => hashParams.value.zoom)
+  const queryBearing = computed(() => hashParams.value.bearing)
+  const queryPitch = computed(() => hashParams.value.pitch)
+  const hasQueryParams = computed(() => queryLat.value !== undefined && queryLng.value !== undefined)
 
   const isGeoReady = computed(() => ipGeoStatus.value === 'success' || ipGeoStatus.value === 'error')
 
@@ -95,8 +115,8 @@ export function useUserLocation() {
 
   // Initial map center point (for centering map, not for blue dot)
   const initialPoint = computed<Point | null>(() => {
-    if (hasQueryParams)
-      return { lng: queryLng!, lat: queryLat! }
+    if (hasQueryParams.value)
+      return { lng: queryLng.value!, lat: queryLat.value! }
     if (ipPoint.value)
       return ipPoint.value
     return null
@@ -104,15 +124,15 @@ export function useUserLocation() {
 
   // Accuracy for initial zoom calculation (only from IP geolocation)
   const initialAccuracy = computed<number | null>(() => {
-    if (hasQueryParams)
-      return null // Query params don't have accuracy
+    if (hasQueryParams.value)
+      return null // Path params don't have accuracy
     return ipAccuracy.value
   })
 
   const source = computed<'gps' | 'query' | 'nimiq-geoip' | 'none'>(() => {
     if (gpsPoint.value)
       return 'gps'
-    if (hasQueryParams)
+    if (hasQueryParams.value)
       return 'query'
     if (ipPoint.value)
       return 'nimiq-geoip'
@@ -125,6 +145,9 @@ export function useUserLocation() {
     isGeoReady,
     source,
     hasQueryParams,
+    queryZoom,
+    queryBearing,
+    queryPitch,
     isLocating,
     locateMe,
     gpsPoint,

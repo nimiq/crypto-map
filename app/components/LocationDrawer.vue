@@ -72,15 +72,15 @@ function handleClose() {
     <DrawerPortal>
       <div
         v-if="showOverlay"
-        bg="neutral/20" inset-0 fixed z-40
+        bg="neutral/20" inset-0 fixed z-70
         :style="{
           opacity: overlayOpacity,
           transition: 'opacity 500ms cubic-bezier(0.32, 0.72, 0, 1)',
         }"
         @click="handleClose"
       />
-      <DrawerContent flex="~ col" shadow="[0_-4px_24px_rgba(0,0,0,0.1)]" outline-none rounded-t-10 bg-neutral-0 h-full max-h-95vh inset-x-0 bottom-0 fixed z-50>
-        <DrawerHandle my-8 shrink-0 />
+      <DrawerContent flex="~ col" shadow="[0_-4px_24px_rgba(0,0,0,0.1)]" max-h="[calc(100dvh-env(safe-area-inset-top))]" outline-none rounded-t-10 bg-neutral-0 h-full w-full inset-x-0 bottom-0 fixed z-80>
+        <DrawerHandle left="1/2" translate-x="-1/2" m-0 bg-neutral-400 h-6 top-8 absolute z-30 />
         <div v-if="selectedLocation" flex-1 min-h-0 of-hidden>
           <LocationDrawerContent
             :key="selectedLocation.uuid"

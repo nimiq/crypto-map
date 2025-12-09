@@ -1,19 +1,79 @@
 <script setup lang="ts">
-import type { Map } from 'maplibre-gl'
+import type { Map, MapMouseEvent } from 'maplibre-gl'
 import { consola } from 'consola'
 
 const { t } = useI18n()
-const logger = consola.withTag('map')
 
 definePageMeta({
   layout: false,
 })
 
 const { query, category, autocompleteLocations, autocompleteGeo, autocompleteGeoWeak, categories, openNow } = useSearch()
-const { initialCenter, initialZoom, isInitialized, initializeView, viewCenter, setMapInstance, mapInstance, flyTo } = useMapControls()
+const { initialCenter, initialZoom, initialBearing, initialPitch, isInitialized, initializeView, viewCenter, setMapInstance, mapInstance, flyTo } = useMapControls()
+useMapUrl()
 const { setSearchResults, setSelectedLocation, initializeLayers, updateUserLocation } = useMapIcons()
 const { showUserLocation, userLocationPoint, userLocationAccuracy, isGeoReady } = useUserLocation()
 const { width: windowWidth, height: windowHeight } = useWindowSize()
+
+// Inline composable for map interaction handlers
+function useMapInteractions(options: {
+  onMarkerClick: (uuid: string) => void
+  onBackgroundClick: () => void
+}) {
+  const logger = consola.withTag('map')
+  const MIN_CLUSTER_ZOOM = 9
+
+  function handleClusterClick(map: Map, e: MapMouseEvent & { features?: GeoJSON.Feature[] }) {
+    if (!e.features?.length)
+      return
+    const feature = e.features[0]
+    if (!feature?.geometry || feature.geometry.type !== 'Point')
+      return
+
+    const { bbox_west, bbox_south, bbox_east, bbox_north } = feature.properties || {}
+    const coordinates = feature.geometry.coordinates as [number, number]
+
+    if (bbox_west != null && bbox_south != null && bbox_east != null && bbox_north != null) {
+      const center: [number, number] = [(bbox_west + bbox_east) / 2, (bbox_south + bbox_north) / 2]
+      const latDiff = Math.abs(bbox_north - bbox_south)
+      const lngDiff = Math.abs(bbox_east - bbox_west)
+      const maxDiff = Math.max(latDiff, lngDiff)
+      const estimatedZoom = Math.log2(360 / maxDiff) - 1
+      map.flyTo({ center, zoom: Math.max(MIN_CLUSTER_ZOOM, Math.min(estimatedZoom, 16)), duration: 800 })
+    }
+    else {
+      map.flyTo({ center: coordinates, zoom: Math.max(MIN_CLUSTER_ZOOM, map.getZoom() + 3), duration: 800 })
+    }
+  }
+
+  function handleLocationClick(map: Map, e: MapMouseEvent & { features?: GeoJSON.Feature[] }) {
+    e.preventDefault()
+    const uuid = e.features?.[0]?.properties?.uuid
+    if (uuid)
+      options.onMarkerClick(uuid)
+  }
+
+  function setupCursorHandlers(map: Map, layerId: string) {
+    map.on('mouseenter', layerId, () => map.getCanvas().style.cursor = 'pointer')
+    map.on('mouseleave', layerId, () => map.getCanvas().style.cursor = '')
+  }
+
+  function setupMapHandlers(map: Map) {
+    map.on('click', () => options.onBackgroundClick())
+    map.on('click', 'location-icon', e => handleLocationClick(map, e))
+    map.on('click', 'location-clusters', e => handleClusterClick(map, e))
+    setupCursorHandlers(map, 'location-icon')
+    setupCursorHandlers(map, 'location-clusters')
+
+    // Collapse attribution by default
+    const attribButton = map.getContainer().querySelector('.maplibregl-ctrl-attrib-button') as HTMLElement
+    attribButton?.click()
+  }
+
+  return { setupMapHandlers, logger }
+}
+
+const logger = consola.withTag('map')
 // Initialize map view with accuracy-based zoom once IP geolocation resolves
 watch([isGeoReady, windowWidth], () => {
   if (!isInitialized.value && isGeoReady.value && windowWidth.value > 0) {
@@ -103,13 +163,13 @@ function handleNavigate(uuid: string | undefined, latitude: number, longitude: n
       setSelectedLocation(mapInstance.value as any, uuid)
       const bounds = mapInstance.value.getBounds()
       if (!bounds.contains([longitude, latitude])) {
-        flyTo({ lat: latitude, lng: longitude }, 14)
+        flyTo({ lat: latitude, lng: longitude }, { zoom: 14 })
       }
     }
   }
   else {
     // Geo result - just pan to location
-    flyTo({ lat: latitude, lng: longitude }, 12)
+    flyTo({ lat: latitude, lng: longitude }, { zoom: 12 })
   }
 }
 
@@ -117,14 +177,23 @@ function handleMarkerClick(uuid: string) {
   logger.info('Marker clicked:', uuid)
   selectedLocationUuid.value = uuid
   isDrawerOpen.value = true
-
-  // Highlight selected location on map
   if (mapInstance.value) {
     setSelectedLocation(mapInstance.value as any, uuid)
   }
-
-  logger.info('Drawer state:', { isDrawerOpen: isDrawerOpen.value, selectedLocationUuid: selectedLocationUuid.value })
 }
+
+function handleBackgroundClick() {
+  selectedLocationUuid.value = null
+  isDrawerOpen.value = false
+  if (mapInstance.value) {
+    setSelectedLocation(mapInstance.value as any, null)
+  }
+}
+
+const { setupMapHandlers } = useMapInteractions({
+  onMarkerClick: handleMarkerClick,
+  onBackgroundClick: handleBackgroundClick,
+})
 
 async function onMapLoad(event: { map: Map }) {
   logger.info('onMapLoad called', event)
@@ -135,78 +204,8 @@ async function onMapLoad(event: { map: Map }) {
       return
     }
 
-    // Initialize layers immediately
     initializeLayers(map as any)
-
-    // Add click handler to map background - deselect location and collapse drawer
-    map.on('click', (_e) => {
-      // Clear selected location
-      selectedLocationUuid.value = null
-      isDrawerOpen.value = false
-      setSelectedLocation(map as any, null)
-    })
-
-    // Add click handler to location icon layer
-    map.on('click', 'location-icon', (e) => {
-      e.preventDefault()
-      if (!e.features || e.features.length === 0)
-        return
-
-      const feature = e.features[0]
-      if (!feature)
-        return
-      const uuid = feature.properties?.uuid
-
-      if (uuid) {
-        handleMarkerClick(uuid)
-      }
-    })
-
-    // Add click handler to cluster circles - fit to cluster bounds
-    map.on('click', 'location-clusters', (e) => {
-      if (!e.features || e.features.length === 0)
-        return
-
-      const feature = e.features[0]
-      if (!feature?.geometry || feature.geometry.type !== 'Point')
-        return
-
-      const props = feature.properties
-      const { bbox_west, bbox_south, bbox_east, bbox_north } = props || {}
-
-      // Use fitBounds if bbox available (shows all locations in cluster)
-      if (bbox_west != null && bbox_south != null && bbox_east != null && bbox_north != null) {
-        map.fitBounds([[bbox_west, bbox_south], [bbox_east, bbox_north]], { padding: 80, duration: 800, maxZoom: 16 })
-      }
-      else {
-        // Fallback: zoom in by 3 levels on centroid
-        const coordinates = feature.geometry.coordinates as [number, number]
-        map.flyTo({ center: coordinates, zoom: Math.min(map.getZoom() + 3, 18), duration: 800 })
-      }
-    })
-
-    // Change cursor on hover for individual locations
-    map.on('mouseenter', 'location-icon', () => {
-      map.getCanvas().style.cursor = 'pointer'
-    })
-
-    map.on('mouseleave', 'location-icon', () => {
-      map.getCanvas().style.cursor = ''
-    })
-
-    // Change cursor on hover for clusters
-    map.on('mouseenter', 'location-clusters', () => {
-      map.getCanvas().style.cursor = 'pointer'
-    })
-
-    map.on('mouseleave', 'location-clusters', () => {
-      map.getCanvas().style.cursor = ''
-    })
-
-    // Collapse attribution by default (maplibre expands it on init)
-    const attribButton = map.getContainer().querySelector('.maplibregl-ctrl-attrib-button') as HTMLElement
-    attribButton?.click()
-
+    setupMapHandlers(map)
     setMapInstance(map)
   }
   catch (error) {
@@ -216,7 +215,7 @@ async function onMapLoad(event: { map: Map }) {
 </script>
 
 <template>
-  <main min-h-screen>
+  <main of-hidden h-dvh>
     <Search v-model:query="query" v-model:category="category" :autocomplete-locations :autocomplete-geo :autocomplete-geo-weak @navigate="handleNavigate" />
     <ClientOnly>
       <template #fallback>
@@ -230,6 +229,8 @@ async function onMapLoad(event: { map: Map }) {
         <MglMap
           :center="initialCenter"
           :zoom="initialZoom"
+          :bearing="initialBearing"
+          :pitch="initialPitch"
           :min-zoom="3"
           :map-style
           :attribution-control="false"

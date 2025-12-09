@@ -1,13 +1,13 @@
 <script setup lang="ts">
 const { zoomIn, zoomOut, flyTo, bearing, isRotated, resetNorth } = useMapControls()
 const { hasPointer } = usePointerType()
-const { isLocating, locateMe, gpsPoint, showUserLocation } = useUserLocation()
+const { isLocating, locateMe, gpsPoint, gpsAccuracy, showUserLocation } = useUserLocation()
 
 function handleLocateMe() {
   locateMe()
   watchOnce(gpsPoint, (point) => {
     if (point)
-      flyTo(point)
+      flyTo(point, { accuracyMeters: gpsAccuracy.value ?? undefined })
   })
 }
 </script>

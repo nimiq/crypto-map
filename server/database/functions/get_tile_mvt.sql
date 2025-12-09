@@ -62,20 +62,59 @@ AS $$
       END AS cluster_id
     FROM tile_locations
   ),
-  -- Generate cluster points (centroids with counts + bounding box for fitBounds)
-  cluster_points AS (
+  -- Sub-cluster to find dense core within each cluster (tighter radius ~15-20% of original)
+  dense_core AS (
     SELECT
-      cluster_id,
-      COUNT(*) as point_count,
-      ST_Centroid(ST_Collect(ST_Transform(location, 3857))) as geom_3857,
-      -- Bounding box in WGS84 for client-side fitBounds
-      ST_XMin(ST_Extent(location)) as bbox_west,
-      ST_YMin(ST_Extent(location)) as bbox_south,
-      ST_XMax(ST_Extent(location)) as bbox_east,
-      ST_YMax(ST_Extent(location)) as bbox_north
+      cluster_id, location,
+      ST_ClusterDBSCAN(
+        ST_Transform(location, 3857),
+        CASE
+          WHEN z = 6 THEN 156543.03 / POWER(2, z) * 3   -- ~17% of 18px
+          WHEN z = 7 THEN 156543.03 / POWER(2, z) * 4   -- ~18% of 22px
+          WHEN z = 8 THEN 156543.03 / POWER(2, z) * 5   -- ~17% of 30px
+          ELSE 0
+        END,
+        1
+      ) OVER (PARTITION BY cluster_id) AS sub_cluster_id
     FROM clustered
     WHERE cluster_id IS NOT NULL AND z >= 6 AND z <= 8
-    GROUP BY cluster_id
+  ),
+  -- Size and extent of each sub-cluster (extract bbox scalars to avoid box2d grouping issues)
+  sub_cluster_stats AS (
+    SELECT
+      cluster_id, sub_cluster_id,
+      COUNT(*) as sub_count,
+      ST_XMin(ST_Extent(location)) as sub_bbox_west,
+      ST_YMin(ST_Extent(location)) as sub_bbox_south,
+      ST_XMax(ST_Extent(location)) as sub_bbox_east,
+      ST_YMax(ST_Extent(location)) as sub_bbox_north,
+      ST_Centroid(ST_Collect(ST_Transform(location, 3857))) as sub_centroid
+    FROM dense_core
+    WHERE sub_cluster_id IS NOT NULL
+    GROUP BY cluster_id, sub_cluster_id
+  ),
+  -- Pick largest sub-cluster per parent cluster
+  largest_sub AS (
+    SELECT DISTINCT ON (cluster_id)
+      cluster_id, sub_count, sub_bbox_west, sub_bbox_south, sub_bbox_east, sub_bbox_north, sub_centroid
+    FROM sub_cluster_stats
+    ORDER BY cluster_id, sub_count DESC
+  ),
+  -- Generate cluster points with dense bbox from largest sub-cluster
+  cluster_points AS (
+    SELECT
+      c.cluster_id,
+      COUNT(*) as point_count,
+      COALESCE(ls.sub_centroid, ST_Centroid(ST_Collect(ST_Transform(c.location, 3857)))) as geom_3857,
+      -- Use dense bbox from largest sub-cluster, fallback to full extent
+      COALESCE(ls.sub_bbox_west, ST_XMin(ST_Extent(c.location))) as bbox_west,
+      COALESCE(ls.sub_bbox_south, ST_YMin(ST_Extent(c.location))) as bbox_south,
+      COALESCE(ls.sub_bbox_east, ST_XMax(ST_Extent(c.location))) as bbox_east,
+      COALESCE(ls.sub_bbox_north, ST_YMax(ST_Extent(c.location))) as bbox_north
+    FROM clustered c
+    LEFT JOIN largest_sub ls ON ls.cluster_id = c.cluster_id
+    WHERE c.cluster_id IS NOT NULL AND z >= 6 AND z <= 8
+    GROUP BY c.cluster_id, ls.sub_bbox_west, ls.sub_bbox_south, ls.sub_bbox_east, ls.sub_bbox_north, ls.sub_centroid
     HAVING COUNT(*) >= CASE
       WHEN z <= 4 THEN 2    -- Very low threshold at world view
       WHEN z <= 6 THEN 3    -- Allow small clusters at continent/country
@@ -163,4 +202,4 @@ $$;
 
 -- Add comment for documentation
 COMMENT ON FUNCTION get_tile_mvt(integer, integer, integer) IS
-  'Generates an MVT tile with clustering support. At zoom <= 8, clusters locations within proximity (min 50-100 locations). At zoom > 8, shows individual locations. Returns point_count for clusters, NULL for individual locations.';
+  'Generates an MVT tile with clustering support. At zoom 6-8, clusters locations and uses sub-clustering to find dense core for bbox (better zoom on click). At zoom > 8, shows individual locations.';

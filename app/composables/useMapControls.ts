@@ -27,12 +27,16 @@ function calculateZoomForAccuracy(lat: number, accuracyMeters: number, viewportS
 
 function useMapControlsBase() {
   const mapInstance = ref<Map | null>(null)
-  const { initialPoint, initialAccuracy } = useUserLocation()
+  const { initialPoint, initialAccuracy, queryZoom, queryBearing, queryPitch } = useUserLocation()
 
   // Start with null center - will be set once we know optimal zoom
   const initialCenter = ref<[number, number] | null>(null)
   const initialZoom = ref(DEFAULT_ZOOM)
   const isInitialized = ref(false)
+
+  // Initial bearing/pitch from URL params
+  const initialBearing = ref(0)
+  const initialPitch = ref(0)
 
   // View center tracks current map position (for search API)
   const viewCenter = ref<{ lat: number, lng: number }>({ lat: 0, lng: 0 })
@@ -54,18 +58,26 @@ function useMapControlsBase() {
     }
 
     const accuracy = initialAccuracy.value
-    if (accuracy) {
-      // Calculate zoom to fit the accuracy circle (like main map's fitBounds on accuracy circle)
+    initialCenter.value = [point.lng, point.lat]
+
+    // Use URL zoom if provided, otherwise calculate from accuracy or use default
+    const urlZoom = queryZoom.value
+    if (urlZoom !== undefined && !Number.isNaN(urlZoom)) {
+      initialZoom.value = urlZoom
+    }
+    else if (accuracy) {
       const minViewportSize = Math.min(viewportWidth, viewportHeight)
-      const zoom = calculateZoomForAccuracy(point.lat, accuracy, minViewportSize)
-      initialCenter.value = [point.lng, point.lat]
-      initialZoom.value = zoom
+      initialZoom.value = calculateZoomForAccuracy(point.lat, accuracy, minViewportSize)
     }
     else {
-      // No accuracy (e.g., query params) - use reasonable default
-      initialCenter.value = [point.lng, point.lat]
       initialZoom.value = 10
     }
+
+    // Set bearing/pitch from URL params
+    const urlBearing = queryBearing.value
+    const urlPitch = queryPitch.value
+    initialBearing.value = urlBearing !== undefined && !Number.isNaN(urlBearing) ? urlBearing : 0
+    initialPitch.value = urlPitch !== undefined && !Number.isNaN(urlPitch) ? urlPitch : 0
 
     isInitialized.value = true
   }
@@ -106,8 +118,19 @@ function useMapControlsBase() {
     mapInstance.value?.zoomOut()
   }
 
-  function flyTo(point: Point, zoomLevel = 16) {
-    mapInstance.value?.flyTo({ center: [point.lng, point.lat], zoom: zoomLevel, duration: 1000 })
+  function flyTo(point: Point, options?: { zoom?: number, accuracyMeters?: number }) {
+    const map = mapInstance.value
+    if (!map)
+      return
+
+    let zoomLevel = options?.zoom ?? 16
+    if (options?.accuracyMeters) {
+      const container = map.getContainer()
+      const minViewportSize = Math.min(container.clientWidth, container.clientHeight)
+      zoomLevel = calculateZoomForAccuracy(point.lat, options.accuracyMeters, minViewportSize)
+    }
+
+    map.flyTo({ center: [point.lng, point.lat], zoom: zoomLevel, duration: 1000 })
   }
 
   function resetNorth() {
@@ -120,6 +143,8 @@ function useMapControlsBase() {
     mapInstance,
     initialCenter,
     initialZoom,
+    initialBearing,
+    initialPitch,
     isInitialized,
     initializeView,
     viewCenter,

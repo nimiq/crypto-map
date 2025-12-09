@@ -97,10 +97,10 @@ const { addressRef, showCopiedTooltip } = useAddressCopy()
 </script>
 
 <template>
-  <div bg-neutral-0 w-full h-full relative of-hidden flex="~ col">
+  <div bg-neutral-0 h-full w-full relative of-hidden flex="~ col">
     <!-- Scrollable content -->
-    <div of-y-auto of-x-hidden flex-1 :class="isCompact ? 'max-h-[calc(450px-32px)]' : ''">
-      <header bg-neutral-0 relative f-px-md>
+    <div flex-1 of-x-hidden of-y-auto :class="isCompact ? 'max-h-[calc(450px-32px)]' : ''">
+      <header pt-36 bg-neutral-0 relative f-px-md>
         <!-- Close Button -->
         <div flex="~ shrink-0 gap-8" right-16 top-4 absolute z-20>
           <button bg="neutral-500 hocus:neutral-600" stack rounded-full shrink-0 size-24 transition-colors @click.stop="emit('close')">
@@ -109,7 +109,7 @@ const { addressRef, showCopiedTooltip } = useAddressCopy()
         </div>
 
         <!-- Title -->
-        <h2 leading-tight font-bold my-0 pr-40 pt-8 line-clamp-2 text="f-xl neutral">
+        <h2 leading-tight font-bold my-0 pr-40 line-clamp-2 text="f-xl neutral">
           {{ location.name }}
         </h2>
 
@@ -135,12 +135,12 @@ const { addressRef, showCopiedTooltip } = useAddressCopy()
         </div>
 
         <!-- Action Buttons -->
-        <div flex="~ gap-8" mt-12 of-x-auto nq-scrollbar-hide mx--16 px-16>
-          <NuxtLink :to="directionsUrl" target="_blank" outline="1.5 neutral-0/15 offset--1.5" external shadow nq-arrow nq-pill nq-pill-blue shrink-0 @click.stop>
+        <div flex="~ gap-8" mx--16 mt-12 px-16 of-x-auto nq-scrollbar-hide>
+          <NuxtLink :to="directionsUrl" target="_blank" outline="1.5 neutral-0/15 offset--1.5" external shrink-0 shadow nq-arrow nq-pill nq-pill-blue @click.stop>
             <Icon name="i-tabler:directions" size-16 />
             {{ t('location.directions') }}
           </NuxtLink>
-          <NuxtLink v-if="location.gmapsUrl" :to="location.gmapsUrl" target="_blank" external nq-arrow nq-pill nq-pill-secondary outline="1.5 neutral-0/20 offset--1.5" shrink-0 @click.stop>
+          <NuxtLink v-if="location.gmapsUrl" :to="location.gmapsUrl" target="_blank" outline="1.5 neutral-0/20 offset--1.5" external shrink-0 nq-arrow nq-pill nq-pill-secondary @click.stop>
             {{ t('location.openInGoogleMaps') }}
           </NuxtLink>
         </div>
@@ -148,7 +148,7 @@ const { addressRef, showCopiedTooltip } = useAddressCopy()
 
       <PhotoCarousel v-if="location.gmapsPlaceId" :uuid="location.uuid" not-empty:mx--8 not-empty:pt-24 />
 
-      <div mt-24 f-px-md pb-24>
+      <div mt-24 f-px-md pb="[max(24px,env(safe-area-inset-bottom))]">
         <!-- Weekly Hours -->
         <div v-if="rotatedHours" w-full space-y-8>
           <div v-for="(hours, idx) in rotatedHours.hours" :key="idx" flex="~ items-center gap-8" text-14>

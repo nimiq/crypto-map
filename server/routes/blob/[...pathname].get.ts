@@ -1,3 +1,4 @@
+import { Buffer } from 'node:buffer'
 import { consola } from 'consola'
 
 const MIN_VALID_IMAGE_BYTES = 1024

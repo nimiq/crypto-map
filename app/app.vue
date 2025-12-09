@@ -3,7 +3,11 @@
 </template>
 
 <style>
+html,
 body {
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
   color-scheme: light;
 }
 
@@ -56,5 +60,10 @@ body {
   to {
     opacity: 0;
   }
+}
+
+/* Hide vaul-vue pseudo-element that causes white borders during close animation */
+[data-vaul-drawer][data-vaul-drawer-direction='bottom']::after {
+  background: transparent !important;
 }
 </style>
