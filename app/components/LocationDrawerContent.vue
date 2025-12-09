@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onLongPress } from '@vueuse/core'
+import { onLongPress, useScroll } from '@vueuse/core'
 
 const { location, snap } = defineProps<{
   location: LocationDetailResponse
@@ -12,14 +12,18 @@ const emit = defineEmits<{
 
 const { t, locale } = useI18n()
 
+// Scroll container ref and scroll state
+const scrollContainer = useTemplateRef<HTMLElement>('scrollContainer')
+const { y: scrollY, arrivedState } = useScroll(scrollContainer)
+
+// Mask visibility based on scroll position
+const showTopMask = computed(() => scrollY.value > 0)
+const showBottomMask = computed(() => !arrivedState.bottom)
+
 // Simple derived values
 const primaryCategory = computed(() => location.primaryCategory ?? location.categories?.[0] ?? null)
 const hasRating = computed(() => location.rating && location.ratingCount)
-const scrollClass = computed(() => {
-  if (snap === '450px')
-    return 'of-y-auto max-h-[calc(450px-40px)]' // 40px for handle
-  return 'of-y-auto'
-})
+const isCompact = computed(() => snap === '450px')
 const starColor = computed(() => {
   if (!location.rating)
     return 'text-neutral'
@@ -101,94 +105,101 @@ const { addressRef, showCopiedTooltip } = useAddressCopy()
 </script>
 
 <template>
-  <div flex="~ col" pb-24 bg-neutral-0 w-full relative of-x-hidden :class="scrollClass">
-    <header bg-neutral-0 relative f-px-md>
-      <!-- Close Button -->
-      <div flex="~ shrink-0 gap-8" right-16 top-4 absolute z-20>
-        <button bg="neutral-500 hocus:neutral-600" stack rounded-full shrink-0 size-24 transition-colors @click.stop="emit('close')">
-          <Icon name="i-nimiq:cross-bold" text-neutral-0 size-10 />
-        </button>
-      </div>
+  <div bg-neutral-0 w-full h-full relative of-hidden flex="~ col">
+    <!-- Scroll masks for fade effect -->
+    <div v-show="showTopMask" pointer-events-none absolute inset-x-0 top-0 h-32 z-10 bg-gradient-to-b from-white to-transparent />
+    <div v-show="showBottomMask && isCompact" pointer-events-none absolute inset-x-0 bottom-0 h-32 z-10 bg-gradient-to-t from-white to-transparent />
 
-      <!-- Title -->
-      <h2 leading-tight font-bold my-0 pr-40 pt-8 line-clamp-2 text="f-xl neutral">
-        {{ location.name }}
-      </h2>
+    <!-- Scrollable content -->
+    <div ref="scrollContainer" of-y-auto of-x-hidden flex-1 :class="isCompact ? 'max-h-[calc(450px-32px)]' : ''">
+      <header bg-neutral-0 relative f-px-md>
+        <!-- Close Button -->
+        <div flex="~ shrink-0 gap-8" right-16 top-4 absolute z-20>
+          <button bg="neutral-500 hocus:neutral-600" stack rounded-full shrink-0 size-24 transition-colors @click.stop="emit('close')">
+            <Icon name="i-nimiq:cross-bold" text-neutral-0 size-10 />
+          </button>
+        </div>
 
-      <!-- Category, Rating & Opening Status -->
-      <div flex="~ col gap-6" text-14 lh-none>
-        <div v-if="primaryCategory || hasRating" mt-4 flex="~ wrap items-center gap-x-8 gap-y-4">
-          <span v-if="primaryCategory" text-neutral-700 font-semibold>{{ primaryCategory.name }}</span>
-          <div v-if="hasRating" flex="~ items-center gap-4">
-            <Icon name="i-nimiq:star" :class="starColor" size-14 />
-            <span font-medium :class="starColor">{{ location.rating!.toFixed(1) }}</span>
-            <span text-neutral-700>({{ location.ratingCount }})</span>
+        <!-- Title -->
+        <h2 leading-tight font-bold my-0 pr-40 pt-8 line-clamp-2 text="f-xl neutral">
+          {{ location.name }}
+        </h2>
+
+        <!-- Category, Rating & Opening Status -->
+        <div flex="~ col gap-6" text-14 lh-none>
+          <div v-if="primaryCategory || hasRating" mt-4 flex="~ wrap items-center gap-x-8 gap-y-4">
+            <span v-if="primaryCategory" text-neutral-700 font-semibold>{{ primaryCategory.name }}</span>
+            <div v-if="hasRating" flex="~ items-center gap-4">
+              <Icon name="i-nimiq:star" :class="starColor" size-14 />
+              <span font-medium :class="starColor">{{ location.rating!.toFixed(1) }}</span>
+              <span text-neutral-700>({{ location.ratingCount }})</span>
+            </div>
+          </div>
+
+          <!-- Opening Status -->
+          <div v-if="statusInfo" flex="~ items-center gap-6">
+            <span :class="statusInfo.color" font-medium>{{ statusInfo.text }}</span>
+            <template v-if="nextChangeText">
+              <div aria-hidden rounded-full bg-neutral-600 size-3 />
+              <span text-neutral-700>{{ nextChangeText }}</span>
+            </template>
           </div>
         </div>
 
-        <!-- Opening Status -->
-        <div v-if="statusInfo" flex="~ items-center gap-6">
-          <span :class="statusInfo.color" font-medium>{{ statusInfo.text }}</span>
-          <template v-if="nextChangeText">
-            <div aria-hidden rounded-full bg-neutral-600 size-3 />
-            <span text-neutral-700>{{ nextChangeText }}</span>
-          </template>
+        <!-- Action Buttons -->
+        <div flex="~ gap-8" mt-12 of-x-auto nq-scrollbar-hide mx--16 px-16>
+          <NuxtLink :to="directionsUrl" target="_blank" outline="1.5 neutral-0/15 offset--1.5" external shadow nq-arrow nq-pill nq-pill-blue shrink-0 @click.stop>
+            <Icon name="i-tabler:directions" size-16 />
+            {{ t('location.directions') }}
+          </NuxtLink>
+          <NuxtLink v-if="location.gmapsUrl" :to="location.gmapsUrl" target="_blank" external nq-arrow nq-pill nq-pill-secondary outline="1.5 neutral-0/20 offset--1.5" shrink-0 @click.stop>
+            {{ t('location.openInGoogleMaps') }}
+          </NuxtLink>
         </div>
-      </div>
+      </header>
 
-      <!-- Action Buttons -->
-      <div flex="~ gap-8" mt-12>
-        <NuxtLink :to="directionsUrl" target="_blank" outline="1.5 neutral-0/15 offset--1.5" external shadow nq-arrow nq-pill nq-pill-blue @click.stop>
-          <Icon name="i-tabler:directions" size-16 />
-          {{ t('location.directions') }}
-        </NuxtLink>
-        <NuxtLink v-if="location.gmapsUrl" :to="location.gmapsUrl" target="_blank" external nq-arrow nq-pill nq-pill-secondary outline="1.5 neutral-0/20 offset--1.5" @click.stop>
-          {{ t('location.openInGoogleMaps') }}
-        </NuxtLink>
-      </div>
-    </header>
+      <PhotoCarousel v-if="location.gmapsPlaceId" :uuid="location.uuid" not-empty:mx--8 not-empty:pt-24 />
 
-    <PhotoCarousel v-if="location.gmapsPlaceId" :uuid="location.uuid" not-empty:mx--8 not-empty:pt-24 />
-
-    <div mt-24 flex-1 f-px-md>
-      <!-- Weekly Hours -->
-      <div v-if="rotatedHours" w-full space-y-8>
-        <div v-for="(hours, idx) in rotatedHours.hours" :key="idx" flex="~ items-center gap-8" text-14>
-          <span :class="hours ? 'text-neutral-700' : 'text-neutral-900'">{{ t(`days.${dayKeys[(new Date().getDay() + idx + 6) % 7]}`) }}</span>
-          <svg text-neutral-500 flex-1 h-2 preserveAspectRatio="none"><line x1="0" y1="50%" x2="100%" y2="50%" stroke="currentColor" stroke-width="1" /></svg>
-          <span :class="hours ? 'text-neutral-700' : 'text-red font-semibold'">
-            {{ hours || t('hours.closed') }}
-          </span>
+      <div mt-24 f-px-md pb-24>
+        <!-- Weekly Hours -->
+        <div v-if="rotatedHours" w-full space-y-8>
+          <div v-for="(hours, idx) in rotatedHours.hours" :key="idx" flex="~ items-center gap-8" text-14>
+            <span :class="hours ? 'text-neutral-700' : 'text-neutral-900'">{{ t(`days.${dayKeys[(new Date().getDay() + idx + 6) % 7]}`) }}</span>
+            <svg text-neutral-500 flex-1 h-2 preserveAspectRatio="none"><line x1="0" y1="50%" x2="100%" y2="50%" stroke="currentColor" stroke-width="1" /></svg>
+            <span :class="hours ? 'text-neutral-700' : 'text-red font-semibold'">
+              {{ hours || t('hours.closed') }}
+            </span>
+          </div>
         </div>
-      </div>
 
-      <!-- Contact Info -->
-      <div v-if="location.address || location.website" mt-24 text="14 neutral">
-        <TooltipProvider>
-          <TooltipRoot :open="showCopiedTooltip">
-            <TooltipTrigger as-child>
-              <div v-if="location.address" ref="addressRef" text-neutral-700 cursor-pointer select-none>
-                {{ location.address }}
-              </div>
-            </TooltipTrigger>
-            <TooltipPortal>
-              <TooltipContent side="top" :side-offset="5">
-                <Motion
-                  :initial="{ opacity: 0, scale: 0.9, y: 4, filter: 'blur(2px)' }"
-                  :animate="{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }"
-                  :transition="{ type: 'spring', stiffness: 300, damping: 22 }"
-                >
-                  <div text-12 text-neutral-0 font-medium px-8 py-4 rounded-6 bg-neutral-900 shadow>
-                    {{ t('location.addressCopied') }}
-                  </div>
-                </Motion>
-              </TooltipContent>
-            </TooltipPortal>
-          </TooltipRoot>
-        </TooltipProvider>
-        <NuxtLink v-if="location.website" :to="location.website" target="_blank" external text-blue mt-6 block nq-arrow>
-          {{ websiteDisplay }}
-        </NuxtLink>
+        <!-- Contact Info -->
+        <div v-if="location.address || location.website" mt-24 text="14 neutral">
+          <TooltipProvider>
+            <TooltipRoot :open="showCopiedTooltip">
+              <TooltipTrigger as-child>
+                <div v-if="location.address" ref="addressRef" text-neutral-700 cursor-pointer select-none>
+                  {{ location.address }}
+                </div>
+              </TooltipTrigger>
+              <TooltipPortal>
+                <TooltipContent side="top" :side-offset="5">
+                  <Motion
+                    :initial="{ opacity: 0, scale: 0.9, y: 4, filter: 'blur(2px)' }"
+                    :animate="{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }"
+                    :transition="{ type: 'spring', stiffness: 300, damping: 22 }"
+                  >
+                    <div text-12 text-neutral-0 font-medium px-8 py-4 rounded-6 bg-neutral-900 shadow>
+                      {{ t('location.addressCopied') }}
+                    </div>
+                  </Motion>
+                </TooltipContent>
+              </TooltipPortal>
+            </TooltipRoot>
+          </TooltipProvider>
+          <NuxtLink v-if="location.website" :to="location.website" target="_blank" external text-blue mt-6 block nq-arrow>
+            {{ websiteDisplay }}
+          </NuxtLink>
+        </div>
       </div>
     </div>
   </div>

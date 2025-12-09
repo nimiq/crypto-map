@@ -80,8 +80,8 @@ function handleClose() {
         @click="handleClose"
       />
       <DrawerContent flex="~ col" shadow="[0_-4px_24px_rgba(0,0,0,0.1)]" outline-none rounded-t-10 bg-neutral-0 h-full max-h-95vh inset-x-0 bottom-0 fixed z-50>
-        <DrawerHandle my-8 />
-        <div v-if="selectedLocation" flex-1 min-h-0>
+        <DrawerHandle my-8 shrink-0 />
+        <div v-if="selectedLocation" flex-1 min-h-0 of-hidden>
           <LocationDrawerContent
             :key="selectedLocation.uuid"
             :location="selectedLocation as any"
