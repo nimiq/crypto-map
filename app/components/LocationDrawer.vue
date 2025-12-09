@@ -81,9 +81,9 @@ function handleClose() {
       />
       <DrawerContent flex="~ col" shadow="[0_-4px_24px_rgba(0,0,0,0.1)]" max-h="[calc(100dvh-env(safe-area-inset-top))]" outline-none rounded-t-12 bg-neutral-0 h-full w-full inset-x-0 bottom-0 fixed z-80>
         <!-- Handle and close button - absolutely positioned, overlay content -->
-        <div flex="~ items-center justify-center" top-0 left-0 right-0 pt-8 z-10 absolute pointer-events-none>
-          <DrawerHandle bg-neutral-400 rounded-full h-6 w-40 pointer-events-auto />
-          <button bg="neutral-500 hocus:neutral-600" stack rounded-full shrink-0 size-24 transition-colors top-12 right-12 pointer-events-auto absolute @click.stop="handleClose">
+        <div flex="~ items-center justify-center" pt-8 pointer-events-none left-0 right-0 top-0 absolute z-10>
+          <DrawerHandle rounded-full bg-neutral-400 h-6 w-40 pointer-events-auto />
+          <button bg="neutral-500 hocus:neutral-600" stack rounded-full shrink-0 size-24 pointer-events-auto transition-colors right-12 top-12 absolute @click.stop="handleClose">
             <Icon name="i-nimiq:cross-bold" text-neutral-0 size-10 />
           </button>
         </div>

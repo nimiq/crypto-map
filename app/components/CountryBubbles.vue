@@ -24,8 +24,8 @@ const BUBBLE_PADDING = 8
 const BUBBLE_WIDTH = 160
 const BUBBLE_HEIGHT = 56
 
-const { mapInstance, flyTo, viewCenter, zoom } = useMapControls()
-const { locationCount, clusterCount } = useVisibleLocations()
+const { mapInstance, flyTo, viewCenter } = useMapControls()
+useVisibleLocations()
 const { width: windowWidth, height: windowHeight } = useWindowSize()
 
 // Fetch country counts (cached)
@@ -40,10 +40,6 @@ const markers = new Map<CountryCode, Marker>()
 
 // Hide bubbles during fly animation
 const isFlying = ref(false)
-
-// At zoom 9+, individual location pins are visible - never show bubbles
-// This prevents race condition where queryRenderedFeatures returns 0 while tiles are loading on slow devices
-const MIN_ZOOM_FOR_PINS = 9
 
 // Check if a point is within current map viewport
 function isPointInViewport(point: { lat: number, lng: number }): boolean {
@@ -97,8 +93,8 @@ const showBubbles = computed(() => {
   if (isFlying.value)
     return false
 
-  // Touch reactive deps to trigger re-evaluation when map moves
-  // eslint-disable-next-line no-unused-expressions
+  // Touch reactive dep to trigger re-evaluation when map moves
+  // eslint-disable-next-line ts/no-unused-expressions
   viewCenter.value
 
   // Only show bubbles when outside ALL country bounds

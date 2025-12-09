@@ -95,7 +95,7 @@ const { addressRef, showCopiedTooltip } = useAddressCopy()
 <template>
   <div h-full w-full relative of-hidden flex="~ col">
     <!-- Scrollable content -->
-    <div bg-neutral-0 flex-1 rounded-t-20 of-x-hidden of-y-auto :class="isCompact ? 'max-h-450px' : ''">
+    <div rounded-t-12 bg-neutral-0 flex-1 of-x-hidden of-y-auto :class="isCompact ? 'max-h-450px' : ''">
       <header pt-20 bg-neutral-0 relative f-px-md>
         <!-- Title -->
         <h2 leading-tight font-bold my-0 pr-40 line-clamp-2 text="f-xl neutral">

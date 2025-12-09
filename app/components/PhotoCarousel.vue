@@ -21,7 +21,7 @@ const availablePhotos = computed(() => Array.from({ length: MAX_PHOTOS }, (_, i)
       :src="`/blob/location/${uuid}/${photoIndex}`"
       :alt="t('photo.alt', { number: photoIndex + 1 })"
       :loading="i === 0 ? 'eager' : 'lazy'"
-      shrink-0 w-280 aspect-1.2 object-cover snap-center f-rounded-lg outline="1.5 offset--1.5 white/14"
+      rounded-6 shrink-0 w-280 object-cover snap-center outline="1.5 offset--1.5 white/14"
       @error="onError(photoIndex)"
     >
   </div>
