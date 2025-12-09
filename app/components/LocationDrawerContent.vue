@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onLongPress, useScroll } from '@vueuse/core'
+import { onLongPress } from '@vueuse/core'
 
 const { location, snap } = defineProps<{
   location: LocationDetailResponse
@@ -11,14 +11,6 @@ const emit = defineEmits<{
 }>()
 
 const { t, locale } = useI18n()
-
-// Scroll container ref and scroll state
-const scrollContainer = useTemplateRef<HTMLElement>('scrollContainer')
-const { y: scrollY, arrivedState } = useScroll(scrollContainer)
-
-// Mask visibility based on scroll position
-const showTopMask = computed(() => scrollY.value > 0)
-const showBottomMask = computed(() => !arrivedState.bottom)
 
 // Simple derived values
 const primaryCategory = computed(() => location.primaryCategory ?? location.categories?.[0] ?? null)
@@ -106,12 +98,8 @@ const { addressRef, showCopiedTooltip } = useAddressCopy()
 
 <template>
   <div bg-neutral-0 w-full h-full relative of-hidden flex="~ col">
-    <!-- Scroll masks for fade effect -->
-    <div v-show="showTopMask" pointer-events-none absolute inset-x-0 top-0 h-32 z-10 bg-gradient-to-b from-white to-transparent />
-    <div v-show="showBottomMask && isCompact" pointer-events-none absolute inset-x-0 bottom-0 h-32 z-10 bg-gradient-to-t from-white to-transparent />
-
     <!-- Scrollable content -->
-    <div ref="scrollContainer" of-y-auto of-x-hidden flex-1 :class="isCompact ? 'max-h-[calc(450px-32px)]' : ''">
+    <div of-y-auto of-x-hidden flex-1 :class="isCompact ? 'max-h-[calc(450px-32px)]' : ''">
       <header bg-neutral-0 relative f-px-md>
         <!-- Close Button -->
         <div flex="~ shrink-0 gap-8" right-16 top-4 absolute z-20>

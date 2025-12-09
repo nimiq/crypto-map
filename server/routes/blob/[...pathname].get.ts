@@ -78,7 +78,7 @@ export default eventHandler(async (event) => {
       if (isValidImage(cachedContentType, cachedBuffer)) {
         setHeader(event, 'Content-Type', cachedContentType)
         setHeader(event, 'Cache-Control', 'public, max-age=31536000, immutable')
-        return cachedBuffer
+        return Buffer.from(cachedBuffer)
       }
 
       // Delete invalid cached images
@@ -138,7 +138,7 @@ export default eventHandler(async (event) => {
     // Serve image directly
     setHeader(event, 'Content-Type', contentType)
     setHeader(event, 'Cache-Control', 'public, max-age=31536000, immutable')
-    return imageBuffer
+    return Buffer.from(imageBuffer)
   }
 
   throw createError({ statusCode: 404, message: 'Image not found' })
