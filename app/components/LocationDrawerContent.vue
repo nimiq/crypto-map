@@ -6,10 +6,6 @@ const { location, snap } = defineProps<{
   snap: string | number | null
 }>()
 
-const emit = defineEmits<{
-  (e: 'close'): void
-}>()
-
 const { t, locale } = useI18n()
 
 // Simple derived values
@@ -97,17 +93,10 @@ const { addressRef, showCopiedTooltip } = useAddressCopy()
 </script>
 
 <template>
-  <div bg-neutral-0 h-full w-full relative of-hidden flex="~ col">
+  <div h-full w-full relative of-hidden flex="~ col">
     <!-- Scrollable content -->
-    <div flex-1 of-x-hidden of-y-auto :class="isCompact ? 'max-h-[calc(450px-32px)]' : ''">
-      <header pt-36 bg-neutral-0 relative f-px-md>
-        <!-- Close Button -->
-        <div flex="~ shrink-0 gap-8" right-16 top-4 absolute z-20>
-          <button bg="neutral-500 hocus:neutral-600" stack rounded-full shrink-0 size-24 transition-colors @click.stop="emit('close')">
-            <Icon name="i-nimiq:cross-bold" text-neutral-0 size-10 />
-          </button>
-        </div>
-
+    <div bg-neutral-0 flex-1 of-x-hidden of-y-auto :class="isCompact ? 'max-h-[calc(450px-32px)]' : ''">
+      <header pt-16 bg-neutral-0 relative f-px-md>
         <!-- Title -->
         <h2 leading-tight font-bold my-0 pr-40 line-clamp-2 text="f-xl neutral">
           {{ location.name }}
@@ -117,6 +106,9 @@ const { addressRef, showCopiedTooltip } = useAddressCopy()
         <div flex="~ col gap-6" text-14 lh-none>
           <div v-if="primaryCategory || hasRating" mt-4 flex="~ wrap items-center gap-x-8 gap-y-4">
             <span v-if="primaryCategory" text-neutral-700 font-semibold>{{ primaryCategory.name }}</span>
+            <template v-if="primaryCategory && hasRating">
+              <div aria-hidden rounded-full bg-neutral-600 size-3 />
+            </template>
             <div v-if="hasRating" flex="~ items-center gap-4">
               <Icon name="i-nimiq:star" :class="starColor" size-14 />
               <span font-medium :class="starColor">{{ location.rating!.toFixed(1) }}</span>

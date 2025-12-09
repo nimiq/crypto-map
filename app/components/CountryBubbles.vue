@@ -45,17 +45,6 @@ const isFlying = ref(false)
 // This prevents race condition where queryRenderedFeatures returns 0 while tiles are loading on slow devices
 const MIN_ZOOM_FOR_PINS = 9
 
-// Show bubbles when: not flying, zoomed out enough, and nothing visible
-const showBubbles = computed(() => {
-  if (isFlying.value)
-    return false
-  // Primary gate: if zoomed in enough for pins to render, never show bubbles
-  if (zoom.value >= MIN_ZOOM_FOR_PINS)
-    return false
-  // Secondary check: at low zoom, only show if no clusters visible
-  return locationCount.value === 0 && clusterCount.value === 0
-})
-
 // Check if a point is within current map viewport
 function isPointInViewport(point: { lat: number, lng: number }): boolean {
   if (!mapInstance.value)
@@ -97,6 +86,21 @@ function isViewportWithinCountry(country: CountryHotspot): boolean {
     return false
   }
 }
+
+// Check if viewport is outside all country bounds
+function isViewportOutsideAllCountries(): boolean {
+  return COUNTRY_HOTSPOTS.every(country => !isViewportWithinCountry(country))
+}
+
+// Show bubbles when: not flying, and outside all countries (never show edge bubbles when inside a country)
+const showBubbles = computed(() => {
+  if (isFlying.value)
+    return false
+
+  // Only show bubbles when outside ALL country bounds
+  // When inside any country, don't show edge bubbles pointing to other countries
+  return isViewportOutsideAllCountries()
+})
 
 // Calculate rhumb line bearing (straight line on Mercator projection)
 function calculateMercatorBearing(from: { lat: number, lng: number }, to: { lat: number, lng: number }): number {

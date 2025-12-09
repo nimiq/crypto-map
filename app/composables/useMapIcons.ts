@@ -101,7 +101,7 @@ export function useMapIcons() {
         'maxzoom': 24,
         'layout': {
           'icon-image': iconExpression,
-          'icon-size': 0.057,
+          'icon-size': 0.07125,
           'icon-allow-overlap': false,
           'icon-anchor': 'bottom',
           'icon-offset': [0, 0],
@@ -109,7 +109,7 @@ export function useMapIcons() {
           'text-field': ['get', 'name'],
           'text-font': ['Mulish Regular'],
           'text-anchor': 'left',
-          'text-offset': [0.9, -0.9],
+          'text-offset': [1.1, -1.1],
           'text-justify': 'left',
           'text-size': 14,
           'text-optional': true, // Hide text if it collides, but keep the icon
@@ -136,7 +136,7 @@ export function useMapIcons() {
         'maxzoom': 24,
         'layout': {
           'icon-image': 'active',
-          'icon-size': 0.0855,
+          'icon-size': 0.107,
           'icon-allow-overlap': true, // Always visible
           'icon-ignore-placement': false, // Block other icons from rendering here
           'icon-anchor': 'bottom',
@@ -145,7 +145,7 @@ export function useMapIcons() {
           'text-field': ['get', 'name'],
           'text-font': ['Mulish Regular'],
           'text-anchor': 'left',
-          'text-offset': [0.9, -0.9],
+          'text-offset': [1.1, -1.1],
           'text-justify': 'left',
           'text-size': 16,
           'text-allow-overlap': true, // Always show text
@@ -288,8 +288,8 @@ export function useMapIcons() {
       const iconSizeExpression = [
         'case',
         ['in', ['get', 'uuid'], ['literal', uuids]],
-        0.0855,
-        0.057,
+        0.107,
+        0.07125,
       ]
       map.setLayoutProperty('location-icon', 'icon-size', iconSizeExpression as any)
 
@@ -324,7 +324,7 @@ export function useMapIcons() {
     else {
       // Reset to normal styling
       map.setLayoutProperty('location-icon', 'icon-image', buildIconExpression() as any)
-      map.setLayoutProperty('location-icon', 'icon-size', 0.057)
+      map.setLayoutProperty('location-icon', 'icon-size', 0.07125)
       map.setLayoutProperty('location-icon', 'symbol-sort-key', ['-', 0, ['coalesce', ['get', 'rating'], 0]] as any)
       map.setLayoutProperty('location-icon', 'text-size', 14)
       map.setPaintProperty('location-icon', 'text-color', buildColorExpression() as any)

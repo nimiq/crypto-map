@@ -155,20 +155,15 @@ watch([searchResults, mapInstance], ([results, map]) => {
 
 function handleNavigate(uuid: string | undefined, latitude: number, longitude: number) {
   if (uuid) {
-    // Location result - open drawer
     selectedLocationUuid.value = uuid
     isDrawerOpen.value = true
 
     if (mapInstance.value) {
       setSelectedLocation(mapInstance.value as any, uuid)
-      const bounds = mapInstance.value.getBounds()
-      if (!bounds.contains([longitude, latitude])) {
-        flyTo({ lat: latitude, lng: longitude }, { zoom: 14 })
-      }
+      flyTo({ lat: latitude, lng: longitude }, { zoom: 14, padding: { bottom: 450 } })
     }
   }
   else {
-    // Geo result - just pan to location
     flyTo({ lat: latitude, lng: longitude }, { zoom: 12 })
   }
 }
@@ -179,6 +174,18 @@ function handleMarkerClick(uuid: string) {
   isDrawerOpen.value = true
   if (mapInstance.value) {
     setSelectedLocation(mapInstance.value as any, uuid)
+
+    // If marker is in bottom half, pan up so it's visible above drawer
+    const features = mapInstance.value.querySourceFeatures('locations', { filter: ['==', ['get', 'uuid'], uuid] })
+    const feature = features[0]
+    if (feature?.geometry?.type === 'Point') {
+      const coords = feature.geometry.coordinates as [number, number]
+      const point = mapInstance.value.project(coords)
+      const containerHeight = mapInstance.value.getContainer().clientHeight
+      if (point.y > containerHeight / 2) {
+        flyTo({ lat: coords[1], lng: coords[0] }, { zoom: mapInstance.value.getZoom(), padding: { bottom: 450 } })
+      }
+    }
   }
 }
 

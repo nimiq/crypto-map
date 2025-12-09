@@ -14,15 +14,15 @@ const availablePhotos = computed(() => Array.from({ length: MAX_PHOTOS }, (_, i)
 </script>
 
 <template>
-  <div v-if="availablePhotos.length > 0" flex="~ gap-8" scroll-pe-24 scroll-ps-24 of-x-auto nq-scrollbar-hide snap="x mandatory" empty="hidden !p-0 !m-0">
-    <div v-for="(photoIndex, i) in availablePhotos" :key="photoIndex" shrink-0 snap-start first:ps-24 last:pe-24>
-      <img
-        :src="`/blob/location/${uuid}/${photoIndex}`"
-        :alt="t('photo.alt', { number: photoIndex + 1 })"
-        :loading="i === 0 ? 'eager' : 'lazy'"
-        w-280 aspect-0.8 object-cover f-rounded-lg outline="1.5 offset--1.5 white/14"
-        @error="onError(photoIndex)"
-      >
-    </div>
+  <div v-if="availablePhotos.length > 0" flex="~ gap-8" pe-24 ps-24 of-x-auto nq-scrollbar-hide snap="x mandatory" empty="hidden !p-0 !m-0">
+    <img
+      v-for="(photoIndex, i) in availablePhotos"
+      :key="photoIndex"
+      :src="`/blob/location/${uuid}/${photoIndex}`"
+      :alt="t('photo.alt', { number: photoIndex + 1 })"
+      :loading="i === 0 ? 'eager' : 'lazy'"
+      shrink-0 w-280 aspect-1.2 object-cover snap-center f-rounded-lg outline="1.5 offset--1.5 white/14"
+      @error="onError(photoIndex)"
+    >
   </div>
 </template>

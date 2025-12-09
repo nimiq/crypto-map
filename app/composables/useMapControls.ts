@@ -1,4 +1,4 @@
-import type { Map } from 'maplibre-gl'
+import type { Map, PaddingOptions } from 'maplibre-gl'
 import type { Point } from '~/types/geo'
 
 const MIN_ZOOM = 3
@@ -118,7 +118,7 @@ function useMapControlsBase() {
     mapInstance.value?.zoomOut()
   }
 
-  function flyTo(point: Point, options?: { zoom?: number, accuracyMeters?: number }) {
+  function flyTo(point: Point, options?: { zoom?: number, accuracyMeters?: number, padding?: PaddingOptions }) {
     const map = mapInstance.value
     if (!map)
       return
@@ -130,7 +130,7 @@ function useMapControlsBase() {
       zoomLevel = calculateZoomForAccuracy(point.lat, options.accuracyMeters, minViewportSize)
     }
 
-    map.flyTo({ center: [point.lng, point.lat], zoom: zoomLevel, duration: 1000 })
+    map.flyTo({ center: [point.lng, point.lat], zoom: zoomLevel, duration: 1000, ...(options?.padding && { padding: options.padding }) })
   }
 
   function resetNorth() {

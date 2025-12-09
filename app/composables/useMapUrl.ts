@@ -1,8 +1,8 @@
 import { useDebounceFn } from '@vueuse/core'
 
-// Parse #@lat,lng,zoomz format from hash
+// Parse #lat,lng,zoomz format from hash
 function parseMapHash(hash: string): { lat?: number, lng?: number, zoom?: number, bearing?: number, pitch?: number } {
-  const match = hash.match(/^#@(-?\d+(?:\.\d*)?),(-?\d+(?:\.\d*)?),(\d+(?:\.\d*)?)z(?:,(\d+(?:\.\d*)?)b)?(?:,(\d+(?:\.\d*)?)p)?/)
+  const match = hash.match(/^#(-?\d+(?:\.\d*)?),(-?\d+(?:\.\d*)?),(\d+(?:\.\d*)?)z(?:,(\d+(?:\.\d*)?)b)?(?:,(\d+(?:\.\d*)?)p)?/)
   if (!match || !match[1] || !match[2] || !match[3])
     return {}
   return {
@@ -14,12 +14,12 @@ function parseMapHash(hash: string): { lat?: number, lng?: number, zoom?: number
   }
 }
 
-// Build hash in #@lat,lng,zoomz format
+// Build hash in #lat,lng,zoomz format
 function buildMapHash(lat: number, lng: number, zoom: number, bearing?: number, pitch?: number): string {
   const latStr = lat.toFixed(5)
   const lngStr = lng.toFixed(5)
   const zoomStr = zoom.toFixed(2).replace(/\.?0+$/, '')
-  let hash = `#@${latStr},${lngStr},${zoomStr}z`
+  let hash = `#${latStr},${lngStr},${zoomStr}z`
   if (bearing && bearing !== 0)
     hash += `,${bearing.toFixed(0)}b`
   if (pitch && pitch !== 0)

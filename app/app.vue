@@ -66,4 +66,24 @@ body {
 [data-vaul-drawer][data-vaul-drawer-direction='bottom']::after {
   background: transparent !important;
 }
+
+/* Handle styles with larger hit target */
+[data-vaul-handle] {
+  display: block;
+  position: relative;
+  margin-left: auto;
+  margin-right: auto;
+  border-radius: 1rem;
+  touch-action: pan-y;
+}
+
+[data-vaul-handle-hitarea] {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: max(100%, 4rem);
+  height: max(100%, 3rem);
+  touch-action: inherit;
+}
 </style>

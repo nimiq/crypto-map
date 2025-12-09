@@ -68,7 +68,7 @@ function handleClose() {
 </script>
 
 <template>
-  <DrawerRoot v-model:open="isOpen" v-model:active-snap-point="snap" :snap-points :should-scale-background="false" :modal="false">
+  <DrawerRoot v-model:open="isOpen" v-model:active-snap-point="snap" :snap-points :should-scale-background="false" :modal="false" handle-only>
     <DrawerPortal>
       <div
         v-if="showOverlay"
@@ -80,13 +80,18 @@ function handleClose() {
         @click="handleClose"
       />
       <DrawerContent flex="~ col" shadow="[0_-4px_24px_rgba(0,0,0,0.1)]" max-h="[calc(100dvh-env(safe-area-inset-top))]" outline-none rounded-t-10 bg-neutral-0 h-full w-full inset-x-0 bottom-0 fixed z-80>
-        <DrawerHandle left="1/2" translate-x="-1/2" m-0 bg-neutral-400 h-6 top-8 absolute z-30 />
+        <!-- Header with handle and close button -->
+        <div flex="~ items-center justify-center" pb-0 pt-8 relative>
+          <DrawerHandle bg-neutral-400 h-6 w-40 />
+          <button bg="neutral-500 hocus:neutral-600" stack rounded-full shrink-0 size-24 transition-colors right-16 absolute @click.stop="handleClose">
+            <Icon name="i-nimiq:cross-bold" text-neutral-0 size-10 />
+          </button>
+        </div>
         <div v-if="selectedLocation" flex-1 min-h-0 of-hidden>
           <LocationDrawerContent
             :key="selectedLocation.uuid"
             :location="selectedLocation as any"
             :snap
-            @close="handleClose"
           />
         </div>
         <div v-else p-8 flex flex-1 justify-center>
