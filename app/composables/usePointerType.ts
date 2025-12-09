@@ -1,5 +1,6 @@
 export function usePointerType() {
-  const pointerType = ref<'mouse' | 'touch' | 'pen'>('mouse')
+  // Mobile first: assume touch until proven otherwise
+  const pointerType = ref<'mouse' | 'touch' | 'pen'>('touch')
 
   useEventListener('pointerdown', (event: PointerEvent) => {
     pointerType.value = event.pointerType as 'mouse' | 'touch' | 'pen'
