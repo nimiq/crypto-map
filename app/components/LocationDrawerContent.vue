@@ -95,8 +95,8 @@ const { addressRef, showCopiedTooltip } = useAddressCopy()
 <template>
   <div h-full w-full relative of-hidden flex="~ col">
     <!-- Scrollable content -->
-    <div bg-neutral-0 flex-1 of-x-hidden of-y-auto :class="isCompact ? 'max-h-[calc(450px-32px)]' : ''">
-      <header pt-16 bg-neutral-0 relative f-px-md>
+    <div bg-neutral-0 flex-1 rounded-t-20 of-x-hidden of-y-auto :class="isCompact ? 'max-h-450px' : ''">
+      <header pt-20 bg-neutral-0 relative f-px-md>
         <!-- Title -->
         <h2 leading-tight font-bold my-0 pr-40 line-clamp-2 text="f-xl neutral">
           {{ location.name }}
@@ -144,9 +144,9 @@ const { addressRef, showCopiedTooltip } = useAddressCopy()
         <!-- Weekly Hours -->
         <div v-if="rotatedHours" w-full space-y-8>
           <div v-for="(hours, idx) in rotatedHours.hours" :key="idx" flex="~ items-center gap-8" text-14>
-            <span :class="hours ? 'text-neutral-700' : 'text-neutral-900'">{{ t(`days.${dayKeys[(new Date().getDay() + idx + 6) % 7]}`) }}</span>
+            <span :class="hours ? (idx === 0 ? 'text-neutral-900' : 'text-neutral-700') : 'text-red'">{{ t(`days.${dayKeys[(new Date().getDay() + idx + 6) % 7]}`) }}</span>
             <svg text-neutral-500 flex-1 h-2 preserveAspectRatio="none"><line x1="0" y1="50%" x2="100%" y2="50%" stroke="currentColor" stroke-width="1" /></svg>
-            <span :class="hours ? 'text-neutral-700' : 'text-red font-semibold'">
+            <span :class="hours ? (idx === 0 ? 'text-neutral-900' : 'text-neutral-700') : 'text-red font-semibold'">
               {{ hours || t('hours.closed') }}
             </span>
           </div>

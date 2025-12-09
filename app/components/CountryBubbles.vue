@@ -97,6 +97,10 @@ const showBubbles = computed(() => {
   if (isFlying.value)
     return false
 
+  // Touch reactive deps to trigger re-evaluation when map moves
+  // eslint-disable-next-line no-unused-expressions
+  viewCenter.value
+
   // Only show bubbles when outside ALL country bounds
   // When inside any country, don't show edge bubbles pointing to other countries
   return isViewportOutsideAllCountries()

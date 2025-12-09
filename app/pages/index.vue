@@ -17,7 +17,7 @@ const { width: windowWidth, height: windowHeight } = useWindowSize()
 
 // Inline composable for map interaction handlers
 function useMapInteractions(options: {
-  onMarkerClick: (uuid: string) => void
+  onMarkerClick: (uuid: string, coordinates: [number, number]) => void
   onBackgroundClick: () => void
 }) {
   const logger = consola.withTag('map')
@@ -48,9 +48,12 @@ function useMapInteractions(options: {
 
   function handleLocationClick(map: Map, e: MapMouseEvent & { features?: GeoJSON.Feature[] }) {
     e.preventDefault()
-    const uuid = e.features?.[0]?.properties?.uuid
-    if (uuid)
-      options.onMarkerClick(uuid)
+    const feature = e.features?.[0]
+    const uuid = feature?.properties?.uuid
+    if (uuid && feature?.geometry?.type === 'Point') {
+      const coords = feature.geometry.coordinates as [number, number]
+      options.onMarkerClick(uuid, coords)
+    }
   }
 
   function setupCursorHandlers(map: Map, layerId: string) {
@@ -168,24 +171,14 @@ function handleNavigate(uuid: string | undefined, latitude: number, longitude: n
   }
 }
 
-function handleMarkerClick(uuid: string) {
+function handleMarkerClick(uuid: string, coordinates: [number, number]) {
   logger.info('Marker clicked:', uuid)
   selectedLocationUuid.value = uuid
   isDrawerOpen.value = true
   if (mapInstance.value) {
     setSelectedLocation(mapInstance.value as any, uuid)
-
-    // If marker is in bottom half, pan up so it's visible above drawer
-    const features = mapInstance.value.querySourceFeatures('locations', { filter: ['==', ['get', 'uuid'], uuid] })
-    const feature = features[0]
-    if (feature?.geometry?.type === 'Point') {
-      const coords = feature.geometry.coordinates as [number, number]
-      const point = mapInstance.value.project(coords)
-      const containerHeight = mapInstance.value.getContainer().clientHeight
-      if (point.y > containerHeight / 2) {
-        flyTo({ lat: coords[1], lng: coords[0] }, { zoom: mapInstance.value.getZoom(), padding: { bottom: 450 } })
-      }
-    }
+    // Pan to marker position with padding for drawer, maintaining current zoom
+    flyTo({ lat: coordinates[1], lng: coordinates[0] }, { zoom: mapInstance.value.getZoom(), padding: { bottom: 450 } })
   }
 }
 

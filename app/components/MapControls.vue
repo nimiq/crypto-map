@@ -54,7 +54,6 @@ function handleLocateMe() {
       cursor-pointer
       shadow
       transition-colors
-      disabled:op-50
       bg="neutral-0 hocus:neutral-50"
       :disabled="isLocating"
       @click="handleLocateMe"
