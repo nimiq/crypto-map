@@ -97,7 +97,7 @@ export function useMapIcons() {
         'source': 'locations',
         'source-layer': 'locations',
         'filter': ['!', ['has', 'point_count']], // Hide cluster circles (they have point_count)
-        'minzoom': 9, // Show individual pins at zoom 9+ (clusters disappear at 8)
+        'minzoom': 8, // Show individual pins at zoom 8+ (clusters disappear at 8)
         'maxzoom': 24,
         'layout': {
           'icon-image': iconExpression,
@@ -132,7 +132,7 @@ export function useMapIcons() {
         'source': 'locations',
         'source-layer': 'locations',
         'filter': ['==', ['get', 'uuid'], ''], // Initially hidden (matches nothing)
-        'minzoom': 9,
+        'minzoom': 8,
         'maxzoom': 24,
         'layout': {
           'icon-image': 'active',

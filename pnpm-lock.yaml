@@ -120,14 +120,14 @@ catalogs:
       specifier: ^1.7.4
       version: 1.7.4
     nimiq-css:
-      specifier: ^1.0.0-beta.146
-      version: 1.0.0-beta.146
+      specifier: ^1.0.0-beta.149
+      version: 1.0.0-beta.149
     nimiq-flags:
-      specifier: ^1.0.0-beta.146
-      version: 1.0.0-beta.146
+      specifier: ^1.0.0-beta.149
+      version: 1.0.0-beta.149
     nimiq-icons:
-      specifier: ^1.0.0-beta.146
-      version: 1.0.0-beta.146
+      specifier: ^1.0.0-beta.149
+      version: 1.0.0-beta.149
     reka-ui:
       specifier: ^2.6.0
       version: 2.6.0
@@ -230,10 +230,10 @@ importers:
         version: 1.7.4(@vueuse/core@13.9.0(vue@3.5.25(typescript@5.9.3)))(vue@3.5.25(typescript@5.9.3))
       nimiq-flags:
         specifier: catalog:ui
-        version: 1.0.0-beta.146
+        version: 1.0.0-beta.149
       nimiq-icons:
         specifier: catalog:ui
-        version: 1.0.0-beta.146
+        version: 1.0.0-beta.149
       nuxt:
         specifier: catalog:framework
         version: 4.2.1(@electric-sql/pglite@0.3.14)(@parcel/watcher@2.5.1)(@types/node@24.10.1)(@vercel/blob@2.0.0)(@vue/compiler-sfc@3.5.25)(aws4fetch@1.0.20)(db0@0.3.4(@electric-sql/pglite@0.3.14)(drizzle-orm@0.44.7(@cloudflare/workers-types@4.20251202.0)(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.0)(postgres@3.4.7)))(drizzle-orm@0.44.7(@cloudflare/workers-types@4.20251202.0)(@electric-sql/pglite@0.3.14)(@opentelemetry/api@1.9.0)(postgres@3.4.7))(eslint@9.39.1(jiti@2.6.1))(ioredis@5.8.2)(lightningcss@1.30.2)(magicast@0.5.1)(optionator@0.9.4)(rolldown@1.0.0-beta.52)(rollup@4.53.3)(terser@5.44.1)(tsx@4.20.6)(typescript@5.9.3)(vite@7.2.4(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.20.6)(yaml@2.8.1))(yaml@2.8.1)
@@ -315,7 +315,7 @@ importers:
         version: 20.0.10
       nimiq-css:
         specifier: catalog:ui
-        version: 1.0.0-beta.146(@unocss/webpack@66.5.9(webpack@5.103.0(esbuild@0.25.12)))(postcss@8.5.6)(vite@7.2.4(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.20.6)(yaml@2.8.1))
+        version: 1.0.0-beta.149(@unocss/webpack@66.5.9(webpack@5.103.0(esbuild@0.25.12)))(postcss@8.5.6)(vite@7.2.4(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.20.6)(yaml@2.8.1))
       playwright-core:
         specifier: catalog:test
         version: 1.57.0
@@ -5480,15 +5480,15 @@ packages:
   neo-async@2.6.2:
     resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
 
-  nimiq-css@1.0.0-beta.146:
-    resolution: {integrity: sha512-lZVuqCNc1BWKvXbMnMLD1/mxUMCt5Ko/iuO7qGE+/cUmfy+0FlzQYoUMbpat7P7n+FdSbTAU4+8vfq3sQWS8fQ==}
+  nimiq-css@1.0.0-beta.149:
+    resolution: {integrity: sha512-7GilnboCqV1fHoLqcPhJx6k90bJacaRI2HhslAmSR57sl4h7AlSqyrOHiZBavscAuIQ12U+Q0O91qFEJG9jQZw==}
     engines: {node: '>=18'}
 
-  nimiq-flags@1.0.0-beta.146:
-    resolution: {integrity: sha512-doJsg04a/i+ltGvW/jSNoc/fMA6KUWy0cOcaJyNam6L3jW/cEOFuzhWkpQDQe39dgo82XPQ9BIFfOBh9ytoL2A==}
+  nimiq-flags@1.0.0-beta.149:
+    resolution: {integrity: sha512-KqSldnKvERk4ElyX8aEPzdMd61wavFkkLb3Yk3IOJywfADY6xoaCxSAqO5b0dMppc1p6O6XomuvfSYjoZND3dw==}
 
-  nimiq-icons@1.0.0-beta.146:
-    resolution: {integrity: sha512-Ym3MXMWvGksBN2xGANGSIxm0rzIKR/rOpAcS9bzo1m9fVY9x3zJHY6L4eYLKc+oDuiDszbbQHl8Brxy5ctynqw==}
+  nimiq-icons@1.0.0-beta.149:
+    resolution: {integrity: sha512-zAZW8yfUqR56g/NsmvV9SxlUu5ApcXmHObTRUItvqGap4SaoH6jQOauSAPgZ0+MFk97ONlz9OQZnRPsRXw7ZpA==}
 
   nitropack@2.12.9:
     resolution: {integrity: sha512-t6qqNBn2UDGMWogQuORjbL2UPevB8PvIPsPHmqvWpeGOlPr4P8Oc5oA8t3wFwGmaolM2M/s2SwT23nx9yARmOg==}
@@ -12674,12 +12674,12 @@ snapshots:
 
   neo-async@2.6.2: {}
 
-  nimiq-css@1.0.0-beta.146(@unocss/webpack@66.5.9(webpack@5.103.0(esbuild@0.25.12)))(postcss@8.5.6)(vite@7.2.4(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.20.6)(yaml@2.8.1)):
+  nimiq-css@1.0.0-beta.149(@unocss/webpack@66.5.9(webpack@5.103.0(esbuild@0.25.12)))(postcss@8.5.6)(vite@7.2.4(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.20.6)(yaml@2.8.1)):
     dependencies:
       '@iconify/utils': 3.0.2
       '@unocss/preset-web-fonts': 66.5.9
       '@unocss/preset-wind4': 66.5.9
-      nimiq-icons: 1.0.0-beta.146
+      nimiq-icons: 1.0.0-beta.149
       ts-cssjson: 3.0.1
       unocss: 66.5.9(@unocss/webpack@66.5.9(webpack@5.103.0(esbuild@0.25.12)))(postcss@8.5.6)(vite@7.2.4(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.20.6)(yaml@2.8.1))
       unocss-preset-light-dark: 1.0.0-beta.52
@@ -12689,11 +12689,11 @@ snapshots:
       - supports-color
       - vite
 
-  nimiq-flags@1.0.0-beta.146:
+  nimiq-flags@1.0.0-beta.149:
     dependencies:
       '@iconify/types': 2.0.0
 
-  nimiq-icons@1.0.0-beta.146:
+  nimiq-icons@1.0.0-beta.149:
     dependencies:
       '@iconify/types': 2.0.0
 
