@@ -145,3 +145,33 @@ CREATE POLICY "Block deletes on category_hierarchies"
 ON category_hierarchies FOR DELETE
 TO anon, authenticated
 USING (false);
+
+-- ================================================
+-- SPATIAL_REF_SYS (PostGIS system table)
+-- ================================================
+-- Public EPSG coordinate system definitions
+-- Read-only for app roles, managed by PostGIS extension
+ALTER TABLE spatial_ref_sys ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "spatial_ref_sys_select_anon" ON spatial_ref_sys;
+DROP POLICY IF EXISTS "spatial_ref_sys_select_authenticated" ON spatial_ref_sys;
+DROP POLICY IF EXISTS "spatial_ref_sys_select_service_role" ON spatial_ref_sys;
+
+CREATE POLICY "spatial_ref_sys_select_anon" ON spatial_ref_sys FOR SELECT TO anon USING (true);
+CREATE POLICY "spatial_ref_sys_select_authenticated" ON spatial_ref_sys FOR SELECT TO authenticated USING (true);
+CREATE POLICY "spatial_ref_sys_select_service_role" ON spatial_ref_sys FOR SELECT TO service_role USING (true);
+
+-- Block writes from app roles
+DROP POLICY IF EXISTS "spatial_ref_sys_no_insert_anon" ON spatial_ref_sys;
+DROP POLICY IF EXISTS "spatial_ref_sys_no_insert_authenticated" ON spatial_ref_sys;
+DROP POLICY IF EXISTS "spatial_ref_sys_no_update_anon" ON spatial_ref_sys;
+DROP POLICY IF EXISTS "spatial_ref_sys_no_update_authenticated" ON spatial_ref_sys;
+DROP POLICY IF EXISTS "spatial_ref_sys_no_delete_anon" ON spatial_ref_sys;
+DROP POLICY IF EXISTS "spatial_ref_sys_no_delete_authenticated" ON spatial_ref_sys;
+
+CREATE POLICY "spatial_ref_sys_no_insert_anon" ON spatial_ref_sys FOR INSERT TO anon WITH CHECK (false);
+CREATE POLICY "spatial_ref_sys_no_insert_authenticated" ON spatial_ref_sys FOR INSERT TO authenticated WITH CHECK (false);
+CREATE POLICY "spatial_ref_sys_no_update_anon" ON spatial_ref_sys FOR UPDATE TO anon USING (false);
+CREATE POLICY "spatial_ref_sys_no_update_authenticated" ON spatial_ref_sys FOR UPDATE TO authenticated USING (false);
+CREATE POLICY "spatial_ref_sys_no_delete_anon" ON spatial_ref_sys FOR DELETE TO anon USING (false);
+CREATE POLICY "spatial_ref_sys_no_delete_authenticated" ON spatial_ref_sys FOR DELETE TO authenticated USING (false);
