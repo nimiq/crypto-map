@@ -133,7 +133,6 @@ describe('sQL Fragments', () => {
         'latitude',
         'longitude',
         'rating',
-        'photos',
         'gmapsPlaceId',
         'gmapsUrl',
         'website',
