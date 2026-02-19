@@ -12,7 +12,7 @@ const { query, category, autocompleteLocations, autocompleteGeo, autocompleteGeo
 const { initialCenter, initialZoom, initialBearing, initialPitch, isInitialized, initializeView, viewCenter, setMapInstance, mapInstance, flyTo } = useMapControls()
 useMapUrl()
 const { setSearchResults, setSelectedLocation, initializeLayers, updateUserLocation } = useMapIcons()
-const { showUserLocation, userLocationPoint, userLocationAccuracy, isGeoReady } = useUserLocation()
+const { showUserLocation, userLocationPoint, userLocationAccuracy, isGeoReady, initialPoint, initialAccuracy, hasQueryParams } = useUserLocation()
 const { width: windowWidth, height: windowHeight } = useWindowSize()
 
 // Inline composable for map interaction handlers
@@ -77,12 +77,17 @@ function useMapInteractions(options: {
 }
 
 const logger = consola.withTag('map')
-// Initialize map view with accuracy-based zoom once IP geolocation resolves
-watch([isGeoReady, windowWidth], () => {
-  if (!isInitialized.value && isGeoReady.value && windowWidth.value > 0) {
+// Initialize map immediately; don't block on GeoIP
+watch(windowWidth, (w) => {
+  if (!isInitialized.value && w > 0)
     initializeView(windowWidth.value, windowHeight.value)
-  }
 }, { immediate: true })
+
+// Fly to IP location once GeoIP resolves (if map already initialized without it)
+watch([isGeoReady, mapInstance], ([ready, map]) => {
+  if (ready && map && !hasQueryParams.value && initialPoint.value)
+    flyTo(initialPoint.value, { accuracyMeters: initialAccuracy.value ?? undefined })
+})
 
 logger.info('Map page loaded')
 

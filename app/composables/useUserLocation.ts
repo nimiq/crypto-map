@@ -30,7 +30,10 @@ async function fetchIpGeolocation() {
   ipGeoStatus.value = 'pending'
 
   try {
-    const response = await fetch('https://geoip.nimiq-network.com:8443/v1/locate')
+    const controller = new AbortController()
+    const id = setTimeout(() => controller.abort(), 5000)
+    const response = await fetch('https://geoip.nimiq-network.com:8443/v1/locate', { signal: controller.signal })
+    clearTimeout(id)
     const json: NimiqGeoIpResponse = await response.json()
 
     if (json?.location?.latitude && json?.location?.longitude) {
