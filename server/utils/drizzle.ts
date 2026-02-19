@@ -14,7 +14,7 @@ export function useDrizzle(): PostgresJsDatabase<typeof schema> {
   let hyperdrive: { connectionString: string } | undefined
   try {
     const event = useEvent()
-    hyperdrive = event?.context?.cloudflare?.env?.HYPERDRIVE as { connectionString: string } | undefined
+    hyperdrive = event?.context?.cloudflare?.env?.POSTGRES as { connectionString: string } | undefined
   }
   catch {
     // useEvent() may fail outside of request context (e.g., in scripts)

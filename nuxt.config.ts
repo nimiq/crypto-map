@@ -30,9 +30,21 @@ export default defineNuxtConfig({
     viewTransition: true,
   },
   hub: {
-    blob: true,
-    kv: true,
-    db: 'postgresql',
+    blob: { driver: 'cloudflare-r2', binding: 'BLOB', bucketName: 'crypto-map-blob' },
+    kv: { namespaceId: 'bda3fdd277fa4ae0a6fba540b0a7e087' },
+    cache: { namespaceId: 'de83ac81c26b4b54bffdab7d49c1e1e1' },
+    db: { dialect: 'postgresql', connection: { hyperdriveId: '13b2f378321849e289540144583857e5' } },
+  },
+  nitro: {
+    cloudflare: {
+      wrangler: {
+        name: 'crypto-map',
+        account_id: 'cf9baad7d68d7ee717f3339731e81dfb',
+        compatibility_date: '2026-02-19',
+        compatibility_flags: ['nodejs_compat'],
+        observability: { enabled: true, logs: { enabled: true, head_sampling_rate: 1, invocation_logs: true } },
+      },
+    },
   },
   eslint: {
     config: {
@@ -95,5 +107,5 @@ export default defineNuxtConfig({
       include: ['maplibre-gl'],
     },
   },
-  compatibilityDate: '2025-10-01',
+  compatibilityDate: '2026-02-19',
 })
