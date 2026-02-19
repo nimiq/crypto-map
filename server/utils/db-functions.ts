@@ -1,5 +1,6 @@
 import { Buffer } from 'node:buffer'
 
+import { consola } from 'consola'
 import { sql } from 'drizzle-orm'
 
 /**
@@ -8,9 +9,9 @@ import { sql } from 'drizzle-orm'
 export async function getTileMvt(z: number, x: number, y: number): Promise<Buffer> {
   const db = useDrizzle()
 
-  const result = await db.execute(
-    sql`SELECT get_tile_mvt(${z}, ${x}, ${y})`,
-  )
+  const start = performance.now()
+  const result = await db.execute(sql`SELECT get_tile_mvt(${z}, ${x}, ${y})`)
+  consola.info(`[perf] getTileMvt z=${z} x=${x} y=${y} ${(performance.now() - start).toFixed(0)}ms`)
 
   const row = Array.isArray(result) ? result[0] : (result as { rows?: unknown[] })?.rows?.[0]
   const mvtData: unknown = (row as { get_tile_mvt?: unknown })?.get_tile_mvt

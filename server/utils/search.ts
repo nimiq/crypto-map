@@ -106,9 +106,12 @@ export async function searchLocationsBySimilarCategories(
 ): Promise<SearchLocationResponse[]> {
   try {
     const db = useDrizzle()
+    const embStart = performance.now()
     const queryEmbedding = await generateEmbeddingCached(query)
+    logger.info(`[perf] generateEmbedding ${(performance.now() - embStart).toFixed(0)}ms`)
     const { origin, maxDistanceMeters, categories: requiredCategories, fetchLimit, page, limit: pageLimit } = options
 
+    const vecStart = performance.now()
     const vectorMatches = await db.execute(sql`
       SELECT ${tables.categories.id} as id
       FROM ${tables.categories}
@@ -119,6 +122,7 @@ export async function searchLocationsBySimilarCategories(
     `)
 
     let categoryIds = ((vectorMatches as any).rows || []).map((row: any) => row.id as string)
+    logger.info(`[perf] vectorSearch found=${categoryIds.length} ${(performance.now() - vecStart).toFixed(0)}ms`)
 
     if (categoryIds.length === 0)
       categoryIds = pickFallbackCategories(query)
@@ -198,7 +202,10 @@ export async function searchLocationsByCategories(
     ? baseQuery.orderBy(selectFields.distanceMeters)
     : baseQuery.orderBy(sql`${tables.locations.rating} DESC NULLS LAST`)
 
-  return await queryBuilder.limit(limit).offset(offset) as SearchLocationResponse[]
+  const catStart = performance.now()
+  const rows = await queryBuilder.limit(limit).offset(offset) as SearchLocationResponse[]
+  logger.info(`[perf] searchLocationsByCategories count=${rows.length} ${(performance.now() - catStart).toFixed(0)}ms`)
+  return rows
 }
 
 // PostgreSQL's built-in FTS is faster than vector search for exact/prefix matches
@@ -273,5 +280,8 @@ export async function searchLocationsByText(
     ? baseQuery.orderBy(selectFields.distanceMeters)
     : baseQuery
 
-  return await queryBuilder.limit(limit).offset(offset) as SearchLocationResponse[]
+  const txtStart = performance.now()
+  const rows = await queryBuilder.limit(limit).offset(offset) as SearchLocationResponse[]
+  logger.info(`[perf] searchLocationsByText count=${rows.length} ${(performance.now() - txtStart).toFixed(0)}ms`)
+  return rows
 }
