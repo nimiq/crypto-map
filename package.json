@@ -9,6 +9,7 @@
     "build": "nuxt build",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
+    "benchmark:worker": "tsx benchmarks/worker.ts",
     "prepare": "nuxt prepare",
     "postinstall": "nuxt prepare",
     "db:generate": "drizzle-kit generate",
