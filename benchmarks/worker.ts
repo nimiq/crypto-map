@@ -47,6 +47,7 @@ export interface BenchmarkSample {
   latencyMs: number
   sizeBytes: number
   empty: boolean
+  locationsCount?: number
   timestamp: string
   error?: string
 }
@@ -55,7 +56,7 @@ export interface BenchmarkSummary {
   scenarioName: string
   endpointKind: Scenario['kind']
   url: string
-  count: number
+  iterations: number
   avg: number
   min: number
   p50: number
@@ -65,6 +66,7 @@ export interface BenchmarkSummary {
   errorCount: number
   emptyCount: number
   emptyRatio: number
+  locationsCount: string
   statusCounts: Record<string, number>
 }
 
@@ -222,12 +224,16 @@ export function summarizeSamples(scenario: Scenario, url: string, samples: Bench
   }, {})
   const errorCount = samples.filter(sample => sample.status === 0 || sample.status >= 400).length
   const emptyCount = samples.filter(sample => sample.empty).length
+  const locationCounts = [...new Set(samples.flatMap(sample => sample.locationsCount === undefined ? [] : [sample.locationsCount]))]
+  const locationsCount = scenario.kind === 'count'
+    ? (locationCounts.length === 1 ? String(locationCounts[0]) : locationCounts.length > 1 ? locationCounts.join(', ') : '?')
+    : '-'
 
   return {
     scenarioName: scenario.name,
     endpointKind: scenario.kind,
     url,
-    count: samples.length,
+    iterations: samples.length,
     avg: samples.length > 0 ? total / samples.length : 0,
     min: samples.length > 0 ? Math.min(...latencies) : 0,
     p50: percentile(latencies, 50),
@@ -237,6 +243,7 @@ export function summarizeSamples(scenario: Scenario, url: string, samples: Bench
     errorCount,
     emptyCount,
     emptyRatio: samples.length > 0 ? emptyCount / samples.length : 0,
+    locationsCount,
     statusCounts,
   }
 }
@@ -340,6 +347,13 @@ async function runSingleRequest(
     const body = new Uint8Array(await response.arrayBuffer())
     const latencyMs = performance.now() - startedAt
     const sizeBytes = body.byteLength
+    let locationsCount: number | undefined
+
+    if (scenario.kind === 'count' && sizeBytes > 0) {
+      const parsed = JSON.parse(new TextDecoder().decode(body)) as { count?: unknown }
+      if (typeof parsed.count === 'number')
+        locationsCount = parsed.count
+    }
 
     return {
       scenarioName: scenario.name,
@@ -349,6 +363,7 @@ async function runSingleRequest(
       latencyMs,
       sizeBytes,
       empty: classifyEmptyResponse(scenario.kind, response.status, sizeBytes),
+      locationsCount,
       timestamp,
     }
   }
@@ -426,7 +441,7 @@ function printScenarioSummary(summary: BenchmarkSummary) {
   console.log(`\n${summary.scenarioName}`)
   console.table([{
     endpoint: summary.endpointKind,
-    count: summary.count,
+    iterations: summary.iterations,
     avg: formatMs(summary.avg),
     min: formatMs(summary.min),
     p50: formatMs(summary.p50),
@@ -436,6 +451,7 @@ function printScenarioSummary(summary: BenchmarkSummary) {
     errors: summary.errorCount,
     empty: summary.emptyCount,
     emptyRatio: formatRatio(summary.emptyRatio),
+    locationsCount: summary.locationsCount,
     statuses: formatStatusCounts(summary.statusCounts),
   }])
 }
