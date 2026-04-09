@@ -38,6 +38,8 @@ const ALLOWED_TYPES = new Set([
   'residential',
   'street',
 ])
+const QUERY_STARTS_WITH_NUMBER_PATTERN = /^\d/
+const QUERY_WORD_SEPARATOR_PATTERN = /[\s,]+/
 
 function getGeoType(result: NominatimResult): GeoType {
   if (result.address.house_number || result.addresstype === 'house' || result.addresstype === 'building')
@@ -117,10 +119,10 @@ export async function searchNominatim(query: string, options?: { lat?: number, l
 export function isLikelyGeoQuery(query: string): boolean {
   const q = query.toLowerCase().trim()
   // Starts with number (address)
-  if (/^\d/.test(q))
+  if (QUERY_STARTS_WITH_NUMBER_PATTERN.test(q))
     return true
   // Multiple words (likely address or "city, country")
-  if (q.split(/[\s,]+/).filter(Boolean).length >= 2)
+  if (q.split(QUERY_WORD_SEPARATOR_PATTERN).filter(Boolean).length >= 2)
     return true
   return false
 }

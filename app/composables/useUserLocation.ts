@@ -6,6 +6,8 @@ interface NimiqGeoIpResponse {
   city?: string
 }
 
+const USER_LOCATION_HASH_PATTERN = /^#@(-?\d+(?:\.\d*)?),(-?\d+(?:\.\d*)?),(\d+(?:\.\d*)?)z(?:,(\d+(?:\.\d*)?)b)?(?:,(\d+(?:\.\d*)?)p)?/
+
 // Module-level shared state (singleton across all components)
 const ipPoint = ref<Point | null>(null)
 const ipAccuracy = ref<number | null>(null)
@@ -59,7 +61,7 @@ if (import.meta.client) {
 // Parse #@lat,lng,zoomz format from hash (e.g., #@55.8334602,13.23455,16z)
 function parseMapHash(hash: string): { lat?: number, lng?: number, zoom?: number, bearing?: number, pitch?: number } {
   // Match: #@lat,lng,zoomz or #@lat,lng,zoomz,bearingb,pitchp
-  const match = hash.match(/^#@(-?\d+(?:\.\d*)?),(-?\d+(?:\.\d*)?),(\d+(?:\.\d*)?)z(?:,(\d+(?:\.\d*)?)b)?(?:,(\d+(?:\.\d*)?)p)?/)
+  const match = hash.match(USER_LOCATION_HASH_PATTERN)
   if (!match || !match[1] || !match[2] || !match[3])
     return {}
   return {

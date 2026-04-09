@@ -14,7 +14,7 @@ export async function generateEmbeddingCached(value: string): Promise<number[]> 
 
   consola.info('[perf] embedding: cache miss, calling OpenAI')
   const start = performance.now()
-  const model = createOpenAI({ apiKey: useRuntimeConfig().openaiApiKey }).embedding('text-embedding-3-small')
+  const model = createOpenAI({ apiKey: useSafeRuntimeConfig().openaiApiKey }).embedding('text-embedding-3-small')
   const { embedding } = await embed({ model, value })
   consola.info(`[perf] embedding: OpenAI ${(performance.now() - start).toFixed(0)}ms`)
 

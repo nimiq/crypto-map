@@ -16,7 +16,7 @@ function isValidImage(contentType: string | null | undefined, buffer: ArrayBuffe
 
 async function fetchPhotoFromGoogle(placeId: string, photoIndex = 0): Promise<{ data: ArrayBuffer | null, contentType: string | null, error: string | null }> {
   try {
-    const config = useRuntimeConfig()
+    const config = useSafeRuntimeConfig()
     const apiKey = config.googleApiKey
 
     if (!apiKey)

@@ -7,7 +7,7 @@ import 'dotenv/config'
 const logger = consola.withTag('inspect-tile')
 
 async function inspectTile() {
-  const sql = postgres(process.env.DATABASE_URL!)
+  const sql = postgres(process.env.DATABASE_URL!, { ssl: 'require' })
 
   try {
     logger.info('Calling get_tile_mvt(13, 4300, 2914)...')

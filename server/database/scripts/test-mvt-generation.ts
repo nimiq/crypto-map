@@ -6,7 +6,7 @@ import 'dotenv/config'
 const logger = consola.withTag('test-mvt')
 
 async function testMvtGeneration() {
-  const sql = postgres(process.env.DATABASE_URL!)
+  const sql = postgres(process.env.DATABASE_URL!, { ssl: 'require' })
 
   try {
     // Test the MVT generation for the failing tile

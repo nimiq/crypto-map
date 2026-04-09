@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import type { Map, MapMouseEvent } from 'maplibre-gl'
 import { consola } from 'consola'
+import { LOCATION_DRAWER_MAP_BOTTOM_PADDING_PX } from '~/utils/location-drawer'
 import {
   resolveSearchBarPosition,
   SEARCH_BAR_QUERY_PARAM,
 } from '../utils/search-bar-position'
-
-import { LOCATION_DRAWER_MAP_BOTTOM_PADDING_PX } from '~/utils/location-drawer'
 
 const { t } = useI18n()
 

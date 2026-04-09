@@ -8,6 +8,8 @@ import postgres from 'postgres'
 config()
 
 const consola = createConsola().withTag('db-setup')
+const DRIZZLE_BREAKPOINT_PATTERN = /--> statement-breakpoint/g
+const SQL_EXTENSION_PATTERN = /\.sql$/
 
 interface Category {
   id: string
@@ -25,7 +27,7 @@ async function main() {
     process.exit(1)
   }
 
-  const sql = postgres(databaseUrl, { prepare: false, idle_timeout: 60 } as any)
+  const sql = postgres(databaseUrl, { prepare: false, idle_timeout: 60, ssl: 'require' } as any)
 
   try {
     consola.start('Setting up database...')
@@ -48,7 +50,7 @@ async function main() {
       const migrationPath = join(migrationsDir, file)
       const migrationSql = await readFile(migrationPath, 'utf-8')
       // Remove drizzle statement breakpoints
-      const cleanSql = migrationSql.replace(/--> statement-breakpoint/g, ';')
+      const cleanSql = migrationSql.replace(DRIZZLE_BREAKPOINT_PATTERN, ';')
       await sql.unsafe(cleanSql)
       consola.info(`Applied migration: ${file}`)
     }
@@ -63,7 +65,7 @@ async function main() {
       )
     `)
     for (const file of migrationFiles) {
-      const migrationName = file.replace(/\.sql$/, '') // NuxtHub stores names without .sql
+      const migrationName = file.replace(SQL_EXTENSION_PATTERN, '') // NuxtHub stores names without .sql
       await sql.unsafe(`INSERT INTO _hub_migrations (name) VALUES ('${migrationName}') ON CONFLICT (name) DO NOTHING`)
     }
     consola.info(`Registered ${migrationFiles.length} migration(s) in _hub_migrations`)

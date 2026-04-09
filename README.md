@@ -318,8 +318,8 @@ pnpm run typecheck        # Run TypeScript checks
 Create a `.env` file in the project root:
 
 ```env
-# PostgreSQL Configuration (Supabase Remote)
-DATABASE_URL=postgresql://postgres.[project-ref]:[password]@aws-1-eu-central-1.pooler.supabase.com:6543/postgres
+# PostgreSQL Configuration (single remote Supabase database for local dev and runtime)
+DATABASE_URL=postgresql://postgres.[project-ref]:[password]@aws-1-[region].pooler.supabase.com:5432/postgres
 
 # API Keys
 GOOGLE_API_KEY=your_google_api_key
@@ -328,7 +328,7 @@ GOOGLE_API_KEY=your_google_api_key
 OPENAI_API_KEY=your_openai_api_key
 ```
 
-**Note:** The `DATABASE_URL` should use Supabase's connection pooler (port 6543) with `prepare: false` for transaction pooling mode.
+**Note:** Local development uses the same remote PostgreSQL database as runtime. Do not switch to a local PGlite database. For `nuxt dev`, use the Supabase session pooler connection on port `5432`.
 
 ## Database Development
 

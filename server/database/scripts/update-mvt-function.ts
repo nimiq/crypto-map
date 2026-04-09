@@ -15,7 +15,7 @@ async function updateMvtFunction() {
     process.exit(1)
   }
 
-  const client = postgres(process.env.DATABASE_URL)
+  const client = postgres(process.env.DATABASE_URL, { ssl: 'require' })
   const db = drizzle(client)
 
   try {

@@ -15,7 +15,7 @@ async function main() {
     process.exit(1)
   }
 
-  const sql = postgres(databaseUrl, { prepare: false })
+  const sql = postgres(databaseUrl, { prepare: false, ssl: 'require' })
 
   try {
     consola.start('Dropping all tables...')

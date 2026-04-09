@@ -1,8 +1,11 @@
 import process from 'node:process'
+import { config as loadDotenv } from 'dotenv'
 import { icons as nimiqFlags } from 'nimiq-flags'
 import { icons as nimiqIcons } from 'nimiq-icons'
 import { defineNuxtConfig } from 'nuxt/config'
 import * as v from 'valibot'
+
+loadDotenv()
 
 export default defineNuxtConfig({
   app: {
@@ -35,11 +38,16 @@ export default defineNuxtConfig({
     cache: { namespaceId: 'de83ac81c26b4b54bffdab7d49c1e1e1' },
     db: {
       dialect: 'postgresql',
+      driver: 'postgres-js',
       migrationsDirs: ['server/database/migrations'],
       // This project manages Supabase/PostGIS migrations and seeds explicitly via pnpm scripts.
       // Cloudflare builds should not attempt DDL against the external database.
       applyMigrationsDuringBuild: false,
-      connection: { hyperdriveId: '13b2f378321849e289540144583857e5' },
+      connection: {
+        url: process.env.DATABASE_URL || '',
+        hyperdriveId: '13b2f378321849e289540144583857e5',
+        ssl: 'require',
+      },
     },
   },
   nitro: {

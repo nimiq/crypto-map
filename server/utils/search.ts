@@ -6,6 +6,10 @@ const logger = consola.withTag('search')
 const SIMILARITY_THRESHOLD = 0.3
 const SEMANTIC_CATEGORY_LIMIT = 5
 const CATEGORY_SUGGESTION_THRESHOLD = 0.6
+const TSQUERY_SPECIAL_CHARACTERS_PATTERN = /[&|!()]/g
+const TSQUERY_WHITESPACE_PATTERN = /\s+/g
+const TSQUERY_SPLIT_PATTERN = /\s+/
+const SINGULAR_TRAILING_S_PATTERN = /s\b/g
 
 const KEYWORD_FALLBACKS: Array<{ keywords: string[], categories: string[] }> = [
   { keywords: ['restaurant', 'food', 'eat', 'dining'], categories: ['restaurant', 'food_store', 'bar', 'cafe', 'bakery'] },
@@ -220,17 +224,17 @@ export async function searchLocationsByText(
   // Sanitize query for PostgreSQL tsquery - remove special characters and normalize whitespace
   // PostgreSQL tsquery syntax doesn't allow consecutive operators or special chars like &, |, !, ()
   const sanitizedQuery = originalQuery
-    .replace(/[&|!()]/g, ' ') // Remove tsquery special characters that cause syntax errors
-    .replace(/\s+/g, ' ') // Normalize whitespace to prevent empty terms
+    .replace(TSQUERY_SPECIAL_CHARACTERS_PATTERN, ' ') // Remove tsquery special characters that cause syntax errors
+    .replace(TSQUERY_WHITESPACE_PATTERN, ' ') // Normalize whitespace to prevent empty terms
     .trim()
 
   if (!sanitizedQuery)
     return []
 
-  const tsQuery = sanitizedQuery.split(/\s+/).map(term => `${term}:*`).join(' & ')
-  const singularQuery = sanitizedQuery.replace(/s\b/g, '').trim()
+  const tsQuery = sanitizedQuery.split(TSQUERY_SPLIT_PATTERN).map(term => `${term}:*`).join(' & ')
+  const singularQuery = sanitizedQuery.replace(SINGULAR_TRAILING_S_PATTERN, '').trim()
   const fallbackTsQuery = singularQuery && singularQuery !== sanitizedQuery
-    ? singularQuery.split(/\s+/).map(term => `${term}:*`).join(' & ')
+    ? singularQuery.split(TSQUERY_SPLIT_PATTERN).map(term => `${term}:*`).join(' & ')
     : null
 
   const { origin, maxDistanceMeters, categories, fetchLimit, page = 1, limit: pageLimit = 20 } = options

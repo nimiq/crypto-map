@@ -71,6 +71,7 @@ export interface BenchmarkSummary {
 }
 
 export const DEFAULT_BASE_URL = 'https://crypto-map.je-cf9.workers.dev'
+const TRAILING_SLASHES_PATTERN = /\/+$/
 
 const EUROPE_FAILING_VIEWPORT: CountViewport = {
   min_lat: 44.339366454488584,
@@ -153,14 +154,14 @@ export const SCENARIOS: readonly Scenario[] = [
 
 function assertPositiveInteger(value: number, flagName: string): number {
   if (!Number.isInteger(value) || value <= 0) {
-    throw new Error(`${flagName} must be a positive integer`)
+    throw new TypeError(`${flagName} must be a positive integer`)
   }
   return value
 }
 
 function assertNonNegativeInteger(value: number, flagName: string): number {
   if (!Number.isInteger(value) || value < 0) {
-    throw new Error(`${flagName} must be a non-negative integer`)
+    throw new TypeError(`${flagName} must be a non-negative integer`)
   }
   return value
 }
@@ -178,7 +179,7 @@ function parseNumberFlag(value: string | undefined, flagName: string): number | 
 }
 
 export function normalizeBaseUrl(baseUrl: string): string {
-  return baseUrl.replace(/\/+$/, '')
+  return baseUrl.replace(TRAILING_SLASHES_PATTERN, '')
 }
 
 export function latLngZoomToTile(lat: number, lng: number, zoom: number): { x: number, y: number, z: number } {

@@ -103,7 +103,7 @@ export function getWeeklyHours(openingHoursString: string): string[] {
   }
   catch {
     // Return empty strings for all days if parsing fails
-    return Array.from({ length: 7 }, () => '')
+    return Array.from<string>({ length: 7 }).fill('')
   }
 }
 
