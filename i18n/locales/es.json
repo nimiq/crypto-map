@@ -66,6 +66,7 @@
   "locations": {
     "inArea": "Hay {count} ubicaciones en esta zona",
     "count": "{count} ubicaciones",
+    "loading": "Cargando ubicaciones...",
     "noResults": {
       "title": "No se encontraron resultados",
       "description": "Intenta ajustar tu búsqueda o filtros",

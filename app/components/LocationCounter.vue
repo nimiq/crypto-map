@@ -5,9 +5,15 @@ import { animate, useMotionValue } from 'motion-v'
 const { t } = useI18n()
 const { mapInstance } = useMapControls()
 const { locationCount, clusterCount } = useVisibleLocations()
+const { showDelayedLoading, setCountPending } = useLocationLoadingState()
 const hasVisibleFeatures = computed(() => locationCount.value > 0 || clusterCount.value > 0)
 const count = ref<number | null>(null)
-const loading = ref(false)
+const shouldShowPill = computed(() => {
+  if (showDelayedLoading.value)
+    return true
+
+  return hasVisibleFeatures.value && count.value !== null && count.value > 0
+})
 
 // Animated count using motion value
 const animatedCount = useMotionValue(0)
@@ -33,7 +39,7 @@ const updateCount = useDebounceFn(async () => {
   const sw = bounds.getSouthWest()
   const ne = bounds.getNorthEast()
 
-  loading.value = true
+  setCountPending(true)
   try {
     const { count: serverCount } = await $fetch('/api/locations/count', {
       query: {
@@ -49,7 +55,7 @@ const updateCount = useDebounceFn(async () => {
     consola.error('Failed to fetch location count:', error)
   }
   finally {
-    loading.value = false
+    setCountPending(false)
   }
 }, 500) // Increased debounce for API calls
 
@@ -63,6 +69,10 @@ watch(mapInstance, (map) => {
   // Listen for move events
   map.on('moveend', updateCount)
 }, { immediate: true })
+
+onBeforeUnmount(() => {
+  setCountPending(false)
+})
 </script>
 
 <template>
@@ -75,16 +85,23 @@ watch(mapInstance, (map) => {
     leave-to-class="opacity-0 translate-y-4"
   >
     <div
-      v-if="hasVisibleFeatures && count !== null && count > 0"
+      v-if="shouldShowPill"
       flex pointer-events-none bottom-8 left-0 right-0 justify-center fixed z-10
     >
       <div
+        flex="~ items-center gap-8"
         bg="white/90 backdrop-blur"
         text="neutral-700 f-xs"
         outline="~ 1.5 neutral/8 offset--1.5"
         font-medium px-8 py-3 rounded-full pointer-events-auto shadow-lg
       >
-        {{ t('locations.inArea', { count: displayCount }) }}
+        <template v-if="showDelayedLoading">
+          <Icon name="i-nimiq:spinner" text="neutral-700 f-base" />
+          <span>{{ t('locations.loading') }}</span>
+        </template>
+        <template v-else>
+          {{ t('locations.inArea', { count: displayCount }) }}
+        </template>
       </div>
     </div>
   </Transition>

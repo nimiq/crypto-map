@@ -66,6 +66,7 @@
   "locations": {
     "inArea": "Es gibt {count} Standorte in diesem Bereich",
     "count": "{count} Standorte",
+    "loading": "Standorte werden geladen...",
     "noResults": {
       "title": "Keine Ergebnisse gefunden",
       "description": "Passen Sie Ihre Suche oder Filter an",

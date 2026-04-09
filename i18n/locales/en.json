@@ -66,6 +66,7 @@
   "locations": {
     "inArea": "There are {count} locations in this area",
     "count": "{count} locations",
+    "loading": "Loading locations...",
     "noResults": {
       "title": "No locations found",
       "description": "Try adjusting your search or filters",

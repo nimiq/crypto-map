@@ -12,6 +12,7 @@ const { query, category, autocompleteLocations, autocompleteGeo, autocompleteGeo
 const { initialCenter, initialZoom, initialBearing, initialPitch, isInitialized, initializeView, viewCenter, setMapInstance, mapInstance, flyTo } = useMapControls()
 useMapUrl()
 const { setSearchResults, setSelectedLocation, initializeLayers, updateUserLocation } = useMapIcons()
+const { setSearchPending } = useLocationLoadingState()
 const { showUserLocation, userLocationPoint, userLocationAccuracy, isGeoReady, initialPoint, initialAccuracy, hasQueryParams } = useUserLocation()
 const { width: windowWidth, height: windowHeight } = useWindowSize()
 
@@ -107,7 +108,7 @@ watch(isDrawerOpen, (newValue) => {
 })
 
 // Fetch search results when query/category changes
-const { data: searchResults } = await useFetch<SearchLocationResponse[]>('/api/search', {
+const { data: searchResults, status: searchStatus } = await useFetch<SearchLocationResponse[]>('/api/search', {
   query: computed(() => ({
     q: query.value || undefined,
     categories: categories.value,
@@ -118,6 +119,14 @@ const { data: searchResults } = await useFetch<SearchLocationResponse[]>('/api/s
   watch: [query, category, openNow],
   default: () => [],
 })
+
+if (import.meta.client) {
+  watch(searchStatus, status => setSearchPending(status === 'pending'), { immediate: true })
+
+  onBeforeUnmount(() => {
+    setSearchPending(false)
+  })
+}
 
 // Update user location blue dot
 watch([userLocationPoint, userLocationAccuracy, showUserLocation, mapInstance], ([point, accuracy, show, map]) => {
