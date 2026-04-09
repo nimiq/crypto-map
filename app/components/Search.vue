@@ -3,6 +3,7 @@ import type { ComboboxInput } from 'reka-ui'
 import type { SearchBarPosition } from '../utils/search-bar-position'
 import {
   getSearchBarNavigationQuery,
+  SEARCH_BAR_BOTTOM_SAFE_OFFSET_PX,
 } from '../utils/search-bar-position'
 
 type SearchItem
@@ -45,13 +46,15 @@ const searchQuery = computed({
 
 const isComboboxOpen = ref(false)
 const isBottomPosition = computed(() => props.position === 'bottom')
-const anchorClass = computed(() => isBottomPosition.value ? 'bottom-0' : 'top-0')
 const searchContainerClass = computed(() => isBottomPosition.value
-  ? 'mb-[max(12px,env(safe-area-inset-bottom))]'
+  ? ''
   : 'mt-12')
 const contentInsetClass = computed(() => isBottomPosition.value
   ? 'pb-[calc(56px+max(12px,env(safe-area-inset-bottom)))] md:pb-[calc(60px+max(12px,env(safe-area-inset-bottom)))]'
   : 'pt-56 md:pt-60')
+const anchorStyle = computed(() => isBottomPosition.value
+  ? { bottom: `max(${SEARCH_BAR_BOTTOM_SAFE_OFFSET_PX}px, env(safe-area-inset-bottom))` }
+  : { top: '0px' })
 const searchDisplayValue = computed(() => {
   const label = categorySuggestion.value
     ? formatCategoryLabel(categorySuggestion.value.categoryId)
@@ -200,7 +203,7 @@ async function handleItemClick(item: SearchItem) {
       </ComboboxItem>
     </DefineComboboxItemTemplate>
 
-    <ComboboxAnchor as="div" inset-x-0 absolute z-60 :class="anchorClass">
+    <ComboboxAnchor as="div" inset-x-0 absolute z-60 :style="anchorStyle">
       <div px-12 w-screen relative :class="searchContainerClass">
         <ComboboxInput ref="search-input" v-model="searchQuery" outline="0.5 neutral-400" name="search" :placeholder="t('search.placeholder')" v-bind="$attrs" text-neutral px-47 pb-12 pt-10 rounded-full bg-neutral-0 w-full shadow transition-colors />
         <button p-0 border-0 bg-transparent cursor-pointer translate-y-13.5 left-28 top-0 absolute @click="handleClose">

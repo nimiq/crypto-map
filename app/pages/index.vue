@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import type { Map, MapMouseEvent } from 'maplibre-gl'
 import { consola } from 'consola'
-import { resolveSearchBarPosition } from '../utils/search-bar-position'
+import {
+  resolveSearchBarPosition,
+  SEARCH_BAR_QUERY_PARAM,
+} from '../utils/search-bar-position'
 
 const { t } = useI18n()
 
@@ -17,7 +20,7 @@ const { setSearchPending } = useLocationLoadingState()
 const { showUserLocation, userLocationPoint, userLocationAccuracy, isGeoReady, initialPoint, initialAccuracy, hasQueryParams } = useUserLocation()
 const { width: windowWidth, height: windowHeight } = useWindowSize()
 const route = useRoute()
-const searchBarPosition = computed(() => resolveSearchBarPosition(route.query.searchBarPosition))
+const searchBarPosition = computed(() => resolveSearchBarPosition(route.query[SEARCH_BAR_QUERY_PARAM]))
 
 // Inline composable for map interaction handlers
 function useMapInteractions(options: {

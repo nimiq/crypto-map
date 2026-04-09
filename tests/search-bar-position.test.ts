@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  getBottomSafeAreaInsetPx,
   getSearchBarNavigationQuery,
   resolveSearchBarPosition,
+  SEARCH_BAR_BOTTOM_COUNTER_OFFSET_PX,
+  SEARCH_BAR_BOTTOM_SAFE_OFFSET_PX,
+  SEARCH_BAR_BOTTOM_UI_OFFSET_MD_PX,
   SEARCH_BAR_BOTTOM_UI_OFFSET_PX,
   SEARCH_BAR_QUERY_PARAM,
 } from '../app/utils/search-bar-position'
@@ -42,6 +46,12 @@ describe('search bar position', () => {
 
   it('keeps bottom overlay spacing positive', () => {
     expect(SEARCH_BAR_BOTTOM_UI_OFFSET_PX).toBeGreaterThan(0)
+  })
+
+  it('derives overlay offsets from the shared bottom offset constant', () => {
+    expect(SEARCH_BAR_BOTTOM_SAFE_OFFSET_PX).toBe(12)
+    expect(SEARCH_BAR_BOTTOM_UI_OFFSET_MD_PX).toBe(SEARCH_BAR_BOTTOM_UI_OFFSET_PX + 4)
+    expect(SEARCH_BAR_BOTTOM_COUNTER_OFFSET_PX).toBe(SEARCH_BAR_BOTTOM_UI_OFFSET_PX - 4)
   })
 
   it('preserves the bottom position in navigation query state', () => {
@@ -112,5 +122,47 @@ describe('search bar position', () => {
       searchBarPosition: 'bottom',
       tags: ['coffee', 'bakery'],
     })
+  })
+
+  it('reads the bottom safe-area inset from the shared CSS custom property', () => {
+    const originalDocument = globalThis.document
+    const originalGetComputedStyle = globalThis.getComputedStyle
+
+    Object.defineProperty(globalThis, 'document', {
+      configurable: true,
+      value: {},
+    })
+    globalThis.getComputedStyle = (() => ({
+      getPropertyValue: (property: string) => property === '--safe-area-inset-bottom-px' ? '34px' : '',
+    })) as typeof getComputedStyle
+
+    expect(getBottomSafeAreaInsetPx()).toBe(34)
+
+    Object.defineProperty(globalThis, 'document', {
+      configurable: true,
+      value: originalDocument,
+    })
+    globalThis.getComputedStyle = originalGetComputedStyle
+  })
+
+  it('falls back to zero safe-area inset when the CSS property is missing', () => {
+    const originalDocument = globalThis.document
+    const originalGetComputedStyle = globalThis.getComputedStyle
+
+    Object.defineProperty(globalThis, 'document', {
+      configurable: true,
+      value: {},
+    })
+    globalThis.getComputedStyle = (() => ({
+      getPropertyValue: () => '',
+    })) as typeof getComputedStyle
+
+    expect(getBottomSafeAreaInsetPx()).toBe(0)
+
+    Object.defineProperty(globalThis, 'document', {
+      configurable: true,
+      value: originalDocument,
+    })
+    globalThis.getComputedStyle = originalGetComputedStyle
   })
 })

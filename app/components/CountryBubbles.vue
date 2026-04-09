@@ -3,7 +3,10 @@ import type { Map as MapLibreMap } from 'maplibre-gl'
 import type { SearchBarPosition } from '../utils/search-bar-position'
 import { icons as flagIcons } from '@iconify-json/flag'
 import { Marker } from 'maplibre-gl'
-import { SEARCH_BAR_BOTTOM_UI_OFFSET_PX } from '../utils/search-bar-position'
+import {
+  getBottomSafeAreaInsetPx,
+  SEARCH_BAR_BOTTOM_UI_OFFSET_PX,
+} from '../utils/search-bar-position'
 
 const props = withDefaults(defineProps<{
   searchBarPosition?: SearchBarPosition
@@ -129,7 +132,9 @@ function getEdgePosition(bearing: number, vpWidth: number, vpHeight: number): { 
   const angle = (90 - bearing) * Math.PI / 180
   const centerX = vpWidth / 2
   const centerY = vpHeight / 2
-  const bottomReservedSpace = props.searchBarPosition === 'bottom' ? SEARCH_BAR_BOTTOM_UI_OFFSET_PX : 0
+  const bottomReservedSpace = props.searchBarPosition === 'bottom'
+    ? SEARCH_BAR_BOTTOM_UI_OFFSET_PX + getBottomSafeAreaInsetPx()
+    : 0
 
   const maxX = vpWidth - BUBBLE_PADDING - BUBBLE_WIDTH / 2
   const minX = BUBBLE_PADDING + BUBBLE_WIDTH / 2
