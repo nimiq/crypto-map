@@ -171,7 +171,7 @@ function parseNumberFlag(value: string | undefined, flagName: string): number | 
 
   const parsed = Number(value)
   if (!Number.isFinite(parsed)) {
-    throw new Error(`${flagName} must be a finite number`)
+    throw new TypeError(`${flagName} must be a finite number`)
   }
 
   return parsed
@@ -263,6 +263,10 @@ function formatStatusCounts(statusCounts: Record<string, number>): string {
     .join(', ')
 }
 
+function writeStdout(line = '') {
+  process.stdout.write(`${line}\n`)
+}
+
 function parseArgs(argv: string[]): CliOptions {
   const values = new Map<string, string>()
 
@@ -336,11 +340,11 @@ async function runSingleRequest(
       signal: controller.signal,
       cache: 'no-store',
       headers: {
-        accept: scenario.kind === 'tile'
+        'accept': scenario.kind === 'tile'
           ? 'application/vnd.mapbox-vector-tile,application/octet-stream,*/*'
           : 'application/json,*/*',
         'cache-control': 'no-cache, no-store, max-age=0',
-        pragma: 'no-cache',
+        'pragma': 'no-cache',
       },
     })
 
@@ -386,7 +390,7 @@ async function runSingleRequest(
 }
 
 async function runWithConcurrency<T>(items: T[], concurrency: number, worker: (item: T, index: number) => Promise<BenchmarkSample>): Promise<BenchmarkSample[]> {
-  const results = new Array<BenchmarkSample>(items.length)
+  const results: Array<BenchmarkSample | undefined> = Array.from({ length: items.length })
   let nextIndex = 0
 
   async function runWorker() {
@@ -402,7 +406,12 @@ async function runWithConcurrency<T>(items: T[], concurrency: number, worker: (i
 
   const workerCount = Math.min(concurrency, items.length)
   await Promise.all(Array.from({ length: workerCount }, () => runWorker()))
-  return results
+  return results.map((sample, index) => {
+    if (sample === undefined)
+      throw new Error(`Missing benchmark sample at index ${index}`)
+
+    return sample
+  })
 }
 
 async function benchmarkScenario(scenario: Scenario, options: CliOptions): Promise<{ summary: BenchmarkSummary, samples: BenchmarkSample[] }> {
@@ -438,32 +447,38 @@ async function benchmarkScenario(scenario: Scenario, options: CliOptions): Promi
 }
 
 function printScenarioSummary(summary: BenchmarkSummary) {
-  console.log(`\n${summary.scenarioName}`)
-  console.table([{
-    endpoint: summary.endpointKind,
-    iterations: summary.iterations,
-    avg: formatMs(summary.avg),
-    min: formatMs(summary.min),
-    p50: formatMs(summary.p50),
-    p90: formatMs(summary.p90),
-    p95: formatMs(summary.p95),
-    max: formatMs(summary.max),
-    errors: summary.errorCount,
-    empty: summary.emptyCount,
-    emptyRatio: formatRatio(summary.emptyRatio),
-    locationsCount: summary.locationsCount,
-    statuses: formatStatusCounts(summary.statusCounts),
-  }])
+  const rows = [
+    ['endpoint', summary.endpointKind],
+    ['iterations', String(summary.iterations)],
+    ['avg', formatMs(summary.avg)],
+    ['min', formatMs(summary.min)],
+    ['p50', formatMs(summary.p50)],
+    ['p90', formatMs(summary.p90)],
+    ['p95', formatMs(summary.p95)],
+    ['max', formatMs(summary.max)],
+    ['errors', String(summary.errorCount)],
+    ['empty', String(summary.emptyCount)],
+    ['emptyRatio', formatRatio(summary.emptyRatio)],
+    ['locationsCount', summary.locationsCount],
+    ['statuses', formatStatusCounts(summary.statusCounts)],
+  ] as const
+  const labelWidth = Math.max(...rows.map(([label]) => label.length))
+
+  writeStdout()
+  writeStdout(summary.scenarioName)
+  for (const [label, value] of rows)
+    writeStdout(`${label.padEnd(labelWidth)}  ${value}`)
 }
 
 async function main() {
   const options = parseArgs(process.argv.slice(2))
 
-  console.log(`Running worker benchmark against ${options.baseUrl}`)
-  console.log(`Scenarios: ${SCENARIOS.length}, warmup: ${options.warmup}, iterations: ${options.iterations}, concurrency: ${options.concurrency}, timeout: ${options.timeoutMs}ms, cacheBust: ${options.cacheBust}`)
+  writeStdout(`Running worker benchmark against ${options.baseUrl}`)
+  writeStdout(`Scenarios: ${SCENARIOS.length}, warmup: ${options.warmup}, iterations: ${options.iterations}, concurrency: ${options.concurrency}, timeout: ${options.timeoutMs}ms, cacheBust: ${options.cacheBust}`)
 
   for (const scenario of SCENARIOS) {
-    console.log(`\nBenchmarking ${scenario.name}: ${scenario.description}`)
+    writeStdout()
+    writeStdout(`Benchmarking ${scenario.name}: ${scenario.description}`)
     const result = await benchmarkScenario(scenario, options)
     printScenarioSummary(result.summary)
   }
