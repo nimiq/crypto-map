@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import type { ComboboxInput } from 'reka-ui'
+import type { SearchBarPosition } from '../utils/search-bar-position'
 
-defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  position: 'top',
+})
 
 const emit = defineEmits<Emits>()
 
@@ -14,6 +17,7 @@ type SearchItem
     | { kind: 'geo', name: string, displayName: string, latitude: number, longitude: number, geoType: GeoType }
 
 interface Props {
+  position?: SearchBarPosition
   autocompleteLocations?: SearchLocationResponse[]
   autocompleteGeo?: GeoResult[] // Strong matches (before locations)
   autocompleteGeoWeak?: GeoResult[] // Weak matches (after locations)
@@ -37,6 +41,14 @@ const searchQuery = computed({
 })
 
 const isComboboxOpen = ref(false)
+const isBottomPosition = computed(() => props.position === 'bottom')
+const anchorClass = computed(() => isBottomPosition.value ? 'bottom-0' : 'top-0')
+const searchContainerClass = computed(() => isBottomPosition.value
+  ? 'mb-[max(12px,env(safe-area-inset-bottom))]'
+  : 'mt-12')
+const contentInsetClass = computed(() => isBottomPosition.value
+  ? 'pb-[calc(56px+max(12px,env(safe-area-inset-bottom)))] md:pb-[calc(60px+max(12px,env(safe-area-inset-bottom)))]'
+  : 'pt-56 md:pt-60')
 const searchDisplayValue = computed(() => {
   const label = categorySuggestion.value
     ? formatCategoryLabel(categorySuggestion.value.categoryId)
@@ -179,8 +191,8 @@ async function handleItemClick(item: SearchItem) {
       </ComboboxItem>
     </DefineComboboxItemTemplate>
 
-    <ComboboxAnchor as="div" inset-x-0 top-0 absolute z-60>
-      <div mt-12 px-12 w-screen relative>
+    <ComboboxAnchor as="div" inset-x-0 absolute z-60 :class="anchorClass">
+      <div px-12 w-screen relative :class="searchContainerClass">
         <ComboboxInput ref="search-input" v-model="searchQuery" outline="0.5 neutral-400" name="search" :placeholder="t('search.placeholder')" v-bind="$attrs" text-neutral px-47 pb-12 pt-10 rounded-full bg-neutral-0 w-full shadow transition-colors />
         <button p-0 border-0 bg-transparent cursor-pointer translate-y-13.5 left-28 top-0 absolute @click="handleClose">
           <Icon v-if="!isComboboxOpen" name="i-tabler:search" op-70 size-18 />
@@ -196,7 +208,7 @@ async function handleItemClick(item: SearchItem) {
     </ComboboxAnchor>
 
     <ComboboxPortal>
-      <ComboboxContent position="inline" flex="~ col" bg-neutral-100 inset-0 fixed z-50 pt="56 md:60">
+      <ComboboxContent position="inline" flex="~ col" bg-neutral-100 inset-0 fixed z-50 :class="contentInsetClass">
         <ComboboxViewport flex="~ col" h-full of-auto>
           <div flex="~ col" h-full f-px-md f-pt-sm>
             <template v-if="showQuickCategories">

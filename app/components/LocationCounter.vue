@@ -1,11 +1,21 @@
 <script setup lang="ts">
+import type { SearchBarPosition } from '../utils/search-bar-position'
 import { consola } from 'consola'
 import { animate, useMotionValue } from 'motion-v'
+
+const props = withDefaults(defineProps<{
+  searchBarPosition?: SearchBarPosition
+}>(), {
+  searchBarPosition: 'top',
+})
 
 const { t } = useI18n()
 const { mapInstance } = useMapControls()
 const { locationCount, clusterCount } = useVisibleLocations()
 const { showDelayedLoading, setCountPending } = useLocationLoadingState()
+const bottomOffsetClass = computed(() => props.searchBarPosition === 'bottom'
+  ? 'bottom-[calc(84px+env(safe-area-inset-bottom))]'
+  : 'bottom-8')
 const hasVisibleFeatures = computed(() => locationCount.value > 0 || clusterCount.value > 0)
 const count = ref<number | null>(null)
 const shouldShowPill = computed(() => {
@@ -86,7 +96,8 @@ onBeforeUnmount(() => {
   >
     <div
       v-if="shouldShowPill"
-      flex pointer-events-none bottom-8 left-0 right-0 justify-center fixed z-10
+      flex pointer-events-none left-0 right-0 justify-center fixed z-10
+      :class="bottomOffsetClass"
     >
       <div
         flex="~ items-center gap-8"
