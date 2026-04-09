@@ -1,14 +1,9 @@
 <script setup lang="ts">
 import type { ComboboxInput } from 'reka-ui'
 import type { SearchBarPosition } from '../utils/search-bar-position'
-
-const props = withDefaults(defineProps<Props>(), {
-  position: 'top',
-})
-
-const emit = defineEmits<Emits>()
-
-const { t } = useI18n()
+import {
+  getSearchBarNavigationQuery,
+} from '../utils/search-bar-position'
 
 type SearchItem
   = | { kind: 'location', uuid: string, name: string, latitude: number, longitude: number }
@@ -25,6 +20,14 @@ interface Props {
 interface Emits {
   (e: 'navigate', uuid: string | undefined, latitude: number, longitude: number): void
 }
+
+const props = withDefaults(defineProps<Props>(), {
+  position: 'top',
+})
+const emit = defineEmits<Emits>()
+const route = useRoute()
+
+const { t } = useI18n()
 
 const query = defineModel<string | undefined>('query')
 const category = defineModel<string | undefined>('category')
@@ -146,13 +149,19 @@ async function handleItemClick(item: SearchItem) {
       query.value = item.query
       category.value = undefined
       collapseCombobox()
-      await navigateTo('/')
+      await navigateTo({
+        path: '/',
+        query: getSearchBarNavigationQuery(route.query, props.position),
+      })
       break
     case 'category':
       category.value = item.category
       query.value = undefined
       collapseCombobox()
-      await navigateTo('/')
+      await navigateTo({
+        path: '/',
+        query: getSearchBarNavigationQuery(route.query, props.position),
+      })
       break
     case 'geo':
       emit('navigate', undefined, item.latitude, item.longitude)
