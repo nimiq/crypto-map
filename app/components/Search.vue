@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import type { ComboboxInput } from 'reka-ui'
-
-defineProps<Props>()
-
-const emit = defineEmits<Emits>()
-
-const { t } = useI18n()
+import type { SearchBarPosition } from '../utils/search-bar-position'
+import {
+  getSearchBarNavigationQuery,
+  SEARCH_BAR_BOTTOM_SAFE_OFFSET_PX,
+} from '../utils/search-bar-position'
 
 type SearchItem
   = | { kind: 'location', uuid: string, name: string, latitude: number, longitude: number }
@@ -14,6 +13,7 @@ type SearchItem
     | { kind: 'geo', name: string, displayName: string, latitude: number, longitude: number, geoType: GeoType }
 
 interface Props {
+  position?: SearchBarPosition
   autocompleteLocations?: SearchLocationResponse[]
   autocompleteGeo?: GeoResult[] // Strong matches (before locations)
   autocompleteGeoWeak?: GeoResult[] // Weak matches (after locations)
@@ -21,6 +21,14 @@ interface Props {
 interface Emits {
   (e: 'navigate', uuid: string | undefined, latitude: number, longitude: number): void
 }
+
+const props = withDefaults(defineProps<Props>(), {
+  position: 'top',
+})
+const emit = defineEmits<Emits>()
+const route = useRoute()
+
+const { t } = useI18n()
 
 const query = defineModel<string | undefined>('query')
 const category = defineModel<string | undefined>('category')
@@ -37,6 +45,16 @@ const searchQuery = computed({
 })
 
 const isComboboxOpen = ref(false)
+const isBottomPosition = computed(() => props.position === 'bottom')
+const searchContainerClass = computed(() => isBottomPosition.value
+  ? ''
+  : 'mt-12')
+const contentInsetClass = computed(() => isBottomPosition.value
+  ? 'pb-[calc(56px+max(12px,env(safe-area-inset-bottom)))] md:pb-[calc(60px+max(12px,env(safe-area-inset-bottom)))]'
+  : 'pt-56 md:pt-60')
+const anchorStyle = computed(() => isBottomPosition.value
+  ? { bottom: `max(${SEARCH_BAR_BOTTOM_SAFE_OFFSET_PX}px, env(safe-area-inset-bottom))` }
+  : { top: '0px' })
 const searchDisplayValue = computed(() => {
   const label = categorySuggestion.value
     ? formatCategoryLabel(categorySuggestion.value.categoryId)
@@ -134,13 +152,19 @@ async function handleItemClick(item: SearchItem) {
       query.value = item.query
       category.value = undefined
       collapseCombobox()
-      await navigateTo('/')
+      await navigateTo({
+        path: '/',
+        query: getSearchBarNavigationQuery(route.query, props.position),
+      })
       break
     case 'category':
       category.value = item.category
       query.value = undefined
       collapseCombobox()
-      await navigateTo('/')
+      await navigateTo({
+        path: '/',
+        query: getSearchBarNavigationQuery(route.query, props.position),
+      })
       break
     case 'geo':
       emit('navigate', undefined, item.latitude, item.longitude)
@@ -179,8 +203,8 @@ async function handleItemClick(item: SearchItem) {
       </ComboboxItem>
     </DefineComboboxItemTemplate>
 
-    <ComboboxAnchor as="div" inset-x-0 top-0 absolute z-60>
-      <div mt-12 px-12 w-screen relative>
+    <ComboboxAnchor as="div" inset-x-0 absolute z-60 :style="anchorStyle">
+      <div px-12 w-screen relative :class="searchContainerClass">
         <ComboboxInput ref="search-input" v-model="searchQuery" outline="0.5 neutral-400" name="search" :placeholder="t('search.placeholder')" v-bind="$attrs" text-neutral px-47 pb-12 pt-10 rounded-full bg-neutral-0 w-full shadow transition-colors />
         <button p-0 border-0 bg-transparent cursor-pointer translate-y-13.5 left-28 top-0 absolute @click="handleClose">
           <Icon v-if="!isComboboxOpen" name="i-tabler:search" op-70 size-18 />
@@ -196,7 +220,7 @@ async function handleItemClick(item: SearchItem) {
     </ComboboxAnchor>
 
     <ComboboxPortal>
-      <ComboboxContent position="inline" flex="~ col" bg-neutral-100 inset-0 fixed z-50 pt="56 md:60">
+      <ComboboxContent position="inline" flex="~ col" bg-neutral-100 inset-0 fixed z-50 :class="contentInsetClass">
         <ComboboxViewport flex="~ col" h-full of-auto>
           <div flex="~ col" h-full f-px-md f-pt-sm>
             <template v-if="showQuickCategories">

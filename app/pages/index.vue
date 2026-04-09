@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import type { Map, MapMouseEvent } from 'maplibre-gl'
 import { consola } from 'consola'
+import {
+  resolveSearchBarPosition,
+  SEARCH_BAR_QUERY_PARAM,
+} from '../utils/search-bar-position'
 
 import { LOCATION_DRAWER_MAP_BOTTOM_PADDING_PX } from '~/utils/location-drawer'
 
@@ -17,6 +21,8 @@ const { setSearchResults, setSelectedLocation, initializeLayers, updateUserLocat
 const { setSearchPending } = useLocationLoadingState()
 const { showUserLocation, userLocationPoint, userLocationAccuracy, isGeoReady, initialPoint, initialAccuracy, hasQueryParams } = useUserLocation()
 const { width: windowWidth, height: windowHeight } = useWindowSize()
+const route = useRoute()
+const searchBarPosition = computed(() => resolveSearchBarPosition(route.query[SEARCH_BAR_QUERY_PARAM]))
 
 // Inline composable for map interaction handlers
 function useMapInteractions(options: {
@@ -232,7 +238,15 @@ async function onMapLoad(event: { map: Map }) {
 
 <template>
   <main of-hidden h-dvh>
-    <Search v-model:query="query" v-model:category="category" :autocomplete-locations :autocomplete-geo :autocomplete-geo-weak @navigate="handleNavigate" />
+    <Search
+      v-model:query="query"
+      v-model:category="category"
+      :position="searchBarPosition"
+      :autocomplete-locations
+      :autocomplete-geo
+      :autocomplete-geo-weak
+      @navigate="handleNavigate"
+    />
     <ClientOnly>
       <template #fallback>
         <div flex="~ items-center justify-center" bg-neutral-100 size-screen>
@@ -257,9 +271,9 @@ async function onMapLoad(event: { map: Map }) {
         </MglMap>
       </div>
     </ClientOnly>
-    <MapControls />
-    <CountryBubbles />
-    <LocationCounter />
+    <MapControls :search-bar-position="searchBarPosition" />
+    <CountryBubbles :search-bar-position="searchBarPosition" />
+    <LocationCounter :search-bar-position="searchBarPosition" />
     <DevOnly><MapDebugPanel /></DevOnly>
 
     <LocationDrawer

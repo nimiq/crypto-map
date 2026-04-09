@@ -1,7 +1,31 @@
 <script setup lang="ts">
+import type { SearchBarPosition } from '../utils/search-bar-position'
+import {
+  SEARCH_BAR_BOTTOM_UI_OFFSET_MD_PX,
+  SEARCH_BAR_BOTTOM_UI_OFFSET_PX,
+} from '../utils/search-bar-position'
+
+const props = withDefaults(defineProps<{
+  searchBarPosition?: SearchBarPosition
+}>(), {
+  searchBarPosition: 'top',
+})
+
 const { zoomIn, zoomOut, flyTo, bearing, isRotated, resetNorth } = useMapControls()
 const { hasPointer } = usePointerType()
 const { isLocating, locateMe, gpsPoint, gpsAccuracy, showUserLocation } = useUserLocation()
+const { width: windowWidth } = useWindowSize()
+const bottomOffsetStyle = computed(() => {
+  const bottomOffset = props.searchBarPosition === 'bottom'
+    ? (windowWidth.value >= 768 ? SEARCH_BAR_BOTTOM_UI_OFFSET_MD_PX : SEARCH_BAR_BOTTOM_UI_OFFSET_PX)
+    : (windowWidth.value >= 768 ? 16 : 12)
+
+  return {
+    bottom: props.searchBarPosition === 'bottom'
+      ? `calc(${bottomOffset}px + env(safe-area-inset-bottom))`
+      : `${bottomOffset}px`,
+  }
+})
 
 function handleLocateMe() {
   locateMe()
@@ -13,7 +37,7 @@ function handleLocateMe() {
 </script>
 
 <template>
-  <div flex="~ col gap-8" bottom="12 md:16" right="12 md:16" absolute z-10>
+  <div flex="~ col gap-8" right="12 md:16" absolute z-10 :style="bottomOffsetStyle">
     <Motion
       is="button"
       v-if="isRotated"

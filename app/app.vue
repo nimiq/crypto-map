@@ -3,6 +3,10 @@
 </template>
 
 <style>
+:root {
+  --safe-area-inset-bottom-px: env(safe-area-inset-bottom, 0px);
+}
+
 html,
 body {
   height: 100dvh;
