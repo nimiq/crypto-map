@@ -33,7 +33,14 @@ export default defineNuxtConfig({
     blob: { driver: 'cloudflare-r2', binding: 'BLOB', bucketName: 'crypto-map-blob' },
     kv: { namespaceId: 'bda3fdd277fa4ae0a6fba540b0a7e087' },
     cache: { namespaceId: 'de83ac81c26b4b54bffdab7d49c1e1e1' },
-    db: { dialect: 'postgresql', connection: { hyperdriveId: '13b2f378321849e289540144583857e5' } },
+    db: {
+      dialect: 'postgresql',
+      migrationsDirs: ['server/database/migrations'],
+      // This project manages Supabase/PostGIS migrations and seeds explicitly via pnpm scripts.
+      // Cloudflare builds should not attempt DDL against the external database.
+      applyMigrationsDuringBuild: false,
+      connection: { hyperdriveId: '13b2f378321849e289540144583857e5' },
+    },
   },
   nitro: {
     cloudflare: {
