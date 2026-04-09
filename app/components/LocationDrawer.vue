@@ -2,8 +2,8 @@
 import { DrawerContent, DrawerHandle, DrawerPortal, DrawerRoot } from 'vaul-vue'
 
 import {
-  LOCATION_DRAWER_COMPACT_MAX_HEIGHT_CSS,
   LOCATION_DRAWER_COMPACT_SNAP_POINT,
+  LOCATION_DRAWER_EXPANDED_HEIGHT_CSS,
   LOCATION_DRAWER_SNAP_POINTS,
 } from '~/utils/location-drawer'
 
@@ -65,8 +65,8 @@ function handleClose() {
         fixed
         z-80
         :style="{
-          height: LOCATION_DRAWER_COMPACT_MAX_HEIGHT_CSS,
-          maxHeight: LOCATION_DRAWER_COMPACT_MAX_HEIGHT_CSS,
+          height: LOCATION_DRAWER_EXPANDED_HEIGHT_CSS,
+          maxHeight: LOCATION_DRAWER_EXPANDED_HEIGHT_CSS,
         }"
       >
         <!-- Handle and close button - absolutely positioned, overlay content -->
