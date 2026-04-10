@@ -23,7 +23,7 @@ export function useDrizzle(): PostgresJsDatabase<typeof schema> {
   // If we have Hyperdrive, always use its connection string (it handles pooling)
   if (hyperdrive?.connectionString) {
     // Don't cache Hyperdrive connections - they're pooled by Cloudflare
-    return drizzle(postgres(hyperdrive.connectionString, { max: 1, ssl: 'require' }), { schema })
+    return drizzle(postgres(hyperdrive.connectionString, { max: 1 }), { schema })
   }
 
   // Fallback: cache connection for local dev
