@@ -1,11 +1,8 @@
 import process from 'node:process'
-import { config as loadDotenv } from 'dotenv'
 import { icons as nimiqFlags } from 'nimiq-flags'
 import { icons as nimiqIcons } from 'nimiq-icons'
 import { defineNuxtConfig } from 'nuxt/config'
 import * as v from 'valibot'
-
-loadDotenv()
 
 export default defineNuxtConfig({
   app: {
