@@ -1,11 +1,6 @@
 <script setup lang="ts">
 import { DrawerContent, DrawerHandle, DrawerPortal, DrawerRoot } from 'vaul-vue'
-
-import {
-  LOCATION_DRAWER_COMPACT_SNAP_POINT,
-  LOCATION_DRAWER_EXPANDED_HEIGHT_CSS,
-  LOCATION_DRAWER_SNAP_POINTS,
-} from '~/utils/location-drawer'
+import { LOCATION_DRAWER_EXPANDED_HEIGHT_CSS } from '~/utils/location-drawer'
 
 const props = defineProps<{
   locationUuid?: string | null
@@ -17,6 +12,7 @@ const emit = defineEmits<{
 
 const isOpen = defineModel<boolean>('open', { default: false })
 const snap = ref<string | number | null>(LOCATION_DRAWER_COMPACT_SNAP_POINT)
+const drawerExpandedHeightCss = LOCATION_DRAWER_EXPANDED_HEIGHT_CSS
 
 // Reset to first snap point when location changes
 watch(() => props.locationUuid, () => {
@@ -65,8 +61,8 @@ function handleClose() {
         fixed
         z-80
         :style="{
-          height: LOCATION_DRAWER_EXPANDED_HEIGHT_CSS,
-          maxHeight: LOCATION_DRAWER_EXPANDED_HEIGHT_CSS,
+          height: drawerExpandedHeightCss,
+          maxHeight: drawerExpandedHeightCss,
         }"
       >
         <!-- Handle and close button - absolutely positioned, overlay content -->

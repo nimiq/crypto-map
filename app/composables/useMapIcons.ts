@@ -1,6 +1,5 @@
 import type { Map } from 'maplibre-gl'
 import { consola } from 'consola'
-import { buildColorMatches, buildIconMatches, defaultColor } from '~/utils/category-mapping'
 
 const logger = consola.withTag('map-markers')
 

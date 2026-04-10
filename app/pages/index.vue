@@ -1,11 +1,6 @@
 <script setup lang="ts">
 import type { Map, MapMouseEvent } from 'maplibre-gl'
 import { consola } from 'consola'
-import { LOCATION_DRAWER_MAP_BOTTOM_PADDING_PX } from '~/utils/location-drawer'
-import {
-  resolveSearchBarPosition,
-  SEARCH_BAR_QUERY_PARAM,
-} from '../utils/search-bar-position'
 
 const { t } = useI18n()
 
@@ -184,7 +179,7 @@ function handleNavigate(uuid: string | undefined, latitude: number, longitude: n
 
     if (mapInstance.value) {
       setSelectedLocation(mapInstance.value as any, uuid)
-      flyTo({ lat: latitude, lng: longitude }, { zoom: 14, padding: { bottom: LOCATION_DRAWER_MAP_BOTTOM_PADDING_PX } })
+      flyTo({ lat: latitude, lng: longitude }, { zoom: 14, padding: { bottom: LOCATION_DRAWER_COMPACT_HEIGHT_PX } })
     }
   }
   else {
@@ -199,7 +194,7 @@ function handleMarkerClick(uuid: string, coordinates: [number, number]) {
   if (mapInstance.value) {
     setSelectedLocation(mapInstance.value as any, uuid)
     // Pan to marker position with padding for drawer, maintaining current zoom
-    flyTo({ lat: coordinates[1], lng: coordinates[0] }, { zoom: mapInstance.value.getZoom(), padding: { bottom: LOCATION_DRAWER_MAP_BOTTOM_PADDING_PX } })
+    flyTo({ lat: coordinates[1], lng: coordinates[0] }, { zoom: mapInstance.value.getZoom(), padding: { bottom: LOCATION_DRAWER_COMPACT_HEIGHT_PX } })
   }
 }
 
