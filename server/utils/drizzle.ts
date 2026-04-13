@@ -9,6 +9,22 @@ export const tables = schema
 let cachedDb: PostgresJsDatabase<typeof schema> | null = null
 
 export function useDrizzle(): PostgresJsDatabase<typeof schema> {
+  let hyperdrive: { connectionString: string } | undefined
+  try {
+    const event = useEvent()
+    hyperdrive = event?.context?.cloudflare?.env?.POSTGRES as { connectionString: string } | undefined
+  }
+  catch {
+    // useEvent() is not available in scripts or other non-request contexts.
+  }
+
+  if (hyperdrive?.connectionString) {
+    return drizzle({
+      connection: hyperdrive.connectionString,
+      schema,
+    })
+  }
+
   if (!cachedDb) {
     const connectionString = useRuntimeConfig().databaseUrl
     cachedDb = drizzle({
