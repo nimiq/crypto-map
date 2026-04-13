@@ -39,7 +39,10 @@ export default defineNuxtConfig({
       // This project manages Supabase/PostGIS migrations and seeds explicitly via pnpm scripts.
       // Cloudflare builds should not attempt DDL against the external database.
       applyMigrationsDuringBuild: false,
-      connection: { hyperdriveId: '13b2f378321849e289540144583857e5' },
+      connection: {
+        url: process.env.DATABASE_URL || '',
+        ssl: 'require',
+      },
     },
   },
   nitro: {
