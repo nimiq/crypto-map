@@ -8,8 +8,11 @@ export const tables = schema
 
 let cachedDb: PostgresJsDatabase<typeof schema> | null = null
 const REQUEST_CACHE_KEY = '__hyperdrivePostgresDb'
-type HyperdriveBinding = { connectionString: string }
-type RequestContext = Record<string, unknown> & {
+interface HyperdriveBinding {
+  connectionString: string
+}
+
+interface RequestContext extends Record<string, unknown> {
   cloudflare?: {
     env?: {
       POSTGRES?: HyperdriveBinding
