@@ -41,7 +41,6 @@ export default defineNuxtConfig({
       applyMigrationsDuringBuild: false,
       connection: {
         url: process.env.DATABASE_URL || '',
-        hyperdriveId: '13b2f378321849e289540144583857e5',
         ssl: 'require',
       },
     },
