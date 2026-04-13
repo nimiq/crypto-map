@@ -7,34 +7,50 @@ export { and, eq, or, sql } from 'drizzle-orm'
 export const tables = schema
 
 let cachedDb: PostgresJsDatabase<typeof schema> | null = null
+const REQUEST_CACHE_KEY = '__hyperdrivePostgresDb'
+type HyperdriveBinding = { connectionString: string }
+type RequestContext = Record<string, unknown> & {
+  cloudflare?: {
+    env?: {
+      POSTGRES?: HyperdriveBinding
+    }
+  }
+}
+
+function createDb(connection: string): PostgresJsDatabase<typeof schema> {
+  return drizzle({
+    connection: {
+      url: connection,
+      max: 1,
+      prepare: false,
+      ssl: 'require',
+    },
+    schema,
+  })
+}
 
 export function useDrizzle(): PostgresJsDatabase<typeof schema> {
-  let hyperdrive: { connectionString: string } | undefined
+  let event: { context?: RequestContext } | undefined
   try {
-    const event = useEvent()
-    hyperdrive = event?.context?.cloudflare?.env?.POSTGRES as { connectionString: string } | undefined
+    event = useEvent() as { context?: RequestContext } | undefined
   }
   catch {
     // useEvent() is not available in scripts or other non-request contexts.
   }
 
+  const hyperdrive = event?.context?.cloudflare?.env?.POSTGRES
   if (hyperdrive?.connectionString) {
-    return drizzle({
-      connection: hyperdrive.connectionString,
-      schema,
-    })
+    if (event?.context) {
+      event.context[REQUEST_CACHE_KEY] ??= createDb(hyperdrive.connectionString)
+      return event.context[REQUEST_CACHE_KEY] as PostgresJsDatabase<typeof schema>
+    }
+
+    return createDb(hyperdrive.connectionString)
   }
 
   if (!cachedDb) {
     const connectionString = useRuntimeConfig().databaseUrl
-    cachedDb = drizzle({
-      connection: {
-        url: connectionString,
-        max: 1,
-        ssl: 'require',
-      },
-      schema,
-    })
+    cachedDb = createDb(connectionString)
   }
 
   return cachedDb
