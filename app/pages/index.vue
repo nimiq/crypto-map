@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import type { Map, MapMouseEvent } from 'maplibre-gl'
 import { consola } from 'consola'
+import {
+  resolveSearchBarPosition,
+  SEARCH_BAR_QUERY_PARAM,
+} from '../utils/search-bar-position'
 
 const { t } = useI18n()
 

@@ -8,28 +8,55 @@ export { and, eq, or, sql } from 'drizzle-orm'
 export const tables = schema
 
 let cachedDb: PostgresJsDatabase<typeof schema> | null = null
+const REQUEST_CACHE_KEY = '__hyperdrivePostgresDb'
+
+interface HyperdriveBinding {
+  connectionString: string
+}
+
+interface RequestContext extends Record<string, unknown> {
+  cloudflare?: {
+    env?: {
+      POSTGRES?: HyperdriveBinding
+    }
+  }
+}
+
+function createHyperdriveDb(connection: string): PostgresJsDatabase<typeof schema> {
+  const client = postgres(connection, {
+    max: 1,
+    prepare: false,
+  })
+
+  return drizzle({ client, schema })
+}
 
 export function useDrizzle(): PostgresJsDatabase<typeof schema> {
-  // Try to get Hyperdrive from Cloudflare context via Nitro's async context
-  let hyperdrive: { connectionString: string } | undefined
+  let event: { context?: RequestContext } | undefined
   try {
-    const event = useEvent()
-    hyperdrive = event?.context?.cloudflare?.env?.POSTGRES as { connectionString: string } | undefined
+    event = useEvent() as { context?: RequestContext } | undefined
   }
-  catch {
-    // useEvent() may fail outside of request context (e.g., in scripts)
-  }
+  catch {}
 
-  // If we have Hyperdrive, always use its connection string (it handles pooling)
+  const hyperdrive = event?.context?.cloudflare?.env?.POSTGRES
   if (hyperdrive?.connectionString) {
-    // Don't cache Hyperdrive connections - they're pooled by Cloudflare
-    return drizzle(postgres(hyperdrive.connectionString, { max: 1 }), { schema })
+    if (event?.context) {
+      event.context[REQUEST_CACHE_KEY] ??= createHyperdriveDb(hyperdrive.connectionString)
+      return event.context[REQUEST_CACHE_KEY] as PostgresJsDatabase<typeof schema>
+    }
+
+    return createHyperdriveDb(hyperdrive.connectionString)
   }
 
-  // Fallback: cache connection for local dev
   if (!cachedDb) {
-    const connectionString = useSafeRuntimeConfig().databaseUrl
-    cachedDb = drizzle(postgres(connectionString, { max: 1, ssl: 'require' }), { schema })
+    const connectionString = useRuntimeConfig().databaseUrl
+    const client = postgres(connectionString, {
+      max: 1,
+      prepare: false,
+      ssl: 'require',
+    })
+    cachedDb = drizzle({ client, schema })
   }
+
   return cachedDb
 }
