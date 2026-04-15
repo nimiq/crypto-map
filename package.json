@@ -2,7 +2,7 @@
   "name": "pay-app",
   "type": "module",
   "private": true,
-  "packageManager": "pnpm@10.24.0",
+  "packageManager": "pnpm@10.33.0",
   "scripts": {
     "dev": "nuxt dev",
     "dev:remote": "nuxt dev --remote",
@@ -68,6 +68,8 @@
     "@nuxt/test-utils": "catalog:test",
     "@unocss/eslint-plugin": "catalog:dev",
     "@unocss/nuxt": "catalog:ui",
+    "@valibot/to-json-schema": "catalog:dev",
+    "@vue/language-core": "catalog:dev",
     "@vue/test-utils": "catalog:test",
     "@vueuse/core": "catalog:",
     "dotenv": "catalog:dev",

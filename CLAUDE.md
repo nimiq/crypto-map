@@ -363,7 +363,7 @@ The app uses **UnoCSS with Nimiq presets**:
 **Main repo** (`.env` in project root):
 
 ```env
-DATABASE_URL=postgresql://postgres.xxxxx:password@...  # Supabase PostgreSQL
+DATABASE_URL=postgresql://postgres.xxxxx:password@aws-1-[region].pooler.supabase.com:5432/postgres  # Supabase PostgreSQL session pooler
 GOOGLE_API_KEY=your_google_api_key
 OPENAI_API_KEY=your_openai_api_key  # Required for semantic search embeddings
 ```

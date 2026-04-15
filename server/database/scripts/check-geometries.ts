@@ -6,7 +6,7 @@ import 'dotenv/config'
 const logger = consola.withTag('check-geom')
 
 async function checkGeometries() {
-  const sql = postgres(process.env.DATABASE_URL!)
+  const sql = postgres(process.env.DATABASE_URL!, { ssl: 'require' })
 
   try {
     logger.info('Checking location geometries...')
@@ -27,7 +27,7 @@ async function checkGeometries() {
     console.table(result)
 
     // Check count
-    const [{ count }] = await sql`SELECT COUNT(*) as count FROM locations`
+    const [{ count } = { count: 0 }] = await sql`SELECT COUNT(*) as count FROM locations`
     logger.info(`Total locations: ${count}`)
   }
   catch (error) {

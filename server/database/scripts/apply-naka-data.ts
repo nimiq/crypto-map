@@ -17,7 +17,7 @@ async function main() {
     }
 
     consola.start('Connecting to database...')
-    const sql = postgres(databaseUrl)
+    const sql = postgres(databaseUrl, { ssl: 'require' })
 
     consola.start('Loading SQL file...')
     const sqlPath = join(import.meta.dirname, '../../../sources/naka/output/naka.sql')

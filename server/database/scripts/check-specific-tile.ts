@@ -6,7 +6,7 @@ import 'dotenv/config'
 const logger = consola.withTag('check-tile')
 
 async function checkSpecificTile() {
-  const sql = postgres(process.env.DATABASE_URL!)
+  const sql = postgres(process.env.DATABASE_URL!, { ssl: 'require' })
 
   try {
     // Check the problematic tile: 10/537/364
@@ -31,7 +31,7 @@ async function checkSpecificTile() {
     console.table(result)
 
     // Now get the actual MVT
-    const [{ tile }] = await sql`SELECT get_tile_mvt(10, 537, 364) as tile`
+    const [{ tile } = { tile: null }] = await sql`SELECT get_tile_mvt(10, 537, 364) as tile`
 
     logger.info('Tile data:', {
       exists: !!tile,

@@ -3,6 +3,11 @@ import { readdir, readFile, writeFile } from 'node:fs/promises'
 import process from 'node:process'
 import { join } from 'pathe'
 
+const FUNCTION_SIGNATURE_PATTERN = /CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+(\w+)\s*\((.*?)\)/is
+const PARAMETER_PARTS_PATTERN = /\s+/
+const RETURN_TYPE_PATTERN = /RETURNS\s+(\w+(?:\s+\w+)*)/i
+const FUNCTION_COMMENT_PATTERN = /COMMENT\s+ON\s+FUNCTION.*?IS\s+'(.*?)'/is
+
 // Map PostgreSQL types to TypeScript types
 const pgTypeToTs: Record<string, string> = {
   'bytea': 'Buffer',
@@ -43,32 +48,37 @@ function mapPgTypeToTs(pgType: string): string {
 
 function parseFunctionSignature(sql: string): FunctionDef | null {
   // Extract function name and parameters
-  const funcMatch = sql.match(/CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+(\w+)\s*\((.*?)\)/is)
+  const funcMatch = sql.match(FUNCTION_SIGNATURE_PATTERN)
   if (!funcMatch)
     return null
 
-  const [, name, paramsStr] = funcMatch
+  const name = funcMatch[1]
+  const paramsStr = funcMatch[2]
+  if (!name || paramsStr === undefined)
+    return null
 
   // Parse parameters
   const params: Array<{ name: string, type: string }> = []
   if (paramsStr.trim()) {
     const paramPairs = paramsStr.split(',').map(p => p.trim())
     for (const pair of paramPairs) {
-      const parts = pair.trim().split(/\s+/)
+      const parts = pair.trim().split(PARAMETER_PARTS_PATTERN)
       if (parts.length >= 2) {
         const paramName = parts[0]
         const paramType = parts[1]
+        if (!paramName || !paramType)
+          continue
         params.push({ name: paramName, type: mapPgTypeToTs(paramType) })
       }
     }
   }
 
   // Extract return type
-  const returnMatch = sql.match(/RETURNS\s+(\w+(?:\s+\w+)*)/i)
-  const returnType = returnMatch ? mapPgTypeToTs(returnMatch[1]) : 'void'
+  const returnMatch = sql.match(RETURN_TYPE_PATTERN)
+  const returnType = returnMatch?.[1] ? mapPgTypeToTs(returnMatch[1]) : 'void'
 
   // Extract comment if present
-  const commentMatch = sql.match(/COMMENT\s+ON\s+FUNCTION.*?IS\s+'(.*?)'/is)
+  const commentMatch = sql.match(FUNCTION_COMMENT_PATTERN)
   const comment = commentMatch?.[1]
 
   return { name, params, returnType, comment }

@@ -52,9 +52,10 @@ function validateEmbeddings(
   }
 
   for (let i = 0; i < embeddings.length; i++) {
-    if (embeddings[i].length !== EMBEDDING_DIMENSIONS) {
+    const embedding = embeddings[i]
+    if (!embedding || embedding.length !== EMBEDDING_DIMENSIONS) {
       throw new Error(
-        `Embedding ${i} has incorrect dimensions: expected ${EMBEDDING_DIMENSIONS}, got ${embeddings[i].length}`,
+        `Embedding ${i} has incorrect dimensions: expected ${EMBEDDING_DIMENSIONS}, got ${embedding?.length ?? 'missing'}`,
       )
     }
   }

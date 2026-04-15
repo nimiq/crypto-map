@@ -15,14 +15,14 @@ async function main() {
     process.exit(1)
   }
 
-  const sql = postgres(databaseUrl, { prepare: false })
+  const sql = postgres(databaseUrl, { prepare: false, ssl: 'require' })
 
   try {
     const locations = await sql.unsafe('SELECT COUNT(*) as count FROM locations')
-    consola.info(`Total locations: ${locations[0].count}`)
+    consola.info(`Total locations: ${locations[0]?.count ?? 0}`)
 
     const categories = await sql.unsafe('SELECT COUNT(*) as count FROM location_categories')
-    consola.info(`Total location-category mappings: ${categories[0].count}`)
+    consola.info(`Total location-category mappings: ${categories[0]?.count ?? 0}`)
 
     const bySource = await sql.unsafe('SELECT source, COUNT(*) as count FROM locations GROUP BY source')
     consola.info('By source:')

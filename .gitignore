@@ -36,3 +36,5 @@ server/database/sql/*.sql
 location
 
 .claude
+.nuxtrc
+supabase/
