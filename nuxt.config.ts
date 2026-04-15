@@ -53,7 +53,7 @@ export default defineNuxtConfig({
         name: 'crypto-map',
         account_id: 'cf9baad7d68d7ee717f3339731e81dfb',
         compatibility_date: '2026-02-19',
-        compatibility_flags: ['nodejs_compat', 'nodejs_compat_v2'],
+        compatibility_flags: ['nodejs_compat'],
         observability: { enabled: true, logs: { enabled: true, head_sampling_rate: 1, invocation_logs: true } },
       },
     },
