@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { onLongPress } from '@vueuse/core'
+import { onLongPress, useSwipe } from '@vueuse/core'
 
 const { location } = defineProps<{
   location: LocationDetailResponse
 }>()
 
+const snap = defineModel<string | number | null>('snap')
+
 const { t, locale } = useI18n()
 
-// Simple derived values
 const primaryCategory = computed(() => location.primaryCategory ?? location.categories?.[0] ?? null)
 const hasRating = computed(() => location.rating && location.ratingCount)
 const starColor = computed(() => {
@@ -88,12 +89,52 @@ function useAddressCopy() {
 
 const { statusInfo, nextChangeText, rotatedHours } = useOpeningHours()
 const { addressRef, showCopiedTooltip } = useAddressCopy()
+
+const scrollEl = useTemplateRef<HTMLElement>('scrollEl')
+
+// At compact we block vertical native scroll (pan-x only) so any upward swipe
+// is captured by the snap handler below. At expanded we explicitly allow
+// vertical+pinch — `auto` alone was not enough to override the ancestor
+// `[data-vaul-drawer] { touch-action: none }` on iOS Safari, which left the
+// container unscrollable. `overflow-y` mirrors the same rule so the browser
+// doesn't paint a scrollbar when the gesture is locked.
+const isCompact = computed(() => snap.value === LOCATION_DRAWER_COMPACT_SNAP_POINT)
+const scrollStyle = computed(() => ({
+  touchAction: isCompact.value ? 'pan-x' : 'pan-y pinch-zoom',
+  overflowY: isCompact.value ? 'hidden' : 'auto',
+  overscrollBehavior: 'contain',
+}))
+
+let swipeStartSnap: string | number | null | undefined
+let swipeStartScrollTop = 0
+
+const { direction } = useSwipe(scrollEl, {
+  threshold: 12,
+  onSwipeStart: () => {
+    swipeStartSnap = snap.value
+    swipeStartScrollTop = scrollEl.value?.scrollTop ?? 0
+  },
+  onSwipe: () => {
+    if (direction.value === 'up' && swipeStartSnap === LOCATION_DRAWER_COMPACT_SNAP_POINT) {
+      snap.value = LOCATION_DRAWER_EXPANDED_SNAP_POINT
+      if (scrollEl.value)
+        scrollEl.value.scrollTop = 0
+    }
+    else if (direction.value === 'down' && swipeStartSnap === LOCATION_DRAWER_EXPANDED_SNAP_POINT && swipeStartScrollTop <= 0) {
+      snap.value = LOCATION_DRAWER_COMPACT_SNAP_POINT
+    }
+  },
+})
 </script>
 
 <template>
   <div h-full w-full relative of-hidden flex="~ col">
     <!-- Scrollable content -->
-    <div rounded-t-12 bg-neutral-0 flex-1 of-x-hidden of-y-auto>
+    <div
+      ref="scrollEl"
+      :style="scrollStyle"
+      rounded-t-12 bg-neutral-0 flex-1 of-x-hidden nq-scrollbar-hide
+    >
       <header pt-20 bg-neutral-0 relative f-px-md>
         <!-- Title -->
         <h2 leading-tight font-bold my-0 pr-40 line-clamp-2 text="f-xl neutral">
@@ -126,7 +167,7 @@ const { addressRef, showCopiedTooltip } = useAddressCopy()
 
         <!-- Action Buttons -->
         <div flex="~ gap-8" mx--16 mt-12 px-16 of-x-auto nq-scrollbar-hide>
-          <NuxtLink :to="directionsUrl" target="_blank" outline="1.5 neutral-0/15 offset--1.5" external shrink-0 shadow nq-arrow nq-pill nq-pill-blue @click.stop>
+          <NuxtLink :to="directionsUrl" target="_blank" outline="1.5 neutral-0/15 offset--1.5" external shrink-0 nq-arrow nq-pill nq-pill-blue @click.stop>
             <Icon name="i-tabler:directions" size-16 />
             {{ t('location.directions') }}
           </NuxtLink>
