@@ -3,19 +3,14 @@ import { DrawerContent, DrawerHandle, DrawerPortal, DrawerRoot } from 'vaul-vue'
 import { LOCATION_DRAWER_EXPANDED_HEIGHT_CSS } from '~/utils/location-drawer'
 
 const props = defineProps<{
-  locationUuid?: string | null
-}>()
-
-const emit = defineEmits<{
-  (e: 'update:locationUuid', value: string | null): void
+  location?: LocationDetailResponse | null
 }>()
 
 const isOpen = defineModel<boolean>('open', { default: false })
 const snap = ref<string | number | null>(LOCATION_DRAWER_COMPACT_SNAP_POINT)
 const drawerExpandedHeightCss = LOCATION_DRAWER_EXPANDED_HEIGHT_CSS
 
-// Reset to first snap point when location changes
-watch(() => props.locationUuid, () => {
+watch(() => props.location?.uuid, () => {
   snap.value = LOCATION_DRAWER_COMPACT_SNAP_POINT
 })
 
@@ -25,17 +20,8 @@ function collapse() {
 
 defineExpose({ collapse })
 
-const locationUrl = computed(() => props.locationUuid ? `/api/locations/${props.locationUuid}` : undefined)
-
-const { data: selectedLocation } = useFetch<LocationDetailResponse>(locationUrl as any, {
-  lazy: true,
-  watch: [() => props.locationUuid],
-  server: false,
-})
-
 function handleClose() {
   isOpen.value = false
-  emit('update:locationUuid', null)
 }
 </script>
 
@@ -72,10 +58,11 @@ function handleClose() {
             <Icon name="i-nimiq:cross-bold" text-neutral-0 size-10 />
           </button>
         </div>
-        <div v-if="selectedLocation" flex-1 min-h-0 of-hidden>
+        <div v-if="props.location" flex-1 min-h-0 of-hidden>
           <LocationDrawerContent
-            :key="selectedLocation.uuid"
-            :location="selectedLocation as any"
+            :key="props.location.uuid"
+            v-model:snap="snap"
+            :location="props.location"
           />
         </div>
         <div v-else p-8 flex flex-1 justify-center>

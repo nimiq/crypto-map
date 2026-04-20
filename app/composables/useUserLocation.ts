@@ -1,12 +1,11 @@
 import type { Point } from '~/types/geo'
+import { parseMapHash } from '~/utils/map-url'
 
 interface NimiqGeoIpResponse {
   location?: { longitude: string, latitude: string, accuracy_radius: number }
   country?: string
   city?: string
 }
-
-const USER_LOCATION_HASH_PATTERN = /^#@(-?\d+(?:\.\d*)?),(-?\d+(?:\.\d*)?),(\d+(?:\.\d*)?)z(?:,(\d+(?:\.\d*)?)b)?(?:,(\d+(?:\.\d*)?)p)?/
 
 // Module-level shared state (singleton across all components)
 const ipPoint = ref<Point | null>(null)
@@ -56,21 +55,6 @@ async function fetchIpGeolocation() {
 // Auto-fetch on client (only runs once due to ipGeoStatus check)
 if (import.meta.client) {
   fetchIpGeolocation()
-}
-
-// Parse #@lat,lng,zoomz format from hash (e.g., #@55.8334602,13.23455,16z)
-function parseMapHash(hash: string): { lat?: number, lng?: number, zoom?: number, bearing?: number, pitch?: number } {
-  // Match: #@lat,lng,zoomz or #@lat,lng,zoomz,bearingb,pitchp
-  const match = hash.match(USER_LOCATION_HASH_PATTERN)
-  if (!match || !match[1] || !match[2] || !match[3])
-    return {}
-  return {
-    lat: Number.parseFloat(match[1]),
-    lng: Number.parseFloat(match[2]),
-    zoom: Number.parseFloat(match[3]),
-    bearing: match[4] ? Number.parseFloat(match[4]) : undefined,
-    pitch: match[5] ? Number.parseFloat(match[5]) : undefined,
-  }
 }
 
 export function useUserLocation() {

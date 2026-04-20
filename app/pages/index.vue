@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import type { Map, MapMouseEvent } from 'maplibre-gl'
+import { useRouteQuery } from '@vueuse/router'
 import { consola } from 'consola'
+import * as v from 'valibot'
 import {
   resolveSearchBarPosition,
   SEARCH_BAR_QUERY_PARAM,
 } from '../utils/search-bar-position'
+
+const uuidSchema = v.pipe(v.string(), v.uuid())
 
 const { t } = useI18n()
 
@@ -98,20 +102,47 @@ watch([isGeoReady, mapInstance], ([ready, map]) => {
 
 logger.info('Map page loaded')
 
-const selectedLocationUuid = ref<string | null>(null)
-const isDrawerOpen = ref(false)
+const selectedLocationUuid = useRouteQuery<string | null | undefined, string | null>('loc', null, {
+  mode: 'replace',
+  transform: {
+    get: value => typeof value === 'string' && v.safeParse(uuidSchema, value).success ? value : null,
+    set: value => value ?? undefined,
+  },
+})
+const hadInitialLoc = selectedLocationUuid.value !== null
+const isDrawerOpen = ref(hadInitialLoc)
 const { origin } = useRequestURL()
 const mapStyle = getMapStyle(origin)
 
-// Watch for drawer closing to deselect location
-watch(isDrawerOpen, (newValue) => {
-  if (!newValue) {
+watch(selectedLocationUuid, (uuid) => {
+  isDrawerOpen.value = uuid !== null
+})
+
+watch(isDrawerOpen, (open) => {
+  if (!open) {
     selectedLocationUuid.value = null
-    if (mapInstance.value) {
+    if (mapInstance.value)
       setSelectedLocation(mapInstance.value as any, null)
-    }
   }
 })
+
+const locationFetchUrl = computed(() => selectedLocationUuid.value ? `/api/locations/${selectedLocationUuid.value}` : undefined)
+const { data: selectedLocation } = useFetch<LocationDetailResponse>(locationFetchUrl as any, {
+  key: 'page-location',
+  lazy: true,
+  server: false,
+  watch: [selectedLocationUuid],
+})
+
+if (import.meta.client && hadInitialLoc) {
+  const stop = watch([selectedLocation, mapInstance], ([loc, map]) => {
+    if (!loc || !map)
+      return
+    flyTo({ lat: loc.latitude, lng: loc.longitude }, { zoom: 14, padding: { bottom: LOCATION_DRAWER_COMPACT_HEIGHT_PX } })
+    setSelectedLocation(map as any, loc.uuid)
+    stop()
+  }, { immediate: true })
+}
 
 // Fetch search results when query/category changes
 const { data: searchResults, status: searchStatus } = await useFetch<SearchLocationResponse[]>('/api/search', {
@@ -276,14 +307,7 @@ async function onMapLoad(event: { map: Map }) {
 
     <LocationDrawer
       v-model:open="isDrawerOpen"
-      :location-uuid="selectedLocationUuid"
-      @update:location-uuid="(uuid) => {
-        selectedLocationUuid = uuid
-        if (!uuid && mapInstance) {
-          const { setSelectedLocation } = useMapIcons()
-          setSelectedLocation(mapInstance as any, null)
-        }
-      }"
+      :location="selectedLocation"
     />
   </main>
 </template>
