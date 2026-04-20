@@ -133,7 +133,7 @@ const { direction } = useSwipe(scrollEl, {
     <div
       ref="scrollEl"
       :style="scrollStyle"
-      rounded-t-12 bg-neutral-0 flex-1 of-x-hidden nq-scrollbar-hide
+      rounded-t-12 bg-neutral-0 flex-1 min-h-0 of-x-hidden nq-scrollbar-hide
     >
       <header pt-20 bg-neutral-0 relative f-px-md>
         <!-- Title -->
@@ -179,7 +179,7 @@ const { direction } = useSwipe(scrollEl, {
 
       <PhotoCarousel v-if="location.gmapsPlaceId" :uuid="location.uuid" not-empty:mx--8 not-empty:pt-24 />
 
-      <div mt-24 f-px-md pb="[max(24px,env(safe-area-inset-bottom))]">
+      <div mt-24 f-px-md pb="[calc(max(24px,env(safe-area-inset-bottom))+4dvh)]">
         <!-- Weekly Hours -->
         <div v-if="rotatedHours" w-full space-y-8>
           <div v-for="(hours, idx) in rotatedHours.hours" :key="idx" flex="~ items-center gap-8" text-14>
