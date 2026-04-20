@@ -26,13 +26,14 @@ function handleClose() {
 </script>
 
 <template>
+  <!-- `handle-only` omitted: the whole content acts as a drag surface. LocationDrawerContent's
+       touchmove hands the gesture back to vaul only at scrollTop=0, so content can still scroll. -->
   <DrawerRoot
     v-model:open="isOpen"
     v-model:active-snap-point="snap"
     :snap-points="LOCATION_DRAWER_SNAP_POINTS"
     :should-scale-background="false"
     :modal="false"
-    handle-only
   >
     <DrawerPortal>
       <DrawerContent

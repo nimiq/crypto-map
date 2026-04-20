@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onLongPress, useSwipe } from '@vueuse/core'
+import { onLongPress, useEventListener } from '@vueuse/core'
 
 const { location } = defineProps<{
   location: LocationDetailResponse
@@ -91,13 +91,6 @@ const { statusInfo, nextChangeText, rotatedHours } = useOpeningHours()
 const { addressRef, showCopiedTooltip } = useAddressCopy()
 
 const scrollEl = useTemplateRef<HTMLElement>('scrollEl')
-
-// At compact we block vertical native scroll (pan-x only) so any upward swipe
-// is captured by the snap handler below. At expanded we explicitly allow
-// vertical+pinch — `auto` alone was not enough to override the ancestor
-// `[data-vaul-drawer] { touch-action: none }` on iOS Safari, which left the
-// container unscrollable. `overflow-y` mirrors the same rule so the browser
-// doesn't paint a scrollbar when the gesture is locked.
 const isCompact = computed(() => snap.value === LOCATION_DRAWER_COMPACT_SNAP_POINT)
 const scrollStyle = computed(() => ({
   touchAction: isCompact.value ? 'pan-x' : 'pan-y pinch-zoom',
@@ -105,26 +98,31 @@ const scrollStyle = computed(() => ({
   overscrollBehavior: 'contain',
 }))
 
-let swipeStartSnap: string | number | null | undefined
-let swipeStartScrollTop = 0
-
-const { direction } = useSwipe(scrollEl, {
-  threshold: 12,
-  onSwipeStart: () => {
-    swipeStartSnap = snap.value
-    swipeStartScrollTop = scrollEl.value?.scrollTop ?? 0
-  },
-  onSwipe: () => {
-    if (direction.value === 'up' && swipeStartSnap === LOCATION_DRAWER_COMPACT_SNAP_POINT) {
-      snap.value = LOCATION_DRAWER_EXPANDED_SNAP_POINT
-      if (scrollEl.value)
-        scrollEl.value.scrollTop = 0
-    }
-    else if (direction.value === 'down' && swipeStartSnap === LOCATION_DRAWER_EXPANDED_SNAP_POINT && swipeStartScrollTop <= 0) {
-      snap.value = LOCATION_DRAWER_COMPACT_SNAP_POINT
-    }
-  },
+watch(isCompact, (v) => {
+  if (v)
+    scrollEl.value?.scrollTo({ top: 0 })
 })
+
+// iOS pan-y consumes overscroll at top and cancels pointer events, so
+// vaul can't drag the drawer closed. Cancel the first downward touchmove
+// at scrollTop=0 to hand the gesture back to vaul's pointer pipeline.
+const touchStart = { y: 0, scrollTop: 0 }
+useEventListener(scrollEl, 'touchstart', (e) => {
+  const touch = e.touches[0]
+  if (!touch)
+    return
+  touchStart.y = touch.clientY
+  touchStart.scrollTop = scrollEl.value?.scrollTop ?? 0
+}, { passive: true })
+useEventListener(scrollEl, 'touchmove', (e) => {
+  if (isCompact.value)
+    return
+  const touch = e.touches[0]
+  if (!touch)
+    return
+  if (touchStart.scrollTop <= 0 && touch.clientY - touchStart.y > 2)
+    e.preventDefault()
+}, { passive: false })
 </script>
 
 <template>
@@ -166,12 +164,12 @@ const { direction } = useSwipe(scrollEl, {
         </div>
 
         <!-- Action Buttons -->
-        <div flex="~ gap-8" mx--16 mt-12 px-16 of-x-auto nq-scrollbar-hide>
-          <NuxtLink :to="directionsUrl" target="_blank" outline="1.5 neutral-0/15 offset--1.5" external shrink-0 nq-arrow nq-pill nq-pill-blue @click.stop>
+        <div flex="~ gap-x-8 wrap" mt-12>
+          <NuxtLink :to="directionsUrl" target="_blank" outline="1.5 neutral-0/15 offset--1.5" max-w-full external shrink-0 nq-arrow nq-pill nq-pill-blue @click.stop>
             <Icon name="i-tabler:directions" size-16 />
             {{ t('location.directions') }}
           </NuxtLink>
-          <NuxtLink v-if="location.gmapsUrl" :to="location.gmapsUrl" target="_blank" outline="1.5 neutral-0/20 offset--1.5" external shrink-0 nq-arrow nq-pill nq-pill-secondary @click.stop>
+          <NuxtLink v-if="location.gmapsUrl" :to="location.gmapsUrl" target="_blank" outline="1.5 neutral-0/20 offset--1.5" max-w-full external shrink-0 nq-arrow nq-pill nq-pill-secondary @click.stop>
             {{ t('location.openInGoogleMaps') }}
           </NuxtLink>
         </div>
